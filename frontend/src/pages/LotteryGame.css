@@ -1,0 +1,226 @@
+.lottery-page {
+  overflow-x: hidden;
+}
+
+.bet-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bet-label {
+  flex: 0 0 auto;
+  min-width: 42px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.bet-input,
+.bet-amount,
+.bet-button {
+  box-sizing: border-box;
+}
+
+.bet-input {
+  flex: 1 1 120px;
+  min-width: 90px;
+  min-height: 50px;
+}
+
+.bet-amount {
+  flex: 0 0 90px;
+  min-width: 90px;
+  min-height: 50px;
+}
+
+.bet-button {
+  flex: 0 0 auto;
+  min-width: 100px;
+  height: 50px;
+  white-space: nowrap;
+}
+
+.bet-row .lottery-button {
+  width: auto;
+}
+
+.lottery-grid-row {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.lottery-grid-row:last-child {
+  border-bottom: none;
+}
+
+.lottery-input {
+  min-height: 50px;
+  height: 50px;
+}
+
+.lottery-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.lottery-tab {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: white;
+  padding: 12px 18px;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.lottery-tab.active,
+.lottery-tab:hover {
+  background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+  border-color: transparent;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.lottery-total-pill,
+.lottery-timer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font-weight: 700;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.lottery-order-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.lottery-order-table th,
+.lottery-order-table td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.lottery-order-table th {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.lottery-footer-button {
+  min-width: 180px;
+}
+
+.btn-gradient-success,
+.btn-gradient-secondary,
+.btn-gradient-warning,
+.btn-gradient-danger {
+  min-width: 100px;
+}
+
+@media (max-width: 480px) {
+  .lottery-page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .lottery-hero,
+  .lottery-section {
+    padding: 18px;
+  }
+
+  .lottery-description {
+    margin-bottom: 14px;
+  }
+
+  .bet-row {
+    gap: 8px;
+  }
+
+  .bet-input,
+  .bet-amount,
+  .bet-button {
+    min-height: 46px;
+    height: 46px;
+  }
+
+  .bet-input {
+    flex: 1 1 100px;
+    min-width: 80px;
+  }
+
+  .bet-amount {
+    flex: 0 0 80px;
+  }
+
+  .bet-button {
+    min-width: 90px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lottery-page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .lottery-hero,
+  .lottery-section {
+    padding: 18px;
+  }
+
+  .lottery-description {
+    margin-bottom: 14px;
+  }
+
+  .bet-row {
+    gap: 8px;
+  }
+
+  .bet-input,
+  .bet-amount,
+  .bet-button {
+    min-height: 46px;
+    height: 46px;
+  }
+
+  .bet-input {
+    flex: 1 1 100px;
+    min-width: 80px;
+  }
+
+  .bet-amount {
+    flex: 0 0 80px;
+  }
+
+  .bet-button {
+    min-width: 90px;
+  }
+}
+
+@media (max-width: 360px) {
+  .bet-row {
+    flex-wrap: wrap;
+  }
+
+  .bet-input,
+  .bet-amount,
+  .bet-button {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .bet-button {
+    margin-top: 8px;
+  }
+}

@@ -1,0 +1,148 @@
+body{
+    margin:0;
+    padding:0;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+.login-page{
+
+    background:#0f1020;
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-card{
+
+    width:380px;
+
+    background:#17182d;
+
+    border-radius:20px;
+
+    padding:35px;
+
+    color:white;
+
+    box-shadow:0 10px 40px rgba(0,0,0,.5);
+}
+
+.logo{
+
+    width:60px;
+    height:60px;
+
+    background:#f4b640;
+
+    border-radius:15px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:30px;
+
+    margin-bottom:15px;
+}
+
+h2{
+
+    margin:0;
+    margin-bottom:20px;
+
+    font-size:30px;
+}
+
+h1{
+
+    margin:0;
+    margin-bottom:10px;
+
+    font-size:36px;
+}
+
+.subtitle{
+
+    color:#9b9b9b;
+
+    margin-bottom:30px;
+}
+
+label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    margin-top:20px;
+}
+
+input{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#24263f;
+
+    color:white;
+
+    font-size:16px;
+
+    box-sizing:border-box;
+}
+
+input:focus{
+
+    outline:none;
+
+    border:2px solid #f4b640;
+}
+
+button{
+
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+
+    margin-top:30px;
+
+    border-radius:12px;
+
+    background:#f4b640;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+button:hover{
+
+    background:#ffca58;
+}
+
+.bottom-text{
+
+    text-align:center;
+
+    margin-top:25px;
+
+    color:#aaa;
+}
+
+.bottom-text span{
+
+    color:#f4b640;
+
+    cursor:pointer;
+}

@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../services/api";
+import { useWallet } from "../context/WalletContext";
 import AppLogo from "../components/AppLogo";
 
 function Register() {
@@ -14,6 +15,8 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const { refreshWallet } = useWallet();
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -57,7 +60,7 @@ function Register() {
     setSubmitting(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
+      const res = await API.post("/auth/register", {
         fullName: trimmedName,
         age: ageNumber,
         gender,
@@ -68,6 +71,9 @@ function Register() {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userName", res.data.data?.fullName || "Player");
+
+      // refresh wallet after registration so UI shows initialized wallet
+      await refreshWallet();
 
       navigate("/dashboard");
     } catch (err) {

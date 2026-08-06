@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { addNotification } from "../services/notificationService";
 import { useWallet } from "../context/WalletContext";
+import { useNotification } from "../context/NotificationContext";
+import API from "../services/api";
 
 function Wallet() {
-  const { balance, deposit, withdraw } = useWallet();
+  const { balance, refreshWallet } = useWallet();
   const [mode, setMode] = useState("add");
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [transactions, setTransactions] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,51 +22,86 @@ function Wallet() {
     setMode(params.get("mode") || "add");
   }, [location.search]);
 
-  const submitWalletAction = () => {
+  const { notify } = useNotification();
+
+  const submitWalletAction = async () => {
+    setError("");
     const value = Number(amount);
 
     if (!value || value <= 0) {
-      alert("Enter a valid amount");
+      notify("warning", "Enter a valid amount");
       return;
     }
 
     if (mode === "withdraw" && value > balance) {
-      alert("Insufficient wallet funds.");
+      notify("error", "Insufficient wallet funds.");
+      return;
+    }
+
+    if (mode === "transfer" && !recipient.trim()) {
+      notify("warning", "Enter a recipient mobile or email");
       return;
     }
 
     const formattedAmount = Number(amount).toFixed(2);
-    const transaction = {
-      id: Date.now(),
-      type: mode === "add" ? "Deposit" : mode === "withdraw" ? "Withdrawal" : "Transfer",
-      amount: value,
-      description:
-        mode === "add"
-          ? `Added ₹${formattedAmount} to your wallet.`
-          : mode === "withdraw"
-          ? `Withdrew ₹${formattedAmount} from your wallet.`
-          : `Sent ₹${formattedAmount} to ${recipient.trim()}.`,
-      timestamp: new Date().toLocaleString(),
-    };
-
-    if (mode === "add") {
-      deposit(value);
-      addNotification("Deposit Received", `₹${formattedAmount} has been added to your wallet.`);
-    } else if (mode === "withdraw") {
-      withdraw(value);
-      addNotification("Withdrawal Processed", `₹${formattedAmount} has been withdrawn from your wallet.`);
-    } else {
-      if (!recipient.trim()) {
-        alert("Enter a recipient mobile or email");
-        return;
-      }
-      withdraw(value);
-      addNotification("Transfer Sent", `₹${formattedAmount} sent to ${recipient.trim()}.`);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      notify("warning", "You must be logged in to perform this action.");
+      return;
     }
 
-    setTransactions((prev) => [transaction, ...prev].slice(0, 6));
-    setAmount("");
-    setRecipient("");
+    setSubmitting(true);
+
+    try {
+      if (mode === "add") {
+        await API.post(
+          "/wallet/add",
+          { amount: value },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        addNotification("Deposit Received", `₹${formattedAmount} has been added to your wallet.`);
+      } else if (mode === "withdraw") {
+        await API.post(
+          "/wallet/withdraw",
+          { amount: value },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        addNotification("Withdrawal Processed", `₹${formattedAmount} has been withdrawn from your wallet.`);
+      } else {
+        await API.post(
+          "/wallet/transfer",
+          { amount: value, recipient: recipient.trim() },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        addNotification("Transfer Sent", `₹${formattedAmount} sent to ${recipient.trim()}.`);
+      }
+
+      const transaction = {
+        id: Date.now(),
+        type: mode === "add" ? "Deposit" : mode === "withdraw" ? "Withdrawal" : "Transfer",
+        amount: value,
+        description:
+          mode === "add"
+            ? `Added ₹${formattedAmount} to your wallet.`
+            : mode === "withdraw"
+            ? `Withdrew ₹${formattedAmount} from your wallet.`
+            : `Sent ₹${formattedAmount} to ${recipient.trim()}.`,
+        timestamp: new Date().toLocaleString(),
+      };
+
+      setTransactions((prev) => [transaction, ...prev].slice(0, 6));
+      setAmount("");
+      setRecipient("");
+
+      await refreshWallet();
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || err.message || "Transaction failed";
+      setError(msg);
+      notify("error", msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -84,6 +123,7 @@ function Wallet() {
             <button
               className={`btn ${mode === "add" ? "btn-gradient-primary" : "btn-secondary-custom"}`}
               onClick={() => navigate("/wallet?mode=add")}
+              disabled={submitting}
               style={{ minWidth: "100px" }}
             >
               Top Up
@@ -91,6 +131,7 @@ function Wallet() {
             <button
               className={`btn ${mode === "withdraw" ? "btn-gradient-primary" : "btn-secondary-custom"}`}
               onClick={() => navigate("/wallet?mode=withdraw")}
+              disabled={submitting}
               style={{ minWidth: "100px" }}
             >
               Withdraw
@@ -98,6 +139,7 @@ function Wallet() {
             <button
               className={`btn ${mode === "transfer" ? "btn-gradient-primary" : "btn-secondary-custom"}`}
               onClick={() => navigate("/wallet?mode=transfer")}
+              disabled={submitting}
               style={{ minWidth: "100px" }}
             >
               Send
@@ -133,12 +175,19 @@ function Wallet() {
             </div>
           )}
 
+          {error && (
+            <div className="alert alert-danger" role="alert" style={{ marginBottom: "12px" }}>
+              {error}
+            </div>
+          )}
+
           <button
             className="btn btn-primary-custom w-100"
             onClick={submitWalletAction}
             style={{ height: "52px" }}
+            disabled={submitting}
           >
-            {mode === "withdraw" ? "Withdraw" : mode === "transfer" ? "Send" : "Top Up"}
+            {submitting ? "Processing..." : mode === "withdraw" ? "Withdraw" : mode === "transfer" ? "Send" : "Top Up"}
           </button>
         </div>
 

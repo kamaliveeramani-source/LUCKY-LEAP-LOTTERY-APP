@@ -84,19 +84,29 @@ exports.drawWinner = async (req, res) => {
     lottery.winnerTicketId = winnerTicket.id;
     await lottery.save();
 
-    // Credit prize to winner
+    // Credit prize to winner via Wallet model
     const winner = await User.findByPk(winnerTicket.UserId);
+    const Wallet = require("../models/Wallet");
 
-    winner.wallet =
-      Number(winner.wallet) + Number(lottery.firstPrize);
+    let winnerWallet = await Wallet.findOne({ where: { UserId: winner.id } });
+    if (!winnerWallet) {
+      winnerWallet = await Wallet.create({ UserId: winner.id, balance: Number(winner.wallet) || 0 });
+    }
 
+    winnerWallet.balance = Number(winnerWallet.balance) + Number(lottery.firstPrize || 0);
+    winnerWallet.winning = (winnerWallet.winning || 0) + Number(lottery.firstPrize || 0);
+    winnerWallet.totalWinning = (winnerWallet.totalWinning || 0) + Number(lottery.firstPrize || 0);
+    await winnerWallet.save();
+
+    // keep legacy user.wallet in sync
+    winner.wallet = winnerWallet.balance;
     await winner.save();
 
     res.status(200).json({
       success: true,
       message: "Winner Selected Successfully",
       winnerTicket,
-      winnerWallet: winner.wallet
+      winnerWallet: winnerWallet.balance
     });
 
   } catch (error) {

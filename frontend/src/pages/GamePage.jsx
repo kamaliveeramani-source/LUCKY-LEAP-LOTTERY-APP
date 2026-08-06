@@ -55,7 +55,9 @@ function GamePage() {
 
   const handlePlay = () => {
     if (!choice) {
-      alert("Please choose an option");
+      // lightweight inline notification
+      const ev = new CustomEvent("ll-notify", { detail: { type: "warning", message: "Please choose an option" } });
+      window.dispatchEvent(ev);
       return;
     }
     const pool = gameType === "dice" ? [1, 2, 3, 4, 5, 6] : game.choices;

@@ -1,6 +1,7 @@
 const Ticket = require("../models/Ticket");
 const Lottery = require("../models/Lottery");
 const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 
 // Buy Ticket
 exports.buyTicket = async (req, res) => {
@@ -25,16 +26,23 @@ exports.buyTicket = async (req, res) => {
       });
     }
 
-    if (Number(user.wallet) < Number(lottery.ticketPrice)) {
+    // Ensure Wallet exists for user
+    let wallet = await Wallet.findOne({ where: { UserId: user.id } });
+    if (!wallet) {
+      wallet = await Wallet.create({ UserId: user.id, balance: Number(user.wallet) || 0 });
+    }
+
+    if (Number(wallet.balance) < Number(lottery.ticketPrice)) {
       return res.status(400).json({
         success: false,
         message: "Insufficient Wallet Balance"
       });
     }
 
-    // Deduct wallet balance
-    user.wallet = Number(user.wallet) - Number(lottery.ticketPrice);
-    await user.save();
+    // Deduct wallet balance and increment todaysBets
+    wallet.balance = Number(wallet.balance) - Number(lottery.ticketPrice);
+    wallet.todaysBets = (wallet.todaysBets || 0) + 1;
+    await wallet.save();
 
     // Generate ticket number
     const ticketNumber =
@@ -49,7 +57,7 @@ exports.buyTicket = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Ticket Purchased Successfully",
-      wallet: user.wallet,
+      wallet: wallet.balance,
       ticket
     });
 

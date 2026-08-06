@@ -29,6 +29,16 @@ app.get("/", (req, res) => {
   });
 });
 
+// Health check endpoint
+app.get("/health", async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    return res.json({ status: "ok", database: "connected", timestamp: new Date().toISOString() });
+  } catch (err) {
+    return res.status(503).json({ status: "error", database: "disconnected", timestamp: new Date().toISOString() });
+  }
+});
+
 // Database Connection
 sequelize
   .authenticate()

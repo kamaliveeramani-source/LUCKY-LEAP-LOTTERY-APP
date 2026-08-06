@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../services/api";
+import { useWallet } from "../context/WalletContext";
+import { useNotification } from "../context/NotificationContext";
 import AppLogo from "../components/AppLogo";
 
 function Login() {
@@ -11,32 +13,31 @@ function Login() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptAge, setAcceptAge] = useState(false);
 
+  const { refreshWallet } = useWallet();
+
+  const { notify } = useNotification();
+
   const loginUser = async (e) => {
     e.preventDefault();
 
     if (!acceptTerms || !acceptAge) {
-      alert("Please accept Terms & Conditions");
+      notify("warning", "Please accept Terms & Conditions");
       return;
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        {
-          mobile,
-          password,
-        }
-      );
-
+      const res = await API.post("/auth/login", { mobile, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userName", res.data.data?.fullName || "Player");
 
-      alert("Login Successful");
+      // refresh wallet after login
+      await refreshWallet();
 
+      notify("success", "Login Successful");
       navigate("/dashboard");
     } catch (err) {
       console.log(err);
-      alert(err.response?.data?.message || "Login Failed");
+      notify("error", err.response?.data?.message || "Login Failed");
     }
   };
 

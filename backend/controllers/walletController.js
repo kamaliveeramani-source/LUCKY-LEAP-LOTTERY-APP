@@ -1,21 +1,29 @@
 const { Op } = require("sequelize");
 const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 
-const normalizeWallet = async (user) => {
+const normalizeUserWallet = async (user) => {
   if (!user) return null;
 
+  // Ensure Wallet record exists and is initialized
+  let wallet = await Wallet.findOne({ where: { UserId: user.id } });
+  if (!wallet) {
+    wallet = await Wallet.create({ UserId: user.id });
+  }
+
+  // keep legacy user.wallet in sync if it exists as null/undefined
   if (user.wallet === null || user.wallet === undefined || Number.isNaN(Number(user.wallet))) {
-    user.wallet = 0;
+    user.wallet = wallet.balance;
     await user.save();
   }
 
-  return user;
+  return { user, wallet };
 };
 
 // Get Wallet Balance
 exports.getWallet = async (req, res) => {
   try {
-    let user = await User.findByPk(req.user.userId);
+    const user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -24,11 +32,18 @@ exports.getWallet = async (req, res) => {
       });
     }
 
-    user = await normalizeWallet(user);
+    const { wallet } = await normalizeUserWallet(user);
 
     res.status(200).json({
       success: true,
-      wallet: Number(user.wallet)
+      wallet: Number(wallet.balance),
+      bonus: Number(wallet.bonus || 0),
+      winning: Number(wallet.winning || 0),
+      todaysEarnings: Number(wallet.todaysEarnings || 0),
+      todaysBets: Number(wallet.todaysBets || 0),
+      totalDeposit: Number(wallet.totalDeposit || 0),
+      totalWithdraw: Number(wallet.totalWithdraw || 0),
+      totalWinning: Number(wallet.totalWinning || 0),
     });
 
   } catch (error) {
@@ -51,7 +66,7 @@ exports.addMoney = async (req, res) => {
       });
     }
 
-    let user = await User.findByPk(req.user.userId);
+    const user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -60,15 +75,20 @@ exports.addMoney = async (req, res) => {
       });
     }
 
-    user = await normalizeWallet(user);
-    user.wallet = Number(user.wallet) + Number(amount);
+    const { wallet } = await normalizeUserWallet(user);
 
+    wallet.balance = Number(wallet.balance) + Number(amount);
+    wallet.totalDeposit = (wallet.totalDeposit || 0) + Number(amount);
+    await wallet.save();
+
+    // keep legacy user.wallet in sync
+    user.wallet = wallet.balance;
     await user.save();
 
     res.status(200).json({
       success: true,
       message: "Money Added Successfully",
-      wallet: user.wallet
+      wallet: wallet.balance
     });
 
   } catch (error) {
@@ -91,7 +111,7 @@ exports.withdrawMoney = async (req, res) => {
       });
     }
 
-    let user = await User.findByPk(req.user.userId);
+    const user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -100,22 +120,26 @@ exports.withdrawMoney = async (req, res) => {
       });
     }
 
-    user = await normalizeWallet(user);
+    const { wallet } = await normalizeUserWallet(user);
 
-    if (Number(user.wallet) < Number(amount)) {
+    if (Number(wallet.balance) < Number(amount)) {
       return res.status(400).json({
         success: false,
         message: "Insufficient Wallet Balance"
       });
     }
 
-    user.wallet = Number(user.wallet) - Number(amount);
+    wallet.balance = Number(wallet.balance) - Number(amount);
+    wallet.totalWithdraw = (wallet.totalWithdraw || 0) + Number(amount);
+    await wallet.save();
+
+    user.wallet = wallet.balance;
     await user.save();
 
     res.status(200).json({
       success: true,
       message: "Withdrawal successful",
-      wallet: user.wallet
+      wallet: wallet.balance
     });
   } catch (error) {
     res.status(500).json({
@@ -144,7 +168,7 @@ exports.transferMoney = async (req, res) => {
       });
     }
 
-    let user = await User.findByPk(req.user.userId);
+    const user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -153,9 +177,9 @@ exports.transferMoney = async (req, res) => {
       });
     }
 
-    user = await normalizeWallet(user);
+    const { wallet: senderWallet } = await normalizeUserWallet(user);
 
-    if (Number(user.wallet) < Number(amount)) {
+    if (Number(senderWallet.balance) < Number(amount)) {
       return res.status(400).json({
         success: false,
         message: "Insufficient Wallet Balance"
@@ -185,16 +209,25 @@ exports.transferMoney = async (req, res) => {
       });
     }
 
-    user.wallet = Number(user.wallet) - Number(amount);
-    recipientUser.wallet = Number(recipientUser.wallet) + Number(amount);
+    const { wallet: recipientWallet } = await normalizeUserWallet(recipientUser);
 
+    // Perform transfer
+    senderWallet.balance = Number(senderWallet.balance) - Number(amount);
+    recipientWallet.balance = Number(recipientWallet.balance) + Number(amount);
+
+    await senderWallet.save();
+    await recipientWallet.save();
+
+    // sync legacy values
+    user.wallet = senderWallet.balance;
+    recipientUser.wallet = recipientWallet.balance;
     await user.save();
     await recipientUser.save();
 
     res.status(200).json({
       success: true,
       message: "Transfer successful",
-      wallet: user.wallet
+      wallet: senderWallet.balance
     });
   } catch (error) {
     res.status(500).json({

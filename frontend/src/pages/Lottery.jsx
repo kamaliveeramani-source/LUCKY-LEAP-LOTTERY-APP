@@ -1,7 +1,9 @@
 ﻿import LotteryCard from "../components/LotteryCard";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useNotification } from "../context/NotificationContext";
+import API from "../services/api";
+import { useWallet } from "../context/WalletContext";
 
 const defaultStateLotteries = [
   {
@@ -117,33 +119,25 @@ function Lottery() {
   const location = useLocation();
   const navigate = useNavigate();
   const [lotteries, setLotteries] = useState([]);
-  const [wallet, setWallet] = useState(0);
+  const { refreshWallet } = useWallet();
+  const { notify } = useNotification();
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    getWallet();
+    refreshWallet();
     getLotteries();
   }, []);
 
   const getWallet = async () => {
     if (!token) return;
 
-    try {
-      const res = await axios.get("http://localhost:5000/api/wallet/balance", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setWallet(res.data.wallet);
-    } catch (err) {
-      console.log(err);
-    }
+    // wallet now managed by WalletContext; refreshWallet called on mount instead
   };
 
   const getLotteries = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/lottery/all");
+      const res = await API.get("/lottery/all");
       const apiLotteries = Array.isArray(res.data.data) ? res.data.data : [];
       const mergedLotteries = [...apiLotteries];
 
@@ -162,16 +156,16 @@ function Lottery() {
 
   const buyTicket = async (lotteryId) => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/ticket/buy",
+      const res = await API.post(
+        "/ticket/buy",
         { lotteryId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert(res.data.message || "Ticket purchased successfully");
-      getWallet();
+      notify("success", res.data.message || "Ticket purchased successfully");
+      await refreshWallet();
     } catch (err) {
-      alert(err.response?.data?.message || "Purchase failed");
+      notify("error", err.response?.data?.message || "Purchase failed");
     }
   };
 

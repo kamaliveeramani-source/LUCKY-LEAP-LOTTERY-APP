@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "../context/WalletContext";
+import { useNotification } from "../context/NotificationContext";
 import "./GamePages.css";
 
 const DICE_OPTIONS = [1, 2, 3, 4, 5, 6];
@@ -24,6 +25,8 @@ function Dice5MinGame() {
   const [history, setHistory] = useState([]);
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -41,20 +44,22 @@ function Dice5MinGame() {
     }
   }, [timeLeft]);
 
-  const handlePlay = () => {
+  const { notify } = useNotification();
+
+  const handlePlay = async () => {
     if (!selectedDie) {
-      alert("Select a dice face before playing.");
+      notify("warning", "Select a dice face before playing.");
       return;
     }
 
     const stake = Number(betAmount);
     if (!betAmount || stake <= 0) {
-      alert("Enter a valid bet amount.");
+      notify("warning", "Enter a valid bet amount.");
       return;
     }
 
     if (stake > balance) {
-      alert("Insufficient wallet balance for this bet.");
+      notify("error", "Insufficient wallet balance for this bet.");
       return;
     }
 
@@ -63,8 +68,21 @@ function Dice5MinGame() {
     const payout = win ? stake * 150 : 0;
     const balanceAfter = win ? balance - stake + payout : balance - stake;
 
-    withdraw(stake);
-    if (win) deposit(payout);
+    setSubmitting(true);
+    setError("");
+    try {
+      await withdraw(stake);
+      if (win) await deposit(payout);
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || err.message || "Bet failed";
+      setError(msg);
+      notify("error", msg);
+      setSubmitting(false);
+      return;
+    } finally {
+      setSubmitting(false);
+    }
 
     const entry = {
       id: Date.now(),
@@ -140,13 +158,14 @@ function Dice5MinGame() {
           />
         </div>
 
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="game-action-row">
           <div>
             <div className="game-card-title">Odds</div>
             <p className="game-card-value">{ODDS}</p>
           </div>
-          <button type="button" className="btn btn-gradient-warning btn-pill" onClick={handlePlay}>
-            Play Now
+          <button type="button" className="btn btn-gradient-warning btn-pill" onClick={handlePlay} disabled={submitting}>
+            {submitting ? "Processing..." : "Play Now"}
           </button>
         </div>
       </div>

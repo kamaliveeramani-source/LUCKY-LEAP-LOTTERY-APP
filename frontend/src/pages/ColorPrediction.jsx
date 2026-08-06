@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "../context/WalletContext";
+import { useNotification } from "../context/NotificationContext";
 import "./GamePages.css";
 
 const COLORS = [
@@ -35,6 +36,8 @@ function ColorPrediction() {
   const [history, setHistory] = useState([]);
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -53,25 +56,27 @@ function ColorPrediction() {
     }
   }, [timeLeft]);
 
-  const handlePlay = () => {
+  const { notify } = useNotification();
+
+  const handlePlay = async () => {
     if (!selectedColour) {
-      alert("Choose a colour to bet on.");
+      notify("warning", "Choose a colour to bet on.");
       return;
     }
 
     if (selectedNumber === null) {
-      alert("Choose a number between 0 and 9.");
+      notify("warning", "Choose a number between 0 and 9.");
       return;
     }
 
     const stake = Number(betAmount);
     if (!betAmount || stake <= 0) {
-      alert("Enter a valid bet amount.");
+      notify("warning", "Enter a valid bet amount.");
       return;
     }
 
     if (stake > balance) {
-      alert("Insufficient wallet balance for this bet.");
+      notify("error", "Insufficient wallet balance for this bet.");
       return;
     }
 
@@ -82,8 +87,21 @@ function ColorPrediction() {
     const payout = exactWin ? stake * 250 : colourWin ? stake * 50 : 0;
     const balanceAfter = exactWin || colourWin ? balance - stake + payout : balance - stake;
 
-    withdraw(stake);
-    if (payout > 0) deposit(payout);
+    setSubmitting(true);
+    setError("");
+    try {
+      await withdraw(stake);
+      if (payout > 0) await deposit(payout);
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || err.message || "Bet failed";
+      setError(msg);
+      notify("error", msg);
+      setSubmitting(false);
+      return;
+    } finally {
+      setSubmitting(false);
+    }
 
     const entry = {
       id: Date.now(),
@@ -176,13 +194,14 @@ function ColorPrediction() {
           />
         </div>
 
-        <div className="game-action-row">
+          {error && <div className="alert alert-danger" role="alert">{error}</div>}
+          <div className="game-action-row">
           <div>
             <div className="game-card-title">Payout</div>
             <p className="game-card-note">Colour win pays 50x, exact number match pays 250x.</p>
           </div>
-          <button type="button" className="btn btn-gradient-secondary btn-pill" onClick={handlePlay}>
-            Play Now
+          <button type="button" className="btn btn-gradient-secondary btn-pill" onClick={handlePlay} disabled={submitting}>
+            {submitting ? "Processing..." : "Play Now"}
           </button>
         </div>
       </div>

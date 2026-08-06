@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from "react";
+import { useNotification } from "../context/NotificationContext";
 import { useWallet } from "../context/WalletContext";
 import "./LotteryGame.css";
 
@@ -74,83 +75,84 @@ function LotteryGame() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const { notify } = useNotification();
+
   const addSingle = (type, number, amount) => {
     if (number.trim() === "") {
-      alert("Enter Number");
+      notify("warning", "Enter Number");
       return;
     }
 
     if (amount === "") {
-      alert("Enter Amount");
+      notify("warning", "Enter Amount");
       return;
     }
-
     addBet({ id: Date.now(), game: "Single", type, number, amount: Number(amount) });
-    alert("Single bet added to the slip.");
+    notify("success", "Single bet added to the slip.");
   };
 
   const addDouble = (type, number, amount) => {
     if (number.trim() === "") {
-      alert("Enter Double Digit");
+      notify("warning", "Enter Double Digit");
       return;
     }
 
     if (number.length !== 2) {
-      alert("Enter exactly 2 digits.");
+      notify("warning", "Enter exactly 2 digits.");
       return;
     }
 
     if (amount === "") {
-      alert("Enter Amount");
+      notify("warning", "Enter Amount");
       return;
     }
 
     addBet({ id: Date.now(), game: "Double", type, number, amount: Number(amount) });
-    alert("Double bet added to the slip.");
+    notify("success", "Double bet added to the slip.");
   };
 
   const addTriple = () => {
     if (tripleABC.trim() === "") {
-      alert("Enter Triple Digit");
+      notify("warning", "Enter Triple Digit");
       return;
     }
 
     if (tripleABC.length !== 3) {
-      alert("Triple Digit must contain exactly 3 numbers");
+      notify("warning", "Triple Digit must contain exactly 3 numbers");
       return;
     }
 
     if (tripleAmount === "") {
-      alert("Enter Amount");
+      notify("warning", "Enter Amount");
       return;
     }
 
     addBet({ id: Date.now(), game: "Triple", type: tripleType, number: tripleABC, amount: Number(tripleAmount) });
     setTripleABC("");
     setTripleAmount("");
-    alert("Triple bet added to the slip.");
+    notify("success", "Triple bet added to the slip.");
   };
 
   const addFour = () => {
     if (fourABCD.trim() === "") {
-      alert("Enter Four Digit");
+      notify("warning", "Enter Four Digit");
       return;
     }
 
     if (fourABCD.length !== 4) {
-      alert("Four Digit must contain exactly 4 numbers");
+      notify("warning", "Four Digit must contain exactly 4 numbers");
       return;
     }
 
     if (fourAmount === "") {
-      alert("Enter Amount");
+      notify("warning", "Enter Amount");
       return;
     }
 
     addBet({ id: Date.now(), game: "Four", type: fourType, number: fourABCD, amount: Number(fourAmount) });
     setFourABCD("");
     setFourAmount("");
-    alert("Four bet added to the slip.");
+    notify("success", "Four bet added to the slip.");
   };
 
   const removeOrder = (id) => {
@@ -185,14 +187,14 @@ function LotteryGame() {
     return 0;
   };
 
-  const buyTicket = () => {
+  const buyTicket = async () => {
     if (orders.length === 0) {
-      alert("Add at least one bet to place your ticket.");
+      notify("warning", "Add at least one bet to place your ticket.");
       return;
     }
 
     if (totalAmount > balance) {
-      alert("Insufficient wallet balance for this ticket.");
+      notify("error", "Insufficient wallet balance for this ticket.");
       return;
     }
 
@@ -220,9 +222,14 @@ function LotteryGame() {
       })
       .join(" | ");
 
-    withdraw(totalAmount);
-    if (payout > 0) {
-      deposit(payout);
+    try {
+      await withdraw(totalAmount);
+      if (payout > 0) await deposit(payout);
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || err.message || "Ticket purchase failed";
+      notify("error", msg);
+      return;
     }
 
     setGameHistory((prev) => [
@@ -242,7 +249,7 @@ function LotteryGame() {
     setOrders([]);
     setRoundId(createRoundId());
     setTimeLeft(3600);
-    alert(`Ticket placed. ${outcome === "Win" ? `You won ₹${payout}!` : "No winning bets this round."}`);
+    notify("success", `Ticket placed. ${outcome === "Win" ? `You won ₹${payout}!` : "No winning bets this round."}`);
   };
 
   const sectionTitleStyle = {

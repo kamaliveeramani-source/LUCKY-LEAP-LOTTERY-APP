@@ -1,4 +1,6 @@
 function WalletCard({ wallet, refreshWallet, loading, error }) {
+  // `wallet` may be an object with fields or a number fallback
+  const w = typeof wallet === "object" && wallet !== null ? wallet : { wallet: Number(wallet || 0) };
   return (
     <div className="surface-bright rounded-3 p-4" style={{ color: "var(--text)", marginBottom: "20px" }}>
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -18,18 +20,24 @@ function WalletCard({ wallet, refreshWallet, loading, error }) {
         </button>
       </div>
 
+
       {error ? (
         <div className="text-danger" style={{ marginBottom: "12px" }}>{error}</div>
       ) : null}
 
       <h1 className="accent-text" style={{ fontWeight: "bold" }}>
-        ₹ {wallet}
+        ₹ {w.wallet?.toLocaleString?.() ?? Number(w.wallet).toFixed(2)}
       </h1>
 
       <div className="d-flex justify-content-between mt-3">
-        <span>Withdrawable</span>
+        <span>Bonus</span>
 
-        <strong>₹ {wallet}</strong>
+        <strong>₹ {w.bonus?.toLocaleString?.() ?? Number(w.bonus).toFixed(2)}</strong>
+      </div>
+
+      <div className="d-flex justify-content-between mt-2">
+        <span>Winning</span>
+        <strong>₹ {w.winning?.toLocaleString?.() ?? Number(w.winning).toFixed(2)}</strong>
       </div>
 
       <button

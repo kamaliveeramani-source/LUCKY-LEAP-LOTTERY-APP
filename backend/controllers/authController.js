@@ -47,9 +47,11 @@ exports.signup = async (req, res) => {
       wallet: 0
     });
 
-    if (user && (user.wallet === null || user.wallet === undefined)) {
-      user.wallet = 0;
-      await user.save();
+    // Create associated Wallet record if not present
+    const Wallet = require("../models/Wallet");
+    const existingWallet = await Wallet.findOne({ where: { UserId: user.id } });
+    if (!existingWallet) {
+      await Wallet.create({ UserId: user.id });
     }
 
     // Generate JWT

@@ -48,6 +48,7 @@ function JackpotGame() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(() => getTimeRemaining(nextDrawAt));
   const timerRef = useRef(null);
+  const [placing, setPlacing] = useState(false);
 
   useEffect(() => {
     savePool(pool);
@@ -124,7 +125,7 @@ function JackpotGame() {
     }
   };
 
-  const placeBet = () => {
+  const placeBet = async () => {
     if (isDrawing) {
       setToast({ type: "error", message: "Wait for the draw to complete." });
       return;
@@ -141,16 +142,26 @@ function JackpotGame() {
       return;
     }
 
-    withdraw(amount);
+    setPlacing(true);
+    try {
+      await withdraw(amount);
+    } catch (err) {
+      console.error(err);
+      setToast({ type: "error", message: err.response?.data?.message || err.message || "Bet failed" });
+      setPlacing(false);
+      return;
+    }
+
     const nextPool = pool + amount;
     const nextParticipants = addRandomParticipants(addUserParticipant(participants), Math.floor(Math.random() * 2) + 1);
 
     setPool(nextPool);
     setParticipants(nextParticipants);
     setToast({ type: "success", message: `Placed ₹${amount.toLocaleString()} on the jackpot.` });
+    setPlacing(false);
   };
 
-  const runDraw = () => {
+  const runDraw = async () => {
     if (isDrawing) return;
     setIsDrawing(true);
     const activeParticipants = participants.length ? participants : createDemoParticipants(6);
@@ -175,8 +186,13 @@ function JackpotGame() {
     const nextDrawMs = Date.now() + getDrawSeconds() * 1000;
     const nextPool = RESET_POOL_AFTER_DRAW ? FALLBACK_POOL : pool;
 
-    if (winner.isUser) {
-      deposit(prize);
+      if (winner.isUser) {
+      try {
+        await deposit(prize);
+      } catch (err) {
+        console.error("deposit after jackpot win", err);
+        // still continue — deposit failure will be surfaced via WalletContext error handling
+      }
     }
 
     setHistory(nextHistory);
@@ -250,8 +266,8 @@ function JackpotGame() {
             <span className="bet-hint">Min ₹{MIN_BET} · Max ₹{MAX_BET}</span>
           </div>
           <div className="jackpot-action-row">
-            <button type="button" className="btn btn-gradient-primary btn-pill" onClick={placeBet}>
-              Place Bet
+            <button type="button" className="btn btn-gradient-primary btn-pill" onClick={placeBet} disabled={placing}>
+              {placing ? "Placing..." : "Place Bet"}
             </button>
             <button type="button" className="btn btn-secondary-custom btn-pill" onClick={() => navigate("/wallet")}>Open Wallet</button>
           </div>

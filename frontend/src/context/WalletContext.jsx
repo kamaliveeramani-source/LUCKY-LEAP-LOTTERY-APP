@@ -1,28 +1,94 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import API from "../services/api";
 
 const WalletContext = createContext(null);
-const WALLET_KEY = "demoWalletBalance";
-const DEFAULT_BALANCE = 25000;
+
+const EMPTY_WALLET = {
+  wallet: 0,
+  bonus: 0,
+  winning: 0,
+  todaysEarnings: 0,
+  todaysBets: 0,
+  totalDeposit: 0,
+  totalWithdraw: 0,
+  totalWinning: 0,
+};
 
 export function WalletProvider({ children }) {
-  const [balance, setBalance] = useState(() => {
-    const stored = window.localStorage.getItem(WALLET_KEY);
-    return stored && !Number.isNaN(Number(stored)) ? Number(stored) : DEFAULT_BALANCE;
-  });
+  const [wallet, setWallet] = useState(EMPTY_WALLET);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const refreshWallet = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+
+    setLoading(true);
+    setError("");
+    try {
+      const res = await API.get("/wallet/balance", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data || {};
+      // API returns fields like wallet, bonus, winning, todaysEarnings, todaysBets, totalDeposit, totalWithdraw, totalWinning
+      const next = {
+        wallet: Number(data.wallet || 0),
+        bonus: Number(data.bonus || 0),
+        winning: Number(data.winning || 0),
+        todaysEarnings: Number(data.todaysEarnings || 0),
+        todaysBets: Number(data.todaysBets || 0),
+        totalDeposit: Number(data.totalDeposit || 0),
+        totalWithdraw: Number(data.totalWithdraw || 0),
+        totalWinning: Number(data.totalWinning || 0),
+      };
+
+      setWallet(next);
+      return next;
+    } catch (err) {
+      console.error("refreshWallet", err);
+      setError(err.response?.data?.message || "Unable to load wallet");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(WALLET_KEY, String(balance));
-  }, [balance]);
+    // auto-refresh on mount if token present
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) refreshWallet();
+    }
+  }, [refreshWallet]);
 
-  const updateBalance = (delta) => {
-    setBalance((current) => Math.max(0, Number((current + Number(delta)).toFixed(2))));
+  // Server-backed update helpers used by games and UI
+  const deposit = async (amount) => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+      await API.post("/wallet/add", { amount }, { headers: { Authorization: `Bearer ${token}` } });
+      return await refreshWallet();
+    } catch (err) {
+      console.error("deposit", err);
+      throw err;
+    }
   };
 
-  const deposit = (amount) => updateBalance(Number(amount));
-  const withdraw = (amount) => updateBalance(-Number(amount));
+  const withdraw = async (amount) => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+      await API.post("/wallet/withdraw", { amount }, { headers: { Authorization: `Bearer ${token}` } });
+      return await refreshWallet();
+    } catch (err) {
+      console.error("withdraw", err);
+      throw err;
+    }
+  };
 
   return (
-    <WalletContext.Provider value={{ balance, updateBalance, deposit, withdraw }}>
+    <WalletContext.Provider value={{ wallet, balance: wallet.wallet, loading, error, refreshWallet, deposit, withdraw }}>
       {children}
     </WalletContext.Provider>
   );

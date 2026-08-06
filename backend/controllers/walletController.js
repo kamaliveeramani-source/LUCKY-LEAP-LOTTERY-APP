@@ -1,10 +1,21 @@
 const { Op } = require("sequelize");
 const User = require("../models/User");
 
+const normalizeWallet = async (user) => {
+  if (!user) return null;
+
+  if (user.wallet === null || user.wallet === undefined || Number.isNaN(Number(user.wallet))) {
+    user.wallet = 0;
+    await user.save();
+  }
+
+  return user;
+};
+
 // Get Wallet Balance
 exports.getWallet = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.userId);
+    let user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -13,9 +24,11 @@ exports.getWallet = async (req, res) => {
       });
     }
 
+    user = await normalizeWallet(user);
+
     res.status(200).json({
       success: true,
-      wallet: user.wallet
+      wallet: Number(user.wallet)
     });
 
   } catch (error) {
@@ -38,7 +51,7 @@ exports.addMoney = async (req, res) => {
       });
     }
 
-    const user = await User.findByPk(req.user.userId);
+    let user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -47,6 +60,7 @@ exports.addMoney = async (req, res) => {
       });
     }
 
+    user = await normalizeWallet(user);
     user.wallet = Number(user.wallet) + Number(amount);
 
     await user.save();
@@ -77,7 +91,7 @@ exports.withdrawMoney = async (req, res) => {
       });
     }
 
-    const user = await User.findByPk(req.user.userId);
+    let user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -85,6 +99,8 @@ exports.withdrawMoney = async (req, res) => {
         message: "User not found"
       });
     }
+
+    user = await normalizeWallet(user);
 
     if (Number(user.wallet) < Number(amount)) {
       return res.status(400).json({
@@ -128,7 +144,7 @@ exports.transferMoney = async (req, res) => {
       });
     }
 
-    const user = await User.findByPk(req.user.userId);
+    let user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
@@ -136,6 +152,8 @@ exports.transferMoney = async (req, res) => {
         message: "User not found"
       });
     }
+
+    user = await normalizeWallet(user);
 
     if (Number(user.wallet) < Number(amount)) {
       return res.status(400).json({

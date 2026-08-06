@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WalletProvider } from "./context/WalletContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -28,7 +29,8 @@ import Support from "./pages/Support";
 
 function App() {
   return (
-    <WalletProvider>
+    <ThemeProvider>
+      <WalletProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<MobileLayout />}>
@@ -62,7 +64,8 @@ function App() {
 
         </Routes>
       </BrowserRouter>
-    </WalletProvider>
+      </WalletProvider>
+    </ThemeProvider>
   );
 }
 

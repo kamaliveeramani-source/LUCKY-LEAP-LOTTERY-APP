@@ -43,8 +43,14 @@ exports.signup = async (req, res) => {
       gender,
       mobile,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      wallet: 0
     });
+
+    if (user && (user.wallet === null || user.wallet === undefined)) {
+      user.wallet = 0;
+      await user.save();
+    }
 
     // Generate JWT
     const token = jwt.sign(

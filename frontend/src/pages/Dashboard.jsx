@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import WalletCard from "../components/WalletCard";
+import API from "../services/api";
 import ActionButtons from "../components/ActionButtons";
 import MenuList from "../components/MenuList";
 import { addNotification } from "../services/notificationService";
@@ -62,9 +63,10 @@ function Dashboard() {
   const [lotteries, setLotteries] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [greeting, setGreeting] = useState({ name: "Player", time: "", date: "" });
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState("");
 
   const token = localStorage.getItem("token");
-  console.log("TOKEN:", token);
 
   useEffect(() => {
     if (!token) {
@@ -94,19 +96,26 @@ function Dashboard() {
   };
 
   const getWallet = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/wallet/balance",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    if (!token) return;
 
-      setWallet(res.data.wallet);
+    setWalletLoading(true);
+    setWalletError("");
+
+    try {
+      const res = await API.get("/wallet/balance", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const nextWallet = res.data?.wallet ?? res.data?.data?.wallet ?? 0;
+      setWallet(nextWallet);
     } catch (err) {
-      console.log(err);
+      const message = err.response?.data?.message || "Unable to refresh wallet right now.";
+      setWalletError(message);
+      console.error(err);
+    } finally {
+      setWalletLoading(false);
     }
   };
 
@@ -188,7 +197,7 @@ function Dashboard() {
           </div>
         </div>
 
-        <WalletCard wallet={wallet} refreshWallet={getWallet} />
+        <WalletCard wallet={wallet} refreshWallet={getWallet} loading={walletLoading} error={walletError} />
         <ActionButtons />
         <MenuList />
 

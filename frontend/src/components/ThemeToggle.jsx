@@ -1,12 +1,7 @@
-import { useEffect, useState } from "react";
-import { applyTheme, getStoredTheme } from "../theme";
+import { useTheme } from "../context/ThemeContext";
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState(getStoredTheme());
-
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="theme-toggle">

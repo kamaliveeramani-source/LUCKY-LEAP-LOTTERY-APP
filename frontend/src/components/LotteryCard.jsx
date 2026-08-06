@@ -12,9 +12,10 @@ import keralaBumper from "../assets/lotteries/kerala-bumper.png";
 import defaultLotteryImage from "../assets/lotteries/lottery.png";
 
 const lotteryImages = {
+  "KERALA STATE LOTTERY": keralaBumper,
+  "KERALA BUMPER": keralaBumper,
   "NAGALAND MORNING": nagalandMorning,
   "STHREE SAKTHI": sthreeSakthi,
-  "KERALA BUMPER": keralaBumper,
   "NAGALAND DAY": nagalandDay,
   "NAGALAND EVENING": nagalandEvening,
   "KARUNYA PLUS": karunyaPlus,
@@ -38,7 +39,7 @@ const formatShortDate = (dateString) => {
 function LotteryCard({ lottery, onClick, actionLabel }) {
   const name = (lottery.lotteryName || lottery.name || "").toString();
   const imageKey = name.trim().toUpperCase().replace(/\s+/g, " ");
-  const normalizedKey = imageKey.replace(/-/g, " ");
+  const normalizedKey = imageKey.replace(/-/g, " ").replace(/\s+/g, " ").trim();
   const imageSrc = lotteryImages[normalizedKey] || lottery.image || defaultLotteryImage;
   const ticketPrice = lottery.ticketPrice ?? lottery.price;
 

@@ -1,4 +1,4 @@
-function WalletCard({ wallet, refreshWallet }) {
+function WalletCard({ wallet, refreshWallet, loading, error }) {
   return (
     <div className="surface-bright rounded-3 p-4" style={{ color: "var(--text)", marginBottom: "20px" }}>
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -12,10 +12,15 @@ function WalletCard({ wallet, refreshWallet }) {
           style={{ padding: "5px 15px" }}
           type="button"
           onClick={refreshWallet}
+          disabled={loading}
         >
-          Refresh
+          {loading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
+
+      {error ? (
+        <div className="text-danger" style={{ marginBottom: "12px" }}>{error}</div>
+      ) : null}
 
       <h1 className="accent-text" style={{ fontWeight: "bold" }}>
         ₹ {wallet}

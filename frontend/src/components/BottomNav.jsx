@@ -1,40 +1,31 @@
 ﻿import { Link, useLocation } from "react-router-dom";
 
+const navItems = [
+  { path: "/home", icon: "🏠", label: "Home" },
+  { path: "/lottery", icon: "🎲", label: "Lottery", matchPrefix: true },
+  { path: "/wallet", icon: "💰", label: "Wallet" },
+  { path: "/my-games", icon: "🎮", label: "Games" },
+  { path: "/dashboard", icon: "👤", label: "Profile" },
+];
+
 function BottomNav() {
   const location = useLocation();
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
+
+  const isActive = (path, matchPrefix) =>
+    matchPrefix ? location.pathname.startsWith(path) : location.pathname === path;
 
   return (
-    <nav className="bottom-nav">
-      <Link to="/home" className={isActive("/home") ? "active" : ""}>
-        🏠
-        <br />
-        Home
-      </Link>
-
-      <Link to="/lottery" className={isActive("/lottery") ? "active" : ""}>
-        🎲
-        <br />
-        Lottery
-      </Link>
-
-      <Link to="/wallet" className={isActive("/wallet") ? "active" : ""}>
-        💰
-        <br />
-        Wallet
-      </Link>
-
-      <Link to="/my-games" className={isActive("/my-games") ? "active" : ""}>
-        🎮
-        <br />
-        My Games
-      </Link>
-
-      <Link to="/dashboard" className={isActive("/dashboard") ? "active" : ""}>
-        👤
-        <br />
-        Profile
-      </Link>
+    <nav className="bottom-nav" aria-label="Main navigation">
+      {navItems.map((item) => (
+        <Link
+          key={item.path}
+          to={item.path}
+          className={`bottom-nav-link ${isActive(item.path, item.matchPrefix) ? "active" : ""}`}
+        >
+          <span className="bottom-nav-icon" aria-hidden="true">{item.icon}</span>
+          {item.label}
+        </Link>
+      ))}
     </nav>
   );
 }

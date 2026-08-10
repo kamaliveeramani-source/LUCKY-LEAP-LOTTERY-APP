@@ -1,5 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { useWallet } from "../context/WalletContext";
 import LotteryCard from "../components/LotteryCard";
 import "./GamePages.css";
@@ -164,112 +163,21 @@ const lotteryCards = [
 function Home() {
   const navigate = useNavigate();
   const { balance } = useWallet();
-  const [countdown, setCountdown] = useState(0);
-  const [jackpotRound, setJackpotRound] = useState(() => window.localStorage.getItem("jackpot_current_round") || "ROUND-1524");
-  const [lastWinner, setLastWinner] = useState(() => {
-    const stored = window.localStorage.getItem("jackpot_history");
-    if (stored) {
-      const history = JSON.parse(stored);
-      const last = history[0];
-      return last ? `${last.winnerName} ₹${Number(last.prize).toLocaleString()}` : "No winners yet";
-    }
-    return "No winners yet";
-  });
-  const [jackpotPool, setJackpotPool] = useState(() => {
-    const stored = window.localStorage.getItem("jackpot_pool");
-    return stored && !Number.isNaN(Number(stored)) ? Number(stored) : 32000000;
-  });
-
-  useEffect(() => {
-    const nextDraw = Number(window.localStorage.getItem("jackpot_next_draw"));
-    const targetTime = nextDraw && !Number.isNaN(nextDraw) ? nextDraw : Date.now() + 300000;
-    window.localStorage.setItem("jackpot_next_draw", String(targetTime));
-    const interval = window.setInterval(() => {
-      const diff = Math.ceil((targetTime - Date.now()) / 1000);
-      setCountdown(diff > 0 ? diff : 0);
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const storedPool = window.localStorage.getItem("jackpot_pool");
-    if (storedPool && !Number.isNaN(Number(storedPool))) {
-      setJackpotPool(Number(storedPool));
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleStorage = () => {
-      const storedPool = window.localStorage.getItem("jackpot_pool");
-      if (storedPool && !Number.isNaN(Number(storedPool))) {
-        setJackpotPool(Number(storedPool));
-      }
-      const storedRound = window.localStorage.getItem("jackpot_current_round");
-      if (storedRound) {
-        setJackpotRound(storedRound);
-      }
-      const storedHistory = window.localStorage.getItem("jackpot_history");
-      if (storedHistory) {
-        const history = JSON.parse(storedHistory);
-        const last = history[0];
-        if (last) {
-          setLastWinner(`${last.winnerName} ₹${Number(last.prize).toLocaleString()}`);
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
-
-  const countdownLabel = useMemo(() => {
-    const minutes = Math.floor(countdown / 60);
-    const seconds = countdown % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  }, [countdown]);
 
   return (
     <div className="page-content">
-      <div className="home-widget-card">
+      <div className="home-wallet-banner">
         <div>
-          <div className="wallet-label">Balance</div>
+          <div className="home-wallet-label">Your Balance</div>
           <div className="wallet-value">₹ {balance.toLocaleString()}</div>
         </div>
         <div className="home-wallet-actions">
-          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/my-games")}>Play Now</button>
-          <button type="button" className="btn btn-secondary-custom btn-pill" onClick={() => navigate("/wallet")}>Go to Wallet</button>
-        </div>
-      </div>
-
-      <div className="home-top-cards">
-        <div className="wallet-card compact-card">
-          <div className="wallet-card-head">
-            <span className="wallet-card-title">WALLET BALANCE</span>
-            <div className="wallet-value">₹{balance.toLocaleString()}</div>
-            <div className="wallet-subtitle">Available to play now</div>
-          </div>
-          <div className="wallet-card-foot">
-            <button type="button" className="btn-wallet-circle" onClick={() => navigate("/wallet?mode=add")}>+</button>
-            <span className="wallet-winners">12,450 winners</span>
-          </div>
-        </div>
-
-        <div className="promo-card jackpot-card compact-card">
-          <div className="jackpot-card-head">
-            <span className="jackpot-label">JACKPOT</span>
-            <div className="jackpot-title">Mega Gold Draw</div>
-          </div>
-          <div className="jackpot-details">
-            <div className="jackpot-row">
-              <span>Prize Pool</span>
-              <strong>₹{jackpotPool.toLocaleString()}</strong>
-            </div>
-            <div className="jackpot-row">
-              <span>Countdown</span>
-              <strong>{countdownLabel}</strong>
-            </div>
-          </div>
-          <button type="button" className="btn-gradient jackpot-play-btn" onClick={() => navigate("/jackpot")}>Play Jackpot</button>
+          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/my-games")}>
+            Play Now
+          </button>
+          <button type="button" className="btn btn-secondary-custom btn-pill" onClick={() => navigate("/wallet?mode=add")}>
+            Add Money
+          </button>
         </div>
       </div>
 
@@ -287,32 +195,34 @@ function Home() {
             <div className="section-label">Popular Games</div>
             <div className="section-note">Fast access to your favourite betting rounds.</div>
           </div>
-          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/my-games")}>View All Games</button>
+          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/my-games")}>
+            View All Games
+          </button>
         </div>
 
         <div className="popular-game-grid">
-          <button type="button" className="popular-game-card" onClick={() => navigate("/lottery-game") }>
+          <button type="button" className="popular-game-card" onClick={() => navigate("/lottery-game")}>
             <div className="popular-game-image">🎟</div>
             <div className="popular-game-title">Kerala Lottery</div>
             <div className="popular-game-desc">Play Kerala lottery and win big prizes.</div>
             <span className="popular-game-action">Play Now</span>
           </button>
 
-          <button type="button" className="popular-game-card" onClick={() => navigate("/dice-3") }>
+          <button type="button" className="popular-game-card" onClick={() => navigate("/dice-3")}>
             <div className="popular-game-image">🎲</div>
             <div className="popular-game-title">Dice 3 Minutes</div>
             <div className="popular-game-desc">Predict the winning dice. Odds 1:150.</div>
             <span className="popular-game-action">Play Now</span>
           </button>
 
-          <button type="button" className="popular-game-card" onClick={() => navigate("/dice-5") }>
+          <button type="button" className="popular-game-card" onClick={() => navigate("/dice-5")}>
             <div className="popular-game-image">🎲</div>
             <div className="popular-game-title">Dice 5 Minutes</div>
             <div className="popular-game-desc">Longer rounds with 1:150 odds.</div>
             <span className="popular-game-action">Play Now</span>
           </button>
 
-          <button type="button" className="popular-game-card" onClick={() => navigate("/color-prediction") }>
+          <button type="button" className="popular-game-card" onClick={() => navigate("/color-prediction")}>
             <div className="popular-game-image">🎨</div>
             <div className="popular-game-title">Colour Prediction</div>
             <div className="popular-game-desc">Predict Green, Violet or Red in 1-minute rounds.</div>
@@ -321,7 +231,7 @@ function Home() {
         </div>
       </section>
 
-      <div className="home-card-grid">
+      <div className="lottery-card-grid-premium">
         {lotteryCards.map((lottery) => (
           <LotteryCard
             key={lottery.id}

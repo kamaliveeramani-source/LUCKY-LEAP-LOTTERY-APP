@@ -1,50 +1,30 @@
 import { useNavigate } from "react-router-dom";
 
+const menuItems = [
+  { icon: "🎟", label: "Buy Lottery", path: "/lottery" },
+  { icon: "🎯", label: "My Bets", path: "/lotterygame" },
+  { icon: "🎫", label: "My Tickets", path: "/dashboard" },
+  { icon: "💰", label: "Wallet", path: "/wallet" },
+];
+
 function MenuList() {
   const navigate = useNavigate();
 
   return (
-    <div className="card mb-4">
-      <div className="card-body">
-
-        <h5>Quick Menu</h5>
-
-        <ul className="list-group">
-
-          <li
-            className="list-group-item"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/lottery")}
+    <div>
+      <h5 className="quick-menu-heading">Quick Menu</h5>
+      <div className="quick-menu-grid">
+        {menuItems.map((item) => (
+          <button
+            key={item.path}
+            type="button"
+            className="quick-menu-tile"
+            onClick={() => navigate(item.path)}
           >
-            🎟 Buy Lottery
-          </li>
-
-          <li
-            className="list-group-item"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/lotterygame")}
-          >
-            🎯 My Bets
-          </li>
-
-          <li
-            className="list-group-item"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/dashboard")}
-          >
-            🎫 My Tickets
-          </li>
-
-          <li
-            className="list-group-item"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/wallet")}
-          >
-            💰 Wallet
-          </li>
-
-        </ul>
-
+            <span className="quick-menu-tile-icon" aria-hidden="true">{item.icon}</span>
+            <span className="quick-menu-tile-label">{item.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

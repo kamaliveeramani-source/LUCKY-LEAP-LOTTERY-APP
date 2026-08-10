@@ -80,6 +80,28 @@
   flex: 1;
 }
 
+body.theme-dark .side-drawer {
+  background: rgba(30, 41, 59, 0.98);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.35);
+}
+
+body.theme-dark .side-drawer-item {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+body.theme-dark .side-drawer-close {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+body.theme-dark .side-drawer-support {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 .side-drawer-item {
   width: 100%;
   display: flex;

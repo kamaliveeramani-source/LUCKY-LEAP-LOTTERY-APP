@@ -245,7 +245,7 @@ function Lottery() {
             </div>
           </div>
         ) : (
-          <div className="lottery-card-grid">
+          <div className="lottery-card-grid-premium">
             {displayedLotteries.map((lottery) => (
               <LotteryCard
                 key={lottery.id}

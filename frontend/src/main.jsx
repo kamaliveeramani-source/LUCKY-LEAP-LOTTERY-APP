@@ -6,6 +6,9 @@ import { NotificationProvider } from "./context/NotificationContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "./index.css";
+import "./styles/Components.css";
+import "./styles/Auth.css";
+import "./styles/Dashboard.css";
 
 applyTheme();
 

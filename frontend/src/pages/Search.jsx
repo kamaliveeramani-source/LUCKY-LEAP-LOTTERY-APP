@@ -12,7 +12,7 @@ const searchItems = [
   { label: "Samrudhi", type: "Lottery", route: "/lottery?lotteryId=state-samrudhi" },
   { label: "Bhagyathara", type: "Lottery", route: "/lottery?lotteryId=state-bhagyathara" },
   { label: "Win Win", type: "Lottery", route: "/lottery?lotteryId=state-win-win" },
-  { label: "Jackpot Boost", type: "Promotion", route: "/promotions" },
+  { label: "Mega Draw Bonus", type: "Promotion", route: "/promotions" },
   { label: "Daily Spin", type: "Promotion", route: "/promotions" },
   { label: "Bonus Voucher", type: "Promotion", route: "/promotions" },
 ];

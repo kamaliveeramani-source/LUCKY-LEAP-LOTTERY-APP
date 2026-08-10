@@ -5,15 +5,6 @@ import "./GamePages.css";
 
 const quickGames = [
   {
-    id: "jackpot",
-    banner: "💎",
-    title: "Jackpot",
-    path: "/jackpot",
-    odds: "1:5,000",
-    image: "💰",
-    duration: "Live Draw",
-  },
-  {
     id: "kerala-lottery",
     banner: "🎟",
     title: "Kerala Lottery",
@@ -62,7 +53,7 @@ const demoWinners = [
 const promotions = [
   { id: "dice-mania", title: "Dice Mania", badge: "🔥", subtitle: "1:150 Odds" },
   { id: "colour-bonus", title: "Colour Prediction", badge: "🎨", subtitle: "Extra Bonus" },
-  { id: "kerala-jackpot", title: "Kerala Jackpot", badge: "🎟", subtitle: "Mega Prize" },
+  { id: "kerala-lottery", title: "Kerala Lottery", badge: "🎟", subtitle: "Mega Prize" },
 ];
 
 const activityFeed = [
@@ -89,33 +80,24 @@ function MyGames() {
   const navigate = useNavigate();
   const { balance } = useWallet();
   const [roundIncrement, setRoundIncrement] = useState(1);
-  const [nextDraw, setNextDraw] = useState(138);
-  const [jackpotPool, setJackpotPool] = useState(() => {
-    const stored = window.localStorage.getItem("jackpot_pool");
-    return stored && !Number.isNaN(Number(stored)) ? Number(stored) : 32000000;
-  });
-  const [jackpotRound, setJackpotRound] = useState(() => window.localStorage.getItem("jackpot_current_round") || "ROUND-1524");
+  const [nextDraw, setNextDraw] = useState(180);
   const [bonusBalance] = useState(520);
   const [winningsToday] = useState(18400);
   const [showFabMenu, setShowFabMenu] = useState(false);
 
   useEffect(() => {
-    const nextDrawAt = Number(window.localStorage.getItem("jackpot_next_draw")) || Date.now() + 300000;
-    window.localStorage.setItem("jackpot_next_draw", String(nextDrawAt));
     const timer = window.setInterval(() => {
-      const diff = Math.ceil((nextDrawAt - Date.now()) / 1000);
-      if (diff <= 0) {
-        setRoundIncrement((current) => current + 1);
-        setNextDraw(180);
-        window.localStorage.setItem("jackpot_next_draw", String(Date.now() + 300000));
-        setJackpotRound(window.localStorage.getItem("jackpot_current_round") || jackpotRound);
-        return;
-      }
-      setNextDraw(diff);
+      setNextDraw((current) => {
+        if (current <= 1) {
+          setRoundIncrement((inc) => inc + 1);
+          return 180;
+        }
+        return current - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [jackpotRound]);
+  }, []);
 
   const currentRound = useMemo(() => formatRound("KL", roundIncrement), [roundIncrement]);
 
@@ -164,21 +146,6 @@ function MyGames() {
       </div>
 
       <section className="quick-play-grid">
-        <article className="quick-play-card jackpot-lobby-card" onClick={() => navigate("/jackpot")}> 
-          <div className="quick-play-card-top">
-            <div className="quick-play-image">💎</div>
-            <span className="game-badge live">Jackpot</span>
-          </div>
-          <div className="quick-play-card-body">
-            <h3>Live Jackpot</h3>
-            <p>Prize pool grows as users place bets. New winner every 5 minutes.</p>
-            <div className="quick-play-meta">
-              <span>Pool: ₹{jackpotPool.toLocaleString()}</span>
-              <span>Next: {formatSeconds(nextDraw)}</span>
-            </div>
-          </div>
-          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/jackpot")}>Play Now</button>
-        </article>
         {quickGames.map((game) => (
           <article key={game.id} className="quick-play-card">
             <div className="quick-play-card-top">

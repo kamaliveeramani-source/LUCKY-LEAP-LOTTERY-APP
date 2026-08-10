@@ -104,55 +104,46 @@ function Wallet() {
     }
   };
 
+  const modeLabels = { add: "Top Up", withdraw: "Withdraw", transfer: "Send" };
+  const txnIcons = { Deposit: "deposit", Withdrawal: "withdrawal", Transfer: "transfer" };
+  const txnEmoji = { Deposit: "↑", Withdrawal: "↓", Transfer: "↔" };
+
   return (
-      <div className="page-content">
-        <div className="text-center" style={{ marginBottom: "22px" }}>
-          <div className="badge-pill">Wallet</div>
-          <h2 className="page-title" style={{ margin: "10px 0 6px", fontWeight: 800 }}>Manage Funds</h2>
-          <p className="text-muted">Add, withdraw, or transfer cash in the demo wallet.</p>
-        </div>
+    <div className="page-content">
+      <div className="text-center" style={{ marginBottom: "22px" }}>
+        <div className="badge-pill">Wallet</div>
+        <h2 className="page-title" style={{ margin: "10px 0 6px", fontWeight: 800 }}>Manage Funds</h2>
+        <p className="text-muted">Add, withdraw, or transfer cash in your wallet.</p>
+      </div>
 
-        <div className="card-panel card-panel-strong mb-4">
-          <h5>Available Balance</h5>
+      <div className="wallet-hero-card">
+        <div className="wallet-hero-label">Available Balance</div>
+        <div className="wallet-hero-balance">₹ {balance.toLocaleString()}</div>
+      </div>
 
-          <h1 style={{ color: "var(--accent)" }}>
-            ₹ {balance.toLocaleString()}
-          </h1>
+      <div className="wallet-mode-tabs">
+        {["add", "withdraw", "transfer"].map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            className={`wallet-mode-tab ${mode === tab ? "active" : ""}`}
+            onClick={() => navigate(`/wallet?mode=${tab}`)}
+            disabled={submitting}
+          >
+            {modeLabels[tab]}
+          </button>
+        ))}
+      </div>
 
-          <div className="btn-group" style={{ marginTop: "18px" }}>
-            <button
-              className={`btn ${mode === "add" ? "btn-gradient-primary" : "btn-secondary-custom"}`}
-              onClick={() => navigate("/wallet?mode=add")}
-              disabled={submitting}
-              style={{ minWidth: "100px" }}
-            >
-              Top Up
-            </button>
-            <button
-              className={`btn ${mode === "withdraw" ? "btn-gradient-primary" : "btn-secondary-custom"}`}
-              onClick={() => navigate("/wallet?mode=withdraw")}
-              disabled={submitting}
-              style={{ minWidth: "100px" }}
-            >
-              Withdraw
-            </button>
-            <button
-              className={`btn ${mode === "transfer" ? "btn-gradient-primary" : "btn-secondary-custom"}`}
-              onClick={() => navigate("/wallet?mode=transfer")}
-              disabled={submitting}
-              style={{ minWidth: "100px" }}
-            >
-              Send
-            </button>
-          </div>
-        </div>
+      <div className="wallet-form-card">
+        <h5>{mode === "withdraw" ? "Withdraw Funds" : mode === "transfer" ? "Send Funds" : "Top Up Wallet"}</h5>
 
-        <div className="card-panel card-panel-strong mb-4">
-          <h5>{mode === "withdraw" ? "Withdraw Funds" : mode === "transfer" ? "Send Funds" : "Top Up Wallet"}</h5>
-
-          <div className="form-group" style={{ marginBottom: "16px" }}>
-            <label>Amount</label>
+        <div className="wallet-input-group">
+          <label htmlFor="wallet-amount">Amount</label>
+          <div className="wallet-input-wrap">
+            <span className="wallet-input-prefix">₹</span>
             <input
+              id="wallet-amount"
               className="form-control"
               type="number"
               min="1"
@@ -161,58 +152,64 @@ function Wallet() {
               placeholder="Enter amount"
             />
           </div>
-
-          {mode === "transfer" && (
-            <div className="form-group" style={{ marginBottom: "16px" }}>
-              <label>Recipient (mobile or email)</label>
-              <input
-                className="form-control"
-                type="text"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                placeholder="Enter recipient mobile number or email"
-              />
-            </div>
-          )}
-
-          {error && (
-            <div className="alert alert-danger" role="alert" style={{ marginBottom: "12px" }}>
-              {error}
-            </div>
-          )}
-
-          <button
-            className="btn btn-primary-custom w-100"
-            onClick={submitWalletAction}
-            style={{ height: "52px" }}
-            disabled={submitting}
-          >
-            {submitting ? "Processing..." : mode === "withdraw" ? "Withdraw" : mode === "transfer" ? "Send" : "Top Up"}
-          </button>
         </div>
 
-        <div>
-          <h4 style={{ marginBottom: "14px" }}>Recent Transactions</h4>
+        {mode === "transfer" && (
+          <div className="wallet-input-group">
+            <label htmlFor="wallet-recipient">Recipient (mobile or email)</label>
+            <input
+              id="wallet-recipient"
+              className="form-control"
+              type="text"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              placeholder="Enter recipient mobile number or email"
+              style={{ height: "52px", borderRadius: "14px" }}
+            />
+          </div>
+        )}
 
-          {transactions.length === 0 ? (
-            <div className="card-panel card-panel-strong">
-              <p className="text-muted" style={{ margin: 0 }}>No transactions yet. Use the controls above to update the wallet.</p>
-            </div>
-          ) : (
-            <div className="card-panel card-panel-strong">
-              {transactions.map((txn) => (
-                <div key={txn.id} style={{ marginBottom: "14px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-                    <strong>{txn.type}</strong>
-                    <span style={{ color: "var(--text-secondary)" }}>{txn.timestamp}</span>
-                  </div>
-                  <p style={{ margin: "6px 0 0", color: "var(--text-secondary)" }}>{txn.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {error ? (
+          <div className="auth-error" role="alert" style={{ marginBottom: "12px" }}>{error}</div>
+        ) : null}
+
+        <button
+          type="button"
+          className="wallet-submit-btn"
+          onClick={submitWalletAction}
+          disabled={submitting}
+        >
+          {submitting ? "Processing..." : modeLabels[mode]}
+        </button>
       </div>
+
+      <div>
+        <h4 style={{ marginBottom: "14px", fontWeight: 800 }}>Recent Transactions</h4>
+
+        {transactions.length === 0 ? (
+          <div className="wallet-form-card">
+            <p className="text-muted" style={{ margin: 0, textAlign: "center" }}>
+              No transactions yet. Use the controls above to update the wallet.
+            </p>
+          </div>
+        ) : (
+          <div className="txn-list">
+            {transactions.map((txn) => (
+              <div key={txn.id} className="txn-item">
+                <div className={`txn-icon ${txnIcons[txn.type]}`}>
+                  {txnEmoji[txn.type]}
+                </div>
+                <div className="txn-body">
+                  <div className="txn-type">{txn.type}</div>
+                  <p className="txn-desc">{txn.description}</p>
+                </div>
+                <span className="txn-time">{txn.timestamp}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

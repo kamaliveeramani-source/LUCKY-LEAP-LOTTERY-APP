@@ -6,6 +6,8 @@ import WalletCard from "../components/WalletCard";
 import { useWallet } from "../context/WalletContext";
 import ActionButtons from "../components/ActionButtons";
 import MenuList from "../components/MenuList";
+import LotteryCard from "../components/LotteryCard";
+import TicketCard from "../components/TicketCard";
 import { addNotification } from "../services/notificationService";
 import { useNotification } from "../context/NotificationContext";
 
@@ -21,7 +23,7 @@ const defaultStateLotteries = [
   },
   {
     id: "state-mumbai",
-    lotteryName: "Maharashtra Jackpot",
+    lotteryName: "Maharashtra Mega",
     ticketPrice: 120,
     firstPrize: 1800000,
     secondPrize: 90000,
@@ -138,19 +140,17 @@ function Dashboard() {
   };
 
   return (
-    <div className="page-content">
-      <div className="top-row">
-        <div>
-          <div className="badge-pill">Dashboard</div>
-          <h2 className="page-title" style={{ marginTop: "12px" }}>Hi, {greeting.name}</h2>
-          <p className="text-muted" style={{ margin: "6px 0 0" }}>
-            {greeting.date} • {greeting.time}
-          </p>
+    <div className="page-content dashboard-page">
+      <div className="dashboard-top-row">
+        <div className="dashboard-greeting">
+          <span className="dashboard-badge">Dashboard</span>
+          <h2 className="dashboard-greeting-name">Hi, {greeting.name}</h2>
+          <p className="dashboard-greeting-meta">{greeting.date} • {greeting.time}</p>
         </div>
 
-        <div className="flex-stack">
+        <div className="dashboard-top-actions">
           <ThemeToggle />
-          <button className="btn btn-secondary-custom logout-btn" onClick={logout}>
+          <button type="button" className="btn btn-secondary-custom dashboard-logout-btn" onClick={logout}>
             Logout
           </button>
         </div>
@@ -160,52 +160,43 @@ function Dashboard() {
       <ActionButtons />
       <MenuList />
 
-      <h3 className="section-title">🎲 Available Lotteries</h3>
+      <div className="section-header-row">
+        <h3><span className="section-header-icon" aria-hidden="true">🎲</span>Available Lotteries</h3>
+      </div>
 
-      <div className="home-card-grid">
+      <div className="lottery-card-grid-premium">
         {lotteries.map((lottery) => (
-          <div key={lottery.id} className="home-card" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #ec4899 100%)" }}>
-            <div>
-              <div className="home-card-title">{lottery.lotteryName}</div>
-              <div className="home-card-jackpot">₹ {lottery.firstPrize}</div>
-              <div className="home-card-subtitle">
-                Ticket ₹{lottery.ticketPrice} • {lottery.drawDate ? new Date(lottery.drawDate).toLocaleDateString() : "Draw Soon"}
-              </div>
-            </div>
-            <div className="home-card-options">
-              <button
-                className="btn btn-sm btn-outline-light"
-                style={{ minWidth: "110px" }}
-                onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
-              >
-                Details
-              </button>
-            </div>
-          </div>
+          <LotteryCard
+            key={lottery.id}
+            lottery={lottery}
+            actionLabel="Buy Ticket"
+            onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
+            onActionClick={() => buyTicket(lottery.id, lottery.lotteryName)}
+          />
         ))}
       </div>
 
-      <h3 className="section-title">🎫 My Tickets</h3>
+      <div className="section-header-row">
+        <h3><span className="section-header-icon" aria-hidden="true">🎫</span>My Tickets</h3>
+      </div>
 
       {tickets.length === 0 ? (
-        <div className="card-panel card-panel-strong">
+        <div className="ticket-empty-state">
+          <div className="ticket-empty-icon" aria-hidden="true">🎫</div>
           <p className="text-muted" style={{ margin: 0 }}>No tickets purchased yet.</p>
+          <button
+            type="button"
+            className="btn btn-gradient-primary btn-pill"
+            style={{ marginTop: "16px" }}
+            onClick={() => navigate("/lottery")}
+          >
+            Browse Lotteries
+          </button>
         </div>
       ) : (
-        <div className="home-card-grid">
+        <div className="ticket-cards-grid">
           {tickets.map((ticket) => (
-            <div key={ticket.id} className="card-panel card-panel-strong">
-              <div className="home-card-title">{ticket.ticketNumber}</div>
-              <p className="text-muted" style={{ margin: "6px 0 10px" }}>
-                {ticket.Lottery?.lotteryName || "Unknown Lottery"}
-              </p>
-              <div className="d-flex justify-content-between align-items-center" style={{ gap: "10px" }}>
-                <span>{ticket.Lottery?.drawDate ? new Date(ticket.Lottery.drawDate).toLocaleDateString() : "-"}</span>
-                <span className="badge-pill" style={{ padding: "6px 12px", fontSize: "0.8rem" }}>
-                  {ticket.Lottery?.winnerTicketId === ticket.id ? "Won" : "Pending"}
-                </span>
-              </div>
-            </div>
+            <TicketCard key={ticket.id} ticket={ticket} />
           ))}
         </div>
       )}

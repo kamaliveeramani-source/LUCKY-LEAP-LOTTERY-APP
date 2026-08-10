@@ -2,7 +2,7 @@ import logo from "../assets/luckyleap.png.jpeg";
 
 function AppLogo({ compact = false, className = "" }) {
   return (
-    <div className={`app-logo ${className}`}>
+    <div className={`app-logo ${compact ? "compact" : ""} ${className}`.trim()}>
       <img src={logo} alt="Lucky Leap logo" className="app-logo-image" />
       {!compact && (
         <div className="app-logo-text">

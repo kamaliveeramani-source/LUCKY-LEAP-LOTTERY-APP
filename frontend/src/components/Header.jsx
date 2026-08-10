@@ -1,3 +1,5 @@
+import AppLogo from "./AppLogo";
+
 function Header({ onMenuClick, onNotificationsClick, onSearchClick }) {
   const userName = localStorage.getItem("userName") || "Player";
 
@@ -7,6 +9,7 @@ function Header({ onMenuClick, onNotificationsClick, onSearchClick }) {
         <button type="button" className="icon-btn menu-toggle" onClick={onMenuClick} aria-label="Open menu">
           ☰
         </button>
+        <AppLogo compact className="header-logo" />
         <div className="header-greeting">
           <div className="header-greeting-main">Hi, {userName} 👋</div>
           <div className="header-greeting-sub">Good Luck Today!</div>

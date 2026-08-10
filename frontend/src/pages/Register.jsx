@@ -72,7 +72,6 @@ function Register() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userName", res.data.data?.fullName || "Player");
 
-      // refresh wallet after registration so UI shows initialized wallet
       await refreshWallet();
 
       navigate("/dashboard");
@@ -85,128 +84,125 @@ function Register() {
   };
 
   return (
-      <div className="page-content d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
-        <div className="card-panel card-panel-strong" style={{ width: "100%", maxWidth: "520px", padding: "36px", borderRadius: "24px", color: "var(--text)" }}>
-          <div className="text-center mb-4">
-            <AppLogo />
-            <h1 className="mt-3" style={{ fontWeight: "bold" }}>Create Account</h1>
-            <p className="text-muted">Sign up to start playing and managing your lottery entries.</p>
+    <div className="auth-page">
+      <div className="auth-card auth-card-wide">
+        <div className="auth-header">
+          <AppLogo />
+          <h1 className="auth-title">Create Account</h1>
+          <p className="auth-subtitle">Sign up to start playing and managing your lottery entries.</p>
+        </div>
+
+        {error ? <div className="auth-error" role="alert">{error}</div> : null}
+
+        <form onSubmit={handleRegister}>
+          <div className="auth-field">
+            <label htmlFor="reg-name">Full Name</label>
+            <input
+              id="reg-name"
+              type="text"
+              className="auth-input"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Enter full name"
+              required
+            />
           </div>
 
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleRegister}>
-            <div className="mb-3">
-              <label className="form-label">Full Name</label>
+          <div className="auth-row">
+            <div className="auth-field">
+              <label htmlFor="reg-age">Age</label>
               <input
-                type="text"
-                className="form-control"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter full name"
+                id="reg-age"
+                type="number"
+                className="auth-input"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                placeholder="18+"
+                min="18"
+                required
               />
             </div>
 
-            <div className="row g-3 mb-3">
-              <div className="col-md-4">
-                <label className="form-label">Age</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="Enter your age"
-                  min="18"
-                />
-              </div>
-
-              <div className="col-md-8">
-                <label className="form-label">Gender</label>
-                <select
-                  className="form-select"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                >
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+            <div className="auth-field">
+              <label htmlFor="reg-gender">Gender</label>
+              <select
+                id="reg-gender"
+                className="auth-input"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                required
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
             </div>
-
-            <div className="mb-3">
-              <label className="form-label">Mobile Number</label>
-              <input
-                type="tel"
-                className="form-control"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                placeholder="Enter your mobile number"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Email ID</label>
-              <input
-                type="email"
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Choose a strong password"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label">Retype Password</label>
-              <input
-                type="password"
-                className="form-control"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm password"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="btn w-100"
-              style={{
-                background: "var(--accent)",
-                color: "var(--text-secondary)",
-                fontWeight: "bold",
-                height: "50px",
-                borderRadius: "12px",
-                border: "1px solid transparent",
-                boxShadow: "0 10px 20px rgba(0, 0, 0, 0.08)"
-              }}
-              disabled={submitting}
-            >
-              {submitting ? "Creating Account..." : "Create Account"}
-            </button>
-          </form>
-
-          <div className="text-center mt-4">
-            <span style={{ color: "var(--text-muted)" }}>Already have an account? </span>
-            <button type="button" className="btn btn-link p-0" style={{ color: "var(--accent)" }} onClick={() => navigate("/login")}>Sign In</button>
           </div>
+
+          <div className="auth-field">
+            <label htmlFor="reg-mobile">Mobile Number</label>
+            <input
+              id="reg-mobile"
+              type="tel"
+              className="auth-input"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              placeholder="Enter your mobile number"
+              required
+            />
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="reg-email">Email ID</label>
+            <input
+              id="reg-email"
+              type="email"
+              className="auth-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              required
+            />
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="reg-password">Password</label>
+            <input
+              id="reg-password"
+              type="password"
+              className="auth-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Choose a strong password"
+              required
+            />
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="reg-confirm">Retype Password</label>
+            <input
+              id="reg-confirm"
+              type="password"
+              className="auth-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm password"
+              required
+            />
+          </div>
+
+          <button type="submit" className="auth-submit" disabled={submitting}>
+            {submitting ? "Creating Account..." : "Create Account"}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          Already have an account?{" "}
+          <button type="button" className="auth-link" onClick={() => navigate("/login")}>Sign In</button>
         </div>
       </div>
+    </div>
   );
 }
 

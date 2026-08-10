@@ -31,8 +31,8 @@ const defaultNotifications = [
   },
   {
     id: 5,
-    title: "🏆 Jackpot Draw Today",
-    message: "A big jackpot draw is happening soon — place your bet now.",
+    title: "🏆 Mega Draw Today",
+    message: "A big lottery draw is happening soon — place your ticket now.",
     time: new Date().toISOString(),
     read: false,
   },

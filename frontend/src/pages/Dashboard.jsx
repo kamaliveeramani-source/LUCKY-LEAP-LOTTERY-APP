@@ -139,8 +139,10 @@ function Dashboard() {
     navigate("/login");
   };
 
+  const featuredLottery = lotteries[0] || defaultStateLotteries[0];
+
   return (
-    <div className="page-content dashboard-page">
+    <div className="page-content dashboard-page dashboard-shell">
       <div className="dashboard-top-row">
         <div className="dashboard-greeting">
           <span className="dashboard-badge">Dashboard</span>
@@ -156,25 +158,98 @@ function Dashboard() {
         </div>
       </div>
 
+      <section className="emerald-hero-card dashboard-hero-card">
+        <div className="hero-top-row">
+          <span className="hero-live-pill">WELCOME BACK</span>
+          <span className="hero-chip">Ready to play</span>
+        </div>
+
+        <div className="hero-main-row">
+          <div>
+            <h1>Play & Win Big!</h1>
+            <p>Track your wallet, discover new draws, and jump into your next lucky ticket.</p>
+          </div>
+          <div className="hero-wallet-box">
+            <span>Wallet balance</span>
+            <strong>₹ {wallet.wallet?.toLocaleString?.() ?? Number(wallet.wallet || 0).toFixed(2)}</strong>
+          </div>
+        </div>
+
+        <div className="hero-actions">
+          <button type="button" className="btn btn-primary-custom hero-primary-btn" onClick={() => navigate("/lottery")}>
+            Play Now
+          </button>
+          <button type="button" className="btn btn-secondary-custom hero-secondary-btn" onClick={() => navigate("/add-cash")}>
+            Add Cash
+          </button>
+        </div>
+      </section>
+
       <WalletCard wallet={wallet} refreshWallet={refreshWallet} loading={walletLoading} error={walletError} />
       <ActionButtons />
       <MenuList />
 
-      <div className="section-header-row">
-        <h3><span className="section-header-icon" aria-hidden="true">🎲</span>Available Lotteries</h3>
-      </div>
+      <section className="live-lottery-panel">
+        <div className="section-title-row">
+          <div>
+            <div className="section-kicker">Live Lottery</div>
+            <h3>Featured draw</h3>
+          </div>
+          <button type="button" className="mini-link-btn" onClick={() => navigate("/lottery")}>View All</button>
+        </div>
 
-      <div className="lottery-card-grid-premium">
-        {lotteries.map((lottery) => (
-          <LotteryCard
-            key={lottery.id}
-            lottery={lottery}
-            actionLabel="Buy Ticket"
-            onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
-            onActionClick={() => buyTicket(lottery.id, lottery.lotteryName)}
-          />
-        ))}
-      </div>
+        {featuredLottery && (
+          <div className="live-lottery-card" onClick={() => navigate(`/lottery?lotteryId=${featuredLottery.id}`)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate(`/lottery?lotteryId=${featuredLottery.id}`)}>
+            <div className="live-lottery-content">
+              <div className="live-lottery-badge">LIVE</div>
+              <h4>{featuredLottery.lotteryName || featuredLottery.name}</h4>
+              <p>{new Date(featuredLottery.drawDate).toLocaleDateString(undefined, { day: "numeric", month: "short" })} • {new Date(featuredLottery.drawDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+              <div className="live-lottery-stats">
+                <span>
+                  Prize: ₹
+                  {Number(featuredLottery.firstPrize ?? featuredLottery.prize ?? 0).toLocaleString()}
+                </span>
+                <span>Ticket: ₹{Number(featuredLottery.ticketPrice ?? featuredLottery.price ?? 0).toLocaleString()}</span>
+              </div>
+            </div>
+            <button type="button" className="btn btn-primary-custom live-lottery-btn" onClick={(event) => { event.stopPropagation(); navigate(`/lottery?lotteryId=${featuredLottery.id}`); }}>
+              Play Now
+            </button>
+          </div>
+        )}
+      </section>
+
+      <section className="today-draws-panel">
+        <div className="section-title-row">
+          <div>
+            <div className="section-kicker">Today’s Draws</div>
+            <h3>Lucky picks</h3>
+          </div>
+          <button type="button" className="mini-link-btn" onClick={() => navigate("/lottery")}>View All</button>
+        </div>
+
+        <div className="lottery-card-grid-premium compact-grid">
+          {lotteries.slice(0, 4).map((lottery) => (
+            <LotteryCard
+              key={lottery.id}
+              lottery={lottery}
+              actionLabel="Play Now"
+              onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
+              onActionClick={() => buyTicket(lottery.id, lottery.lotteryName)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="security-panel">
+        <div className="trust-card">
+          <div className="trust-icon">🛡️</div>
+          <div className="trust-copy">
+            <h4>Play Safe. Play Smart.</h4>
+            <p>Set a budget, review draw times, and keep your wallet in control before every ticket purchase.</p>
+          </div>
+        </div>
+      </section>
 
       <div className="section-header-row">
         <h3><span className="section-header-icon" aria-hidden="true">🎫</span>My Tickets</h3>

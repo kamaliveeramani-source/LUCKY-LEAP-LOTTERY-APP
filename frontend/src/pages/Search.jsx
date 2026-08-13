@@ -48,7 +48,7 @@ function Search() {
                   key={item.label}
                   type="button"
                   className="home-card"
-                  style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}
+                  style={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)" }}
                   onClick={() => navigate(item.route)}
                 >
                   <div>

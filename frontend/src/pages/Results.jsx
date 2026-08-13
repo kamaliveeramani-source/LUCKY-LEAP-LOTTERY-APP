@@ -41,7 +41,7 @@ function Results() {
         ) : (
           <div className="home-card-grid">
             {lotteries.map((lottery) => (
-              <div key={lottery.id} className="home-card" style={{ background: "linear-gradient(135deg, rgba(249,186,59,0.95), rgba(251,146,60,0.95))" }}>
+              <div key={lottery.id} className="home-card" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.96), rgba(4,120,87,0.96))" }}>
                 <div>
                   <div className="home-card-title">{lottery.lotteryName}</div>
                   <div className="home-card-subtitle" style={{ marginTop: "8px" }}>

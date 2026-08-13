@@ -7,6 +7,7 @@ const menuItems = [
   { icon: "🏠", label: "Home", path: "/home" },
   { icon: "🎟", label: "Lottery", path: "/lottery" },
   { icon: "💰", label: "Wallet", path: "/wallet" },
+  { icon: "💳", label: "Add Cash", path: "/add-cash" },
   { icon: "🎮", label: "My Games", path: "/my-games" },
   { icon: "🎁", label: "Promotions", path: "/promotions" },
   { icon: "ℹ", label: "About Us", path: "/about" },

@@ -6,7 +6,7 @@ function About() {
   return (
       <div className="page-content">
         <div className="card-panel card-panel-strong" style={{ marginBottom: "18px" }}>
-          <div className="badge-pill" style={{ background: "linear-gradient(90deg, #f59e0b, #ec4899)", color: "#fff" }}>
+          <div className="badge-pill" style={{ background: "linear-gradient(90deg, #6d28d9, #7c3aed)", color: "#fff" }}>
             About Us
           </div>
           <h2 style={{ margin: "16px 0 10px" }}>Lucky Leap</h2>

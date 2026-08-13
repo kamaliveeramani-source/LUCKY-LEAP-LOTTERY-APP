@@ -19,8 +19,15 @@ function Wallet() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    setMode(params.get("mode") || "add");
-  }, [location.search]);
+    const nextMode = params.get("mode");
+
+    if (nextMode === "add") {
+      navigate("/add-cash", { replace: true });
+      return;
+    }
+
+    setMode(["withdraw", "transfer"].includes(nextMode) ? nextMode : "withdraw");
+  }, [location.search, navigate]);
 
   const { notify } = useNotification();
 
@@ -104,7 +111,7 @@ function Wallet() {
     }
   };
 
-  const modeLabels = { add: "Top Up", withdraw: "Withdraw", transfer: "Send" };
+  const modeLabels = { withdraw: "Withdraw", transfer: "Send" };
   const txnIcons = { Deposit: "deposit", Withdrawal: "withdrawal", Transfer: "transfer" };
   const txnEmoji = { Deposit: "↑", Withdrawal: "↓", Transfer: "↔" };
 
@@ -122,7 +129,7 @@ function Wallet() {
       </div>
 
       <div className="wallet-mode-tabs">
-        {["add", "withdraw", "transfer"].map((tab) => (
+        {["withdraw", "transfer"].map((tab) => (
           <button
             key={tab}
             type="button"
@@ -136,7 +143,7 @@ function Wallet() {
       </div>
 
       <div className="wallet-form-card">
-        <h5>{mode === "withdraw" ? "Withdraw Funds" : mode === "transfer" ? "Send Funds" : "Top Up Wallet"}</h5>
+        <h5>{mode === "withdraw" ? "Withdraw Funds" : "Send Funds"}</h5>
 
         <div className="wallet-input-group">
           <label htmlFor="wallet-amount">Amount</label>
@@ -183,8 +190,13 @@ function Wallet() {
         </button>
       </div>
 
-      <div>
-        <h4 style={{ marginBottom: "14px", fontWeight: 800 }}>Recent Transactions</h4>
+      <div style={{ marginTop: "18px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+          <h4 style={{ margin: 0, fontWeight: 800 }}>Recent Transactions</h4>
+          <button type="button" className="btn btn-secondary-custom" onClick={() => navigate("/add-cash")}>
+            Add Cash
+          </button>
+        </div>
 
         {transactions.length === 0 ? (
           <div className="wallet-form-card">

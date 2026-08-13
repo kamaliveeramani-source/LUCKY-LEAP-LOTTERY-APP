@@ -4,7 +4,7 @@ function ActionButtons() {
   const navigate = useNavigate();
 
   const actions = [
-    { id: "deposit", label: "Deposit", icon: "💳", className: "deposit", path: "/wallet?mode=add" },
+    { id: "deposit", label: "Deposit", icon: "💳", className: "deposit", path: "/add-cash" },
     { id: "withdraw", label: "Withdraw", icon: "💸", className: "withdraw", path: "/wallet?mode=withdraw" },
     { id: "transfer", label: "Transfer", icon: "↔", className: "transfer", path: "/wallet?mode=transfer" },
     { id: "bets", label: "My Bets", icon: "🎯", className: "bets", path: "/lotterygame" },

@@ -47,7 +47,7 @@ export function NotificationProvider({ children }) {
                 display: "flex",
                 gap: 12,
                 alignItems: "center",
-                borderLeft: `4px solid ${t.type === "success" ? "#10b981" : t.type === "error" ? "#ef4444" : t.type === "warning" ? "#f59e0b" : "#3b82f6"}`,
+                borderLeft: `4px solid ${t.type === "success" ? "#7c3aed" : t.type === "error" ? "#ef4444" : t.type === "warning" ? "#f59e0b" : "#3b82f6"}`,
               }}
             >
               <div style={{ flex: 1 }}>

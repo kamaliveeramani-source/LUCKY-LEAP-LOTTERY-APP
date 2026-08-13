@@ -11,6 +11,31 @@ import winWin from "../assets/lotteries/win-win.png";
 import keralaBumper from "../assets/lotteries/kerala-bumper.png";
 import defaultLotteryImage from "../assets/lotteries/lottery.png";
 
+function TicketIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M6 4.75h8.3a1.7 1.7 0 0 1 1.7 1.7v1.2a1.7 1.7 0 0 0 0 3.4v1.2a1.7 1.7 0 0 1-1.7 1.7H6a1.7 1.7 0 0 1-1.7-1.7v-1.2a1.7 1.7 0 0 0 0-3.4V6.45A1.7 1.7 0 0 1 6 4.75Zm2 4.2h4.2M8 12.2h4.2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M5.5 4.5V3m9 1.5V3M4 7.5h12M5 9.5h10v6H5v-6Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M10 6.2v4.1l2.8 1.7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 const lotteryImages = {
   "KERALA STATE LOTTERY": keralaBumper,
   "KERALA BUMPER": keralaBumper,
@@ -176,13 +201,13 @@ function LotteryCard({ lottery, onClick, actionLabel = "View Details", onActionC
       <div className="lottery-card-premium-body">
         <div className="lottery-card-premium-meta">
           {ticketPrice ? (
-            <span className="lottery-meta-pill price">🎫 ₹{ticketPrice}</span>
+            <span className="lottery-meta-pill price"><TicketIcon /> ₹{ticketPrice}</span>
           ) : null}
           {dateLabel ? (
-            <span className="lottery-meta-pill">📅 {dateLabel}</span>
+            <span className="lottery-meta-pill"><CalendarIcon /> {dateLabel}</span>
           ) : null}
           {timeLabel ? (
-            <span className="lottery-meta-pill">🕐 {timeLabel}</span>
+            <span className="lottery-meta-pill"><ClockIcon /> {timeLabel}</span>
           ) : null}
         </div>
 

@@ -27,15 +27,15 @@ function Support() {
             Reach out at support@luckyleap.app or use the in-app chat for help with any issue.
           </p>
           <div className="home-card-grid" style={{ gridTemplateColumns: "1fr", gap: "14px" }}>
-            <div className="home-card" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #9333ea 100%)" }}>
+            <div className="home-card" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)" }}>
               <div className="home-card-title">Account Help</div>
               <div className="home-card-subtitle">Login, verification, and profile updates.</div>
             </div>
-            <div className="home-card" style={{ background: "linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%)" }}>
+            <div className="home-card" style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" }}>
               <div className="home-card-title">Wallet & Payments</div>
               <div className="home-card-subtitle">Top-up, withdraw, and transaction support.</div>
             </div>
-            <div className="home-card" style={{ background: "linear-gradient(135deg, #f97316 0%, #f59e0b 100%)" }}>
+            <div className="home-card" style={{ background: "linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%)" }}>
               <div className="home-card-title">Ticket Orders</div>
               <div className="home-card-subtitle">Questions about draws, tickets, or prizes.</div>
             </div>

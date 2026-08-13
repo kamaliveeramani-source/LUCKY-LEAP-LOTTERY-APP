@@ -192,7 +192,7 @@ function Lottery() {
           <div className="lottery-detail-card card-panel card-panel-strong">
             <div className="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
               <div>
-                <div className="badge-pill" style={{ background: "linear-gradient(90deg, #f59e0b, #ec4899)", color: "#fff" }}>
+                <div className="badge-pill" style={{ background: "linear-gradient(90deg, #6d28d9, #7c3aed)", color: "#fff" }}>
                   {selectedLottery.lotteryName}
                 </div>
                 <h3 style={{ margin: "16px 0 8px", fontSize: "1.9rem" }}>₹ {selectedLottery.firstPrize.toLocaleString()}</h3>

@@ -2,12 +2,12 @@
 .wallet-card-premium {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
-  padding: 24px;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #7c3aed 100%);
+  border-radius: 18px;
+  padding: 14px 14px 12px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 42%, #5b21b6 100%);
   color: #fff;
-  box-shadow: 0 20px 50px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.15);
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
@@ -44,65 +44,66 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .wallet-card-premium-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.9;
 }
 
 .wallet-card-premium-balance {
-  font-size: clamp(2rem, 6vw, 2.75rem);
-  font-weight: 900;
+  font-size: clamp(1.3rem, 4vw, 1.7rem);
+  font-weight: 700;
   line-height: 1.05;
-  margin: 4px 0 0;
+  margin: 0;
   letter-spacing: -0.02em;
 }
 
 .wallet-card-premium-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin: 18px 0;
+  gap: 10px;
+  margin: 12px 0;
 }
 
 .wallet-card-premium-stat {
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  padding: 10px 12px;
   backdrop-filter: blur(8px);
 }
 
 .wallet-card-premium-stat-label {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.58rem;
+  font-weight: 500;
   opacity: 0.85;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .wallet-card-premium-stat-value {
-  font-size: 1.1rem;
-  font-weight: 800;
-  margin-top: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 .wallet-card-premium-actions {
   display: flex;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .wallet-card-premium-actions .btn {
   flex: 1;
-  height: 48px;
-  font-weight: 700;
-  border-radius: 14px;
+  height: 38px;
+  font-weight: 500;
+  border-radius: 10px;
+  font-size: 0.75rem;
 }
 
 .wallet-btn-ghost {
@@ -111,6 +112,8 @@
   color: #fff;
   backdrop-filter: blur(8px);
   transition: background var(--transition), transform var(--transition);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .wallet-btn-ghost:hover:not(:disabled) {
@@ -122,29 +125,31 @@
 .wallet-btn-solid {
   background: #fff;
   border: none;
-  color: #7c3aed;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  color: #5b21b6;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   transition: transform var(--transition), box-shadow var(--transition);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .wallet-btn-solid:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
-  color: #6d28d9;
+  color: #4c1d95;
 }
 
 .wallet-refresh-btn {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: 1rem;
+  font-size: 0.9rem;
   transition: background var(--transition), transform var(--transition);
 }
 
@@ -162,8 +167,8 @@
 .action-buttons-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 @media (min-width: 520px) {
@@ -177,17 +182,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 16px 12px;
+  gap: 6px;
+  padding: 12px 10px;
   border: none;
-  border-radius: 18px;
+  border-radius: 16px;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: 600;
+  font-size: 0.75rem;
   color: #fff;
-  min-height: 88px;
+  min-height: 72px;
   transition: transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
 }
 
 .action-btn-tile:hover {
@@ -200,24 +205,24 @@
 }
 
 .action-btn-tile-icon {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   line-height: 1;
 }
 
 .action-btn-tile.deposit {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
 }
 
 .action-btn-tile.withdraw {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
 }
 
 .action-btn-tile.transfer {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
 }
 
 .action-btn-tile.bets {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: linear-gradient(135deg, #8b5cf6, #4c1d95);
 }
 
 /* ── Quick Menu Grid ── */
@@ -251,7 +256,7 @@
 .quick-menu-tile:hover {
   transform: translateY(-3px);
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
-  border-color: rgba(245, 158, 11, 0.35);
+  border-color: rgba(16, 185, 129, 0.35);
 }
 
 .quick-menu-tile-icon {
@@ -418,8 +423,8 @@ body.theme-dark .lottery-meta-pill {
 }
 
 .lottery-meta-pill.price {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(236, 72, 153, 0.12));
-  color: var(--accent-strong);
+  background: linear-gradient(135deg, rgba(12, 120, 88, 0.16), rgba(16, 185, 129, 0.12));
+  color: #0a5c45;
   font-weight: 800;
 }
 
@@ -437,12 +442,12 @@ body.theme-dark .lottery-meta-pill {
   color: #fff;
   cursor: pointer;
   transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 24px rgba(12, 76, 52, 0.15);
 }
 
 .lottery-card-premium-cta:hover {
   transform: translateY(-1px);
-  opacity: 0.95;
+  opacity: 0.96;
 }
 
 .lottery-card-premium-ribbon {
@@ -467,57 +472,57 @@ body.theme-dark .lottery-meta-pill {
 }
 
 .lottery-card-premium-ribbon.hot {
-  background: linear-gradient(135deg, #ef4444, #f97316);
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
 }
 
 .lottery-card-premium-ribbon.new {
-  background: linear-gradient(135deg, #10b981, #14b8a6);
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
 }
 
 .lottery-card-premium-ribbon.ending-soon,
 .lottery-card-premium-ribbon.sold-out {
-  background: linear-gradient(135deg, #f97316, #ea580c);
+  background: linear-gradient(135deg, #5b21b6, #8b5cf6);
 }
 
 /* Lottery type gradients */
 .lottery-theme-kerala {
-  background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+  background: linear-gradient(135deg, #2e1065 0%, #5b21b6 42%, #8b5cf6 100%);
 }
 
 .lottery-theme-nagaland {
-  background: linear-gradient(135deg, #dc2626 0%, #f97316 50%, #fb923c 100%);
+  background: linear-gradient(135deg, #2d0b52 0%, #4c1d95 38%, #8b5cf6 100%);
 }
 
 .lottery-theme-karunya {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #3b1f74 0%, #5b21b6 38%, #a78bfa 100%);
 }
 
 .lottery-theme-win {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+  background: linear-gradient(135deg, #43206d 0%, #6d28d9 42%, #c4b5fd 100%);
 }
 
 .lottery-theme-default {
-  background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #7c3aed 100%);
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 40%, #ddd6fe 100%);
 }
 
 .lottery-theme-maharashtra {
-  background: linear-gradient(135deg, #b45309 0%, #f59e0b 50%, #fbbf24 100%);
+  background: linear-gradient(135deg, #3b1f74 0%, #6d28d9 45%, #ddd6fe 100%);
 }
 
 .lottery-theme-tamil {
-  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #22d3ee 100%);
+  background: linear-gradient(135deg, #312e81 0%, #5b21b6 38%, #c4b5fd 100%);
 }
 
 .lottery-theme-karnataka {
-  background: linear-gradient(135deg, #be123c 0%, #e11d48 50%, #f43f5e 100%);
+  background: linear-gradient(135deg, #3b0764 0%, #6d28d9 42%, #a78bfa 100%);
 }
 
-.lottery-cta-kerala { background: linear-gradient(135deg, #059669, #10b981); }
-.lottery-cta-nagaland { background: linear-gradient(135deg, #dc2626, #f97316); }
-.lottery-cta-karunya { background: linear-gradient(135deg, #7c3aed, #a855f7); }
-.lottery-cta-win { background: linear-gradient(135deg, #2563eb, #3b82f6); }
-.lottery-cta-default { background: linear-gradient(135deg, #f59e0b, #7c3aed); }
-.lottery-cta-maharashtra { background: linear-gradient(135deg, #b45309, #f59e0b); }
+.lottery-cta-kerala { background: linear-gradient(135deg, #3b0764, #6d28d9); }
+.lottery-cta-nagaland { background: linear-gradient(135deg, #4c1d95, #7c3aed); }
+.lottery-cta-karunya { background: linear-gradient(135deg, #5b21b6, #8b5cf6); }
+.lottery-cta-win { background: linear-gradient(135deg, #4c1d95, #8b5cf6); }
+.lottery-cta-default { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
+.lottery-cta-maharashtra { background: linear-gradient(135deg, #4c1d95, #7c3aed); }
 .lottery-cta-tamil { background: linear-gradient(135deg, #0891b2, #06b6d4); }
 .lottery-cta-karnataka { background: linear-gradient(135deg, #be123c, #e11d48); }
 
@@ -605,8 +610,8 @@ body.theme-dark .lottery-meta-pill {
 }
 
 .ticket-status-badge.won {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
+  background: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
 }
 
 .ticket-status-badge.pending {
@@ -620,8 +625,8 @@ body.theme-dark .lottery-meta-pill {
 }
 
 body.theme-dark .ticket-status-badge.won {
-  background: rgba(16, 185, 129, 0.25);
-  color: #34d399;
+  background: rgba(124, 58, 237, 0.25);
+  color: #c4b5fd;
 }
 
 body.theme-dark .ticket-status-badge.pending {
@@ -770,9 +775,9 @@ body.theme-dark .ticket-status-badge.lost {
   border-radius: 24px;
   padding: 28px 24px;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, #f59e0b 0%, #ec4899 55%, #7c3aed 100%);
+  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 42%, #a78bfa 100%);
   color: #fff;
-  box-shadow: 0 20px 50px rgba(124, 58, 237, 0.22);
+  box-shadow: 0 20px 50px rgba(109, 40, 217, 0.22);
   text-align: center;
 }
 
@@ -781,7 +786,7 @@ body.theme-dark .ticket-status-badge.lost {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .wallet-hero-balance {
@@ -819,13 +824,14 @@ body.theme-dark .wallet-mode-tabs {
 }
 
 .wallet-mode-tab.active {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(109, 40, 217, 0.18);
 }
 
 .wallet-mode-tab:hover:not(.active) {
-  color: var(--text);
+  color: var(--accent-strong);
+  background: rgba(124, 58, 237, 0.08);
 }
 
 .wallet-form-card {
@@ -879,7 +885,7 @@ body.theme-dark .wallet-mode-tabs {
 
 .wallet-input-wrap .form-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
 }
 
 .wallet-submit-btn {
@@ -888,15 +894,15 @@ body.theme-dark .wallet-mode-tabs {
   border-radius: 14px;
   font-weight: 800;
   border: none;
-  background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
   color: #fff;
-  box-shadow: 0 12px 28px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.18);
   transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
 }
 
 .wallet-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 16px 32px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 16px 32px rgba(109, 40, 217, 0.22);
 }
 
 .wallet-submit-btn:disabled {
@@ -936,18 +942,18 @@ body.theme-dark .wallet-mode-tabs {
 }
 
 .txn-icon.deposit {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
+  background: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
 }
 
 .txn-icon.withdrawal {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
+  background: rgba(109, 40, 217, 0.1);
+  color: #5b21b6;
 }
 
 .txn-icon.transfer {
-  background: rgba(59, 130, 246, 0.15);
-  color: #2563eb;
+  background: rgba(139, 92, 246, 0.12);
+  color: #6d28d9;
 }
 
 .txn-body {

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { WalletProvider } from "./context/WalletContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Wallet from "./pages/Wallet";
+import AddCash from "./pages/AddCash";
 import Lottery from "./pages/Lottery";
 import LotteryGame from "./pages/LotteryGame";
 import MyGames from "./pages/MyGames";
@@ -27,6 +28,11 @@ import Search from "./pages/Search";
 import Settings from "./pages/Settings";
 import Support from "./pages/Support";
 
+function RootRoute() {
+  const token = localStorage.getItem("token");
+  return token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -34,7 +40,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<MobileLayout />}>
-            <Route path="/" element={<MobileApp />} />
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/public" element={<MobileApp />} />
             <Route path="/home" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/lottery" element={<Lottery />} />
@@ -52,6 +59,7 @@ function App() {
             <Route path="/language" element={<LanguageSettings />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/add-cash" element={<AddCash />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/about" element={<About />} />
             <Route path="/search" element={<Search />} />

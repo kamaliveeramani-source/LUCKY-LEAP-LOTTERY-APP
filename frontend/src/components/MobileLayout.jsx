@@ -17,7 +17,7 @@ function MobileLayout() {
       <Header
         onMenuClick={() => setDrawerOpen(true)}
         onNotificationsClick={() => navigate("/notifications")}
-        onSearchClick={() => navigate("/search")}
+        onSearchClick={() => navigate("/dashboard")}
       />
 
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />

@@ -129,7 +129,7 @@ function MyGames() {
           <div className="wallet-summary-value">₹ {winningsToday.toLocaleString()}</div>
         </div>
         <div className="wallet-summary-actions">
-          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/wallet?mode=add")}>Add Money</button>
+          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/add-cash")}>Add Money</button>
           <button type="button" className="btn btn-secondary-custom btn-pill" onClick={() => navigate("/wallet?mode=withdraw")}>Withdraw</button>
         </div>
       </div>
@@ -247,7 +247,7 @@ function MyGames() {
         <button type="button" className="fab-button" onClick={() => setShowFabMenu((prev) => !prev)}>➕</button>
         {showFabMenu && (
           <div className="fab-menu">
-            <button type="button" className="fab-action" onClick={() => navigate("/wallet?mode=add")}>Add Money</button>
+            <button type="button" className="fab-action" onClick={() => navigate("/add-cash")}>Add Money</button>
             <button type="button" className="fab-action" onClick={() => navigate("/history")}>My Bets</button>
             <button type="button" className="fab-action" onClick={() => navigate("/history")}>History</button>
             <button type="button" className="fab-action" onClick={() => navigate("/support")}>Support</button>

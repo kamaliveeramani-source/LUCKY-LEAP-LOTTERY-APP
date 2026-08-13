@@ -19,21 +19,21 @@ function Settings() {
             </div>
           </button>
 
-          <button type="button" className="home-card" style={{ background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)" }}>
+          <button type="button" className="home-card" style={{ background: "linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%)" }}>
             <div>
               <div className="home-card-title">Security</div>
               <div className="home-card-subtitle">Update your password, enable two-factor authentication, and secure your account.</div>
             </div>
           </button>
 
-          <button type="button" className="home-card" style={{ background: "linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)" }}>
+          <button type="button" className="home-card" style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" }}>
             <div>
               <div className="home-card-title">Payment & Wallet</div>
               <div className="home-card-subtitle">Choose your payment method, top-up options, and transaction preferences.</div>
             </div>
           </button>
 
-          <button type="button" className="home-card" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)" }}>
+          <button type="button" className="home-card" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)" }}>
             <div>
               <div className="home-card-title">Personalization</div>
               <div className="home-card-subtitle">Select your preferred theme, language, and app layout settings.</div>

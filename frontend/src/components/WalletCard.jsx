@@ -53,7 +53,7 @@ function WalletCard({ wallet, refreshWallet, loading, error }) {
           <button
             type="button"
             className="btn wallet-btn-solid"
-            onClick={() => navigate("/wallet?mode=add")}
+            onClick={() => navigate("/add-cash")}
           >
             Add Money
           </button>

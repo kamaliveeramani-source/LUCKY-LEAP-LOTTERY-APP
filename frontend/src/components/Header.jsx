@@ -25,19 +25,17 @@ function IconUser() {
 }
 
 function Header({ onMenuClick, onNotificationsClick, onSearchClick }) {
-  const userName = localStorage.getItem("userName") || "Player";
-
   return (
-    <header className="fixed-app-header emerald-header">
+    <header className="fixed-app-header">
       <div className="header-left">
         <button type="button" className="icon-btn menu-toggle" onClick={onMenuClick} aria-label="Open menu">
           <IconMenu />
         </button>
-        <AppLogo compact className="header-logo" />
+        <AppLogo headerBrand className="header-logo" />
       </div>
 
       <div className="header-actions">
-        <button type="button" className="icon-btn header-action-btn" onClick={onNotificationsClick} aria-label="Notifications">
+        <button type="button" className="icon-btn header-action-btn header-bell-btn" onClick={onNotificationsClick} aria-label="Notifications">
           <IconBell />
         </button>
         <button type="button" className="icon-btn header-action-btn header-profile-btn" onClick={onSearchClick} aria-label="Profile">

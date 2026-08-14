@@ -1,282 +1,244 @@
-﻿import { useNavigate } from "react-router-dom";
-import { useWallet } from "../context/WalletContext";
-import LotteryCard from "../components/LotteryCard";
-import "./GamePages.css";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getLotteryImageByName } from "../components/LotteryCard";
+import heroBanner from "../assets/hero-banner.png";
+import "../styles/Home.css";
 
-const lotteryCards = [
+const todaysDraws = [
   {
-    id: "state-nagaland",
-    name: "Nagaland Morning",
-    prize: "₹9,60,000",
-    price: "20",
-    date: "Aug 04",
-    time: "13:00",
-    countdown: "Today",
-    status: "LIVE",
-    ribbon: "NEW",
-    winners: "12,450 Winners",
-    sold: 76,
-    route: "/lottery?lotteryId=state-nagaland",
+    id: "state-win-win",
+    name: "Win Win",
+    time: "2:00 PM",
+    drawPill: "Draw 2:00 PM",
+    route: "/lottery?lotteryId=state-win-win",
+    accent: "purple",
   },
   {
     id: "state-sthree",
     name: "Sthree Sakthi",
-    prize: "₹9,60,000",
-    price: "20",
-    date: "Aug 04",
-    time: "15:00",
-    countdown: "2 Hours Left",
-    status: "OPEN",
-    ribbon: "HOT",
-    winners: "9,280 Winners",
-    sold: 64,
+    time: "4:00 PM",
+    drawPill: "Draw 4:00 PM",
     route: "/lottery?lotteryId=state-sthree",
+    accent: "purple",
   },
   {
     id: "state-nagaland-day",
     name: "Nagaland Day",
-    prize: "₹9,60,000",
-    price: "20",
-    date: "Aug 04",
-    time: "18:00",
-    countdown: "Tomorrow",
-    status: "CLOSING SOON",
-    ribbon: "ENDING SOON",
-    winners: "5,170 Winners",
-    sold: 83,
+    time: "6:00 PM",
+    drawPill: "Draw 6:00 PM",
     route: "/lottery?lotteryId=state-nagaland-day",
-  },
-  {
-    id: "state-nagaland-evening",
-    name: "Nagaland Evening",
-    prize: "₹9,60,000",
-    price: "20",
-    date: "Aug 04",
-    time: "20:00",
-    countdown: "2 Hours Left",
-    status: "OPEN",
-    ribbon: "HOT",
-    winners: "10,020 Winners",
-    sold: 69,
-    route: "/lottery?lotteryId=state-nagaland-evening",
-  },
-  {
-    id: "state-karunya",
-    name: "Karunya",
-    prize: "₹9,60,000",
-    price: "20",
-    date: "Aug 08",
-    time: "15:00",
-    countdown: "Tomorrow",
-    status: "OPEN",
-    ribbon: "NEW",
-    winners: "7,340 Winners",
-    sold: 58,
-    route: "/lottery?lotteryId=state-karunya",
-  },
-  {
-    id: "state-karunya-plus",
-    name: "Karunya Plus",
-    prize: "₹9,60,000",
-    price: "20",
-    date: "Aug 06",
-    time: "15:00",
-    countdown: "Today",
-    status: "LIVE",
-    ribbon: "HOT",
-    winners: "14,840 Winners",
-    sold: 91,
-    route: "/lottery?lotteryId=state-karunya-plus",
+    accent: "purple",
   },
 ];
-
-function HomeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 11.5L12 5l8 6.5V18a2 2 0 0 1-2 2h-3v-7H9v7H6a2 2 0 0 1-2-2v-6.5Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function WalletIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h11A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Zm0 0h14.5m-12 5h7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChartIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 18V9m7 9V5m7 13v-8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 3.5 18 6v5.8c0 3.7-2.4 7.1-6 9.7-3.6-2.6-6-6-6-9.7V6l6-2.5Zm-4 8.2 2.4 2.4 4.6-4.6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ArrowIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 12h13m0 0-5-5m5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 const quickActions = [
-  { label: "Home", icon: <HomeIcon />, path: "/home" },
-  { label: "Wallet", icon: <WalletIcon />, path: "/wallet" },
-  { label: "Add Cash", icon: <WalletIcon />, path: "/add-cash", emphasis: true },
-  { label: "Results", icon: <ChartIcon />, path: "/results" },
+  { id: "home", label: "Home", icon: "home", path: "/home" },
+  { id: "wallet", label: "Wallet", icon: "wallet", path: "/wallet" },
+  { id: "add-cash", label: "Add Cash", icon: "add", path: "/wallet?mode=add" },
+  { id: "results", label: "Results", icon: "results", path: "/results" },
 ];
 
-function PlusIcon() {
+function padTime(value) {
+  return String(value).padStart(2, "0");
+}
+
+function getNextDrawTarget(hour = 15, minute = 0) {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(hour, minute, 0, 0);
+  if (target.getTime() <= now.getTime()) {
+    target.setDate(target.getDate() + 1);
+  }
+  return target.getTime();
+}
+
+function useCountdown(targetTime) {
+  const [remaining, setRemaining] = useState({ hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const tick = () => {
+      const diff = Math.max(0, targetTime - Date.now());
+      setRemaining({
+        hours: Math.floor(diff / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      });
+    };
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [targetTime]);
+
+  return remaining;
+}
+
+function QuickActionIcon({ type }) {
+  if (type === "home") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (type === "wallet") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7.5h14a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2Zm14 4.5h3v3h-3a1.5 1.5 0 1 1 0-3Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (type === "add") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 6v12M6 12h12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M7 4h10v16l-5-3-5 3V4Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function Home() {
   const navigate = useNavigate();
-  const featuredLottery = lotteryCards[0];
-
-  const countdown = "02:15:30";
-  const countdownUnits = [
-    { label: "HRS", value: countdown.split(":")[0] },
-    { label: "MIN", value: countdown.split(":")[1] },
-    { label: "SEC", value: countdown.split(":")[2] },
-  ];
+  const drawTarget = useMemo(() => getNextDrawTarget(15, 0), []);
+  const countdown = useCountdown(drawTarget);
 
   return (
-    <div className="page-content home-page-shell">
-      <section className="emerald-hero-card">
-        <div className="hero-badge-row">
-          <span className="hero-live-pill">Live draw</span>
-          <span className="hero-chip">Today</span>
+    <div className="home-screen">
+      <section className="home-hero">
+        <div className="home-hero-copy">
+          <h1 className="home-hero-title">How to play &amp; Win Big!</h1>
+          <p className="home-hero-subtitle">Play more, win more</p>
+          <button type="button" className="home-hero-cta" onClick={() => navigate("/lottery")}>
+            Play Now
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
 
-        <div className="hero-content-row">
-          <div className="hero-copy">
-            <h1>How to play &amp; Win Big!</h1>
-            <p>Play more, win more.</p>
-            <div className="hero-cta-row">
-              <button type="button" className="btn btn-primary-custom hero-primary-btn" onClick={() => navigate("/lottery")}>
-                Play Now
-              </button>
-            </div>
-          </div>
+        <div className="home-hero-art-wrap" aria-hidden="true">
+          <img
+            src={heroBanner}
+            alt=""
+            className="home-hero-art"
+            width={399}
+            height={190}
+            decoding="async"
+          />
+        </div>
+      </section>
 
-          <div className="hero-art" aria-hidden="true">
-            <div className="hero-machine">
-              <div className="hero-machine-top" />
-              <div className="hero-machine-glass">
-                <div className="hero-ball ball-one">7</div>
-                <div className="hero-ball ball-two">9</div>
-                <div className="hero-ball ball-three">3</div>
-                <div className="hero-ball ball-four">1</div>
-                <div className="hero-ball ball-five">7</div>
-              </div>
-              <div className="hero-machine-base" />
+      <section
+        className="home-live-card"
+        onClick={() => navigate("/lottery?lotteryId=state-kerala-bumper")}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && navigate("/lottery?lotteryId=state-kerala-bumper")}
+      >
+        <div className="home-live-icon-wrap">
+          <img src={getLotteryImageByName("Kerala Lottery")} alt="" className="home-live-icon" />
+        </div>
+        <div className="home-live-info">
+          <div className="home-live-name">Kerala Lottery</div>
+          <div className="home-live-meta">Today, 3:00 PM</div>
+          <span className="home-live-badge">LIVE DRAW</span>
+        </div>
+        <div className="home-live-countdown" aria-label="Countdown to draw">
+          <div className="home-live-countdown-box">
+            <div className="home-live-countdown-digits">
+              {padTime(countdown.hours)} : {padTime(countdown.minutes)} : {padTime(countdown.seconds)}
             </div>
-            <div className="hero-coin coin-one" />
-            <div className="hero-coin coin-two" />
-            <div className="hero-coin coin-three" />
+            <div className="home-live-countdown-labels">
+              <span>HRS</span>
+              <span>MIN</span>
+              <span>SEC</span>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="live-lottery-panel home-panel">
-        <div className="section-title-row">
-          <div>
-            <div className="section-kicker">Live Lottery</div>
-            <h3>{featuredLottery.name}</h3>
-          </div>
-          <button type="button" className="text-link-btn" onClick={() => navigate("/lottery")}>View All</button>
+      <section className="home-section">
+        <div className="home-section-head">
+          <h2 className="home-section-title">Today&apos;s Draws</h2>
+          <button type="button" className="home-section-link" onClick={() => navigate("/lottery")}>
+            View All
+          </button>
         </div>
 
-        <div className="live-lottery-card" onClick={() => navigate(`/lottery?lotteryId=${featuredLottery.id}`)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate(`/lottery?lotteryId=${featuredLottery.id}`)}>
-          <div className="live-lottery-main">
-            <div className="live-lottery-visual" aria-hidden="true">🎟</div>
-            <div className="live-lottery-copy">
-              <div className="live-top-row">
-                <span className="live-badge">Live draw</span>
-                <span className="live-date-label">Today, 3:00 PM</span>
+        <div className="home-draws-row">
+          {todaysDraws.map((draw) => (
+            <article key={draw.id} className={`home-draw-card home-draw-card--${draw.accent}`}>
+              <div className={`home-draw-top home-draw-top--${draw.accent}`}>{draw.drawPill}</div>
+              <div className="home-draw-body">
+                <h3 className="home-draw-name">{draw.name}</h3>
+                <div className="home-draw-time">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 7v5l3 2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                    <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                  </svg>
+                  {draw.time}
+                </div>
+                <img
+                  src={getLotteryImageByName(draw.name)}
+                  alt=""
+                  className="home-draw-art"
+                  loading="lazy"
+                />
+                <button
+                  type="button"
+                  className={`home-draw-cta home-draw-cta--${draw.accent}`}
+                  onClick={() => navigate(draw.route)}
+                >
+                  Play Now
+                  <span aria-hidden="true">→</span>
+                </button>
               </div>
-              <h4>{featuredLottery.name}</h4>
-              <div className="live-lottery-stats">
-                <span>Prize: {featuredLottery.prize}</span>
-                <span>Ticket: ₹{featuredLottery.price}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="countdown-block" aria-label="Countdown timer">
-            {countdownUnits.map((unit) => (
-              <div key={unit.label} className="countdown-unit">
-                <span className="countdown-label">{unit.label}</span>
-                <span className="countdown-value">{unit.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="today-draws-panel home-panel">
-        <div className="section-title-row">
-          <div>
-            <div className="section-kicker">Today’s Draws</div>
-            <h3>Lucky picks</h3>
-          </div>
-          <button type="button" className="text-link-btn" onClick={() => navigate("/lottery")}>View All</button>
-        </div>
-
-        <div className="today-draws-grid">
-          {lotteryCards.slice(0, 3).map((lottery) => (
-            <article key={lottery.id} className="today-draw-card">
-              <div className="today-draw-header">
-                <span className="draw-badge">Draw {lottery.time}</span>
-              </div>
-              <h4>{lottery.name}</h4>
-              <div className="today-draw-time">
-                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15Zm0 3.5v3.4l2.5 1.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                {lottery.time}
-              </div>
-              <button type="button" className="today-draw-button" onClick={() => navigate(lottery.route)}>
-                Play Now
-                <ArrowIcon />
-              </button>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="quick-actions-panel home-panel">
-        <div className="quick-action-grid">
-          {quickActions.map((item) => (
-            <button key={item.label} type="button" className={`quick-action-card ${item.emphasis ? "emphasis" : item.path === "/home" ? "active" : ""}`} onClick={() => navigate(item.path)}>
-              <span className="quick-action-icon">{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
+      <section className="home-quick-actions">
+        {quickActions.map((action) => (
+          <button
+            key={action.id}
+            type="button"
+            className={`home-quick-action ${action.id === "home" ? "is-active" : ""}`}
+            onClick={() => navigate(action.path)}
+          >
+            <span className="home-quick-action-icon">
+              <QuickActionIcon type={action.icon} />
+            </span>
+            <span className="home-quick-action-label">{action.label}</span>
+          </button>
+        ))}
       </section>
 
-      <section className="trust-card home-panel">
-        <div className="trust-icon"><ShieldIcon /></div>
-        <div className="trust-copy">
-          <h4>Play Safe. Play Legal.</h4>
-          <p>100% Secure &amp; Trusted</p>
+      <section
+        className="home-trust-card"
+        onClick={() => navigate("/about")}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && navigate("/about")}
+      >
+        <div className="home-trust-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3 4 6.5V11c0 4.7 3.4 8.8 8 10.5 4.6-1.7 8-5.8 8-10.5V6.5L12 3Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+            <path d="m9.5 12 1.8 1.8L15.5 10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
-        <div className="trust-arrow"><ArrowIcon /></div>
+        <div className="home-trust-copy">
+          <strong>Play Safe. Play Legal.</strong>
+          <span>100% Secure &amp; Trusted</span>
+        </div>
+        <span className="home-trust-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </section>
     </div>
   );

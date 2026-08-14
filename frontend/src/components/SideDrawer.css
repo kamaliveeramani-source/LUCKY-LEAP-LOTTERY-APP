@@ -106,46 +106,50 @@ body.theme-dark .side-drawer-support {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: #f8f9fc;
-  color: #111827;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--ll-border-soft, rgba(124, 58, 237, 0.12));
+  background: var(--ll-purple-soft, #f7f5ff);
+  color: var(--ll-text-navy, #171a3a);
   text-align: left;
-  font-weight: 700;
+  font-weight: 500;
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: background 220ms ease, transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+  transition: background 200ms ease, border-color 200ms ease;
 }
 
 .side-drawer-item:hover {
-  background: #ffffff;
-  transform: translateX(2px);
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  background: #fff;
+  border-color: rgba(124, 58, 237, 0.2);
 }
 
 .side-drawer-item.active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.15));
-  border-color: transparent;
-  color: #111827;
+  background: var(--ll-purple-light, #ede9fe);
+  border-color: rgba(124, 58, 237, 0.25);
+  color: var(--ll-purple-dark, #6d28d9);
 }
 
 .side-drawer-item.active .side-drawer-item-icon {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
-  color: #ffffff;
+  background: var(--ll-purple, #7c3aed);
+  color: #fff;
 }
 
 .side-drawer-item-icon {
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 36px;
+  min-height: 36px;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
-  color: #ffffff;
-  font-size: 1rem;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ll-purple, #7c3aed);
+  border: 1px solid var(--ll-border-soft, rgba(124, 58, 237, 0.12));
+}
+
+.side-drawer-item-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .side-drawer-support {
@@ -158,13 +162,14 @@ body.theme-dark .side-drawer-support {
 
 .side-drawer-support-title {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #111827;
   margin-bottom: 8px;
 }
 
 .side-drawer-support-link {
-  color: #6d28d9;
+  color: var(--ll-purple, #7c3aed);
   text-decoration: none;
-  font-size: 0.92rem;
+  font-size: 0.875rem;
+  font-weight: 500;
 }

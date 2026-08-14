@@ -10,10 +10,9 @@ function MobileLayout() {
   const navigate = useNavigate();
 
   const pageClass = pathname === "/notifications" ? "notifications-page" : "";
-  const pageContentClass = pathname === "/notifications" ? "page-content notifications-page-content" : "page-content";
 
   return (
-    <div className={`app-shell home-page ${pageClass}`}>
+    <div className={`app-shell home-page mobile-route ${pageClass}`}>
       <Header
         onMenuClick={() => setDrawerOpen(true)}
         onNotificationsClick={() => navigate("/notifications")}
@@ -22,7 +21,7 @@ function MobileLayout() {
 
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className={pageContentClass}>
+      <main className={pathname === "/notifications" ? "page-content notifications-page-content" : "page-content"}>
         <Outlet />
       </main>
 

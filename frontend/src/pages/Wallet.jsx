@@ -19,15 +19,8 @@ function Wallet() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const nextMode = params.get("mode");
-
-    if (nextMode === "add") {
-      navigate("/add-cash", { replace: true });
-      return;
-    }
-
-    setMode(["withdraw", "transfer"].includes(nextMode) ? nextMode : "withdraw");
-  }, [location.search, navigate]);
+    setMode(params.get("mode") || "add");
+  }, [location.search]);
 
   const { notify } = useNotification();
 
@@ -111,16 +104,16 @@ function Wallet() {
     }
   };
 
-  const modeLabels = { withdraw: "Withdraw", transfer: "Send" };
+  const modeLabels = { add: "Top Up", withdraw: "Withdraw", transfer: "Send" };
   const txnIcons = { Deposit: "deposit", Withdrawal: "withdrawal", Transfer: "transfer" };
   const txnEmoji = { Deposit: "↑", Withdrawal: "↓", Transfer: "↔" };
 
   return (
-    <div className="page-content">
-      <div className="text-center" style={{ marginBottom: "22px" }}>
+      <div className="page-content">
+      <div className="text-center page-intro">
         <div className="badge-pill">Wallet</div>
-        <h2 className="page-title" style={{ margin: "10px 0 6px", fontWeight: 800 }}>Manage Funds</h2>
-        <p className="text-muted">Add, withdraw, or transfer cash in your wallet.</p>
+        <h2 className="page-title">Manage Funds</h2>
+        <p className="text-muted" style={{ margin: 0 }}>Add, withdraw, or transfer cash in your wallet.</p>
       </div>
 
       <div className="wallet-hero-card">
@@ -129,7 +122,7 @@ function Wallet() {
       </div>
 
       <div className="wallet-mode-tabs">
-        {["withdraw", "transfer"].map((tab) => (
+        {["add", "withdraw", "transfer"].map((tab) => (
           <button
             key={tab}
             type="button"
@@ -143,7 +136,7 @@ function Wallet() {
       </div>
 
       <div className="wallet-form-card">
-        <h5>{mode === "withdraw" ? "Withdraw Funds" : "Send Funds"}</h5>
+        <h5>{mode === "withdraw" ? "Withdraw Funds" : mode === "transfer" ? "Send Funds" : "Top Up Wallet"}</h5>
 
         <div className="wallet-input-group">
           <label htmlFor="wallet-amount">Amount</label>
@@ -190,13 +183,8 @@ function Wallet() {
         </button>
       </div>
 
-      <div style={{ marginTop: "18px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
-          <h4 style={{ margin: 0, fontWeight: 800 }}>Recent Transactions</h4>
-          <button type="button" className="btn btn-secondary-custom" onClick={() => navigate("/add-cash")}>
-            Add Cash
-          </button>
-        </div>
+      <div>
+        <h4 className="wallet-section-title">Recent Transactions</h4>
 
         {transactions.length === 0 ? (
           <div className="wallet-form-card">

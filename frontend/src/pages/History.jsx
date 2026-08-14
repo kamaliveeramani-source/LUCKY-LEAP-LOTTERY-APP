@@ -36,9 +36,9 @@ function History() {
 
   return (
       <div className="page-content">
-        <div className="text-center" style={{ marginBottom: "20px" }}>
+        <div className="text-center page-intro">
           <div className="badge-pill">History</div>
-          <h2 className="page-title" style={{ margin: "10px 0 6px", fontWeight: 800 }}>Bet History</h2>
+          <h2 className="page-title">Bet History</h2>
           <p className="text-muted" style={{ margin: 0 }}>Your purchased tickets and draw status from the backend.</p>
         </div>
 

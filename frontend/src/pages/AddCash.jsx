@@ -52,9 +52,9 @@ function AddCash() {
 
   return (
     <div className="page-content">
-      <div className="text-center" style={{ marginBottom: "22px" }}>
+      <div className="text-center page-intro">
         <div className="badge-pill">Add Cash</div>
-        <h2 className="page-title" style={{ margin: "10px 0 6px", fontWeight: 800 }}>Top Up Wallet</h2>
+        <h2 className="page-title">Top Up Wallet</h2>
         <p className="text-muted">Add money to your wallet instantly.</p>
       </div>
 

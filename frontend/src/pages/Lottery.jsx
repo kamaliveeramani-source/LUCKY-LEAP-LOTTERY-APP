@@ -1,4 +1,5 @@
-﻿import LotteryCard from "../components/LotteryCard";
+import LotteryCard from "../components/LotteryCard";
+import LotteryListState from "../components/LotteryListState";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
@@ -119,6 +120,7 @@ function Lottery() {
   const location = useLocation();
   const navigate = useNavigate();
   const [lotteries, setLotteries] = useState([]);
+  const [lotteryStatus, setLotteryStatus] = useState("loading");
   const { refreshWallet } = useWallet();
   const { notify } = useNotification();
 
@@ -129,13 +131,8 @@ function Lottery() {
     getLotteries();
   }, []);
 
-  const getWallet = async () => {
-    if (!token) return;
-
-    // wallet now managed by WalletContext; refreshWallet called on mount instead
-  };
-
   const getLotteries = async () => {
+    setLotteryStatus("loading");
     try {
       const res = await API.get("/lottery/all");
       const apiLotteries = Array.isArray(res.data.data) ? res.data.data : [];
@@ -147,10 +144,18 @@ function Lottery() {
         }
       });
 
-      setLotteries(mergedLotteries.length ? mergedLotteries : defaultStateLotteries);
+      if (!mergedLotteries.length) {
+        setLotteries([]);
+        setLotteryStatus("empty");
+        return;
+      }
+
+      setLotteries(mergedLotteries);
+      setLotteryStatus("success");
     } catch (err) {
       console.log(err);
-      setLotteries(defaultStateLotteries);
+      setLotteries([]);
+      setLotteryStatus("error");
     }
   };
 
@@ -192,10 +197,10 @@ function Lottery() {
           <div className="lottery-detail-card card-panel card-panel-strong">
             <div className="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
               <div>
-                <div className="badge-pill" style={{ background: "linear-gradient(90deg, #6d28d9, #7c3aed)", color: "#fff" }}>
+                <div className="badge-pill">
                   {selectedLottery.lotteryName}
                 </div>
-                <h3 style={{ margin: "16px 0 8px", fontSize: "1.9rem" }}>₹ {selectedLottery.firstPrize.toLocaleString()}</h3>
+                <h3 className="lottery-detail-prize">₹ {selectedLottery.firstPrize.toLocaleString()}</h3>
                 <p className="text-muted" style={{ margin: 0 }}>
                   Ticket ₹{selectedLottery.ticketPrice} • {formatShortDate(selectedLottery.drawDate)} • {formatTime(selectedLottery.drawDate)}
                 </p>
@@ -207,13 +212,13 @@ function Lottery() {
               <div className="col-6">
                 <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
                   <small className="text-muted">Ticket Price</small>
-                  <div style={{ marginTop: "8px", fontSize: "1.35rem", fontWeight: 700 }}>₹ {selectedLottery.ticketPrice}</div>
+                  <div className="lottery-detail-stat">₹ {selectedLottery.ticketPrice}</div>
                 </div>
               </div>
               <div className="col-6">
                 <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
                   <small className="text-muted">Draw Time</small>
-                  <div style={{ marginTop: "8px", fontSize: "1.35rem", fontWeight: 700 }}>{formatTime(selectedLottery.drawDate)}</div>
+                  <div className="lottery-detail-stat">{formatTime(selectedLottery.drawDate)}</div>
                 </div>
               </div>
             </div>
@@ -222,13 +227,13 @@ function Lottery() {
               <div className="col-6">
                 <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
                   <small className="text-muted">Second Prize</small>
-                  <div style={{ marginTop: "8px", fontSize: "1.2rem", fontWeight: 700 }}>₹ {selectedLottery.secondPrize.toLocaleString()}</div>
+                  <div className="lottery-detail-stat">₹ {selectedLottery.secondPrize.toLocaleString()}</div>
                 </div>
               </div>
               <div className="col-6">
                 <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
                   <small className="text-muted">Third Prize</small>
-                  <div style={{ marginTop: "8px", fontSize: "1.2rem", fontWeight: 700 }}>₹ {selectedLottery.thirdPrize.toLocaleString()}</div>
+                  <div className="lottery-detail-stat">₹ {selectedLottery.thirdPrize.toLocaleString()}</div>
                 </div>
               </div>
             </div>
@@ -245,16 +250,25 @@ function Lottery() {
             </div>
           </div>
         ) : (
-          <div className="lottery-card-grid-premium">
-            {displayedLotteries.map((lottery) => (
-              <LotteryCard
-                key={lottery.id}
-                lottery={lottery}
-                onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
-                actionLabel="See Details"
-              />
-            ))}
-          </div>
+          <>
+            <div className="text-center page-intro">
+              <div className="badge-pill">Lottery</div>
+              <h2 className="page-title">State Lotteries</h2>
+              <p className="text-muted" style={{ margin: 0 }}>Browse draws and place your bets.</p>
+            </div>
+            <LotteryListState status={lotteryStatus} onRetry={getLotteries}>
+              <div className="lottery-card-grid-premium">
+                {displayedLotteries.map((lottery) => (
+                  <LotteryCard
+                    key={lottery.id}
+                    lottery={lottery}
+                    onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
+                    actionLabel="See Details"
+                  />
+                ))}
+              </div>
+            </LotteryListState>
+          </>
         )}
       </div>
   );

@@ -9,6 +9,8 @@ import "./index.css";
 import "./styles/Components.css";
 import "./styles/Auth.css";
 import "./styles/Dashboard.css";
+import "./styles/Home.css";
+import "./styles/AppShell.css";
 
 applyTheme();
 

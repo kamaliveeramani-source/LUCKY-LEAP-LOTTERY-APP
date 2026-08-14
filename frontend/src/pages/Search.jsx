@@ -29,8 +29,14 @@ function Search() {
 
   return (
       <div className="page-content">
-        <div className="lottery-section" style={{ marginTop: "16px", padding: "18px" }}>
-          <div style={{ marginBottom: "16px" }}>
+        <div className="text-center page-intro">
+          <div className="badge-pill">Search</div>
+          <h2 className="page-title">Find Lotteries</h2>
+          <p className="text-muted" style={{ margin: 0 }}>Search lotteries, games, and promotions.</p>
+        </div>
+
+        <div className="lottery-section search-panel">
+          <div className="search-input-wrap">
             <input
               type="text"
               className="lottery-input"
@@ -42,13 +48,12 @@ function Search() {
           </div>
 
           {results.length ? (
-            <div style={{ display: "grid", gap: "14px" }}>
+            <div className="search-results-grid">
               {results.map((item) => (
                 <button
                   key={item.label}
                   type="button"
-                  className="home-card"
-                  style={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)" }}
+                  className="home-card results-card"
                   onClick={() => navigate(item.route)}
                 >
                   <div>
@@ -59,7 +64,7 @@ function Search() {
               ))}
             </div>
           ) : (
-            <div className="text-muted" style={{ marginTop: "12px" }}>
+            <div className="text-muted search-empty">
               {query ? "No results found." : "Type to search lotteries, games, or promotions."}
             </div>
           )}

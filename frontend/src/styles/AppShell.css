@@ -1,0 +1,670 @@
+/* Lucky Leap — global mobile app shell & design system */
+
+:root {
+  /* ── Lucky Leap design tokens (single source of truth) ── */
+  --ll-purple: #7c3aed;
+  --ll-purple-dark: #6d28d9;
+  --ll-purple-deep: #5b21b6;
+  --ll-purple-light: #ede9fe;
+  --ll-purple-soft: #f7f5ff;
+  --ll-text-navy: #171a3a;
+  --ll-text-muted: #667085;
+  --ll-border: #e9e2ff;
+  --ll-border-soft: rgba(124, 58, 237, 0.12);
+  --ll-shadow-soft: 0 4px 14px rgba(91, 33, 182, 0.06);
+  --ll-surface: #ffffff;
+
+  /* Aliases used across legacy stylesheets */
+  --primary: var(--ll-purple);
+  --primary-dark: var(--ll-purple-dark);
+  --lavender: var(--ll-purple-soft);
+  --surface: var(--ll-surface);
+  --text: var(--ll-text-navy);
+  --muted: var(--ll-text-muted);
+  --border: var(--ll-border);
+
+  /* Shell layout */
+  --mobile-shell-max: 430px;
+  --header-height: 56px;
+  --content-gap-below-header: 16px;
+  --shell-pad-top: calc(var(--header-height) + var(--content-gap-below-header));
+  --shell-pad-x: 16px;
+  --bottom-nav-height: 68px;
+  --bottom-nav-fab-size: 48px;
+  --bottom-nav-fab-overhang: 10px;
+  --shell-pad-bottom: calc(
+    var(--bottom-nav-height) + var(--bottom-nav-fab-overhang) + 8px + env(safe-area-inset-bottom, 0px)
+  );
+  --section-gap: 14px;
+
+  /* Typography scale */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+}
+
+body {
+  background: var(--ll-purple-soft);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+/* ── Shell ── */
+.app-shell {
+  width: 100%;
+  max-width: var(--mobile-shell-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 0;
+}
+
+.app-shell.mobile-route {
+  min-height: auto;
+  height: auto;
+}
+
+.app-shell.mobile-route.home-page {
+  width: 100%;
+  max-width: var(--mobile-shell-max);
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--ll-purple-soft);
+  border-radius: 0;
+  box-shadow: none;
+  overflow-x: hidden;
+}
+
+.app-shell.mobile-route > .page-content {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: var(--shell-pad-top) var(--shell-pad-x) var(--shell-pad-bottom);
+  background: var(--ll-purple-soft);
+  box-sizing: border-box;
+  opacity: 1;
+  animation: none;
+  overflow-x: hidden;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.app-shell.mobile-route > .page-content > .page-content {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  opacity: 1;
+  animation: none;
+}
+
+/* ── Header ── */
+.app-shell.mobile-route .fixed-app-header {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, var(--mobile-shell-max));
+  height: var(--header-height);
+  padding: 8px var(--shell-pad-x);
+  background: #fff;
+  border-bottom: 1px solid var(--ll-border-soft);
+  box-shadow: 0 2px 12px rgba(91, 33, 182, 0.05);
+  backdrop-filter: none;
+  z-index: 999;
+  box-sizing: border-box;
+}
+
+.app-shell.mobile-route .header-left {
+  gap: 10px;
+}
+
+.app-shell.mobile-route .menu-toggle,
+.app-shell.mobile-route .header-action-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--ll-border-soft);
+  background: #fff;
+  color: var(--ll-text-navy);
+  padding: 0;
+}
+
+.app-shell.mobile-route .menu-toggle svg,
+.app-shell.mobile-route .header-action-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.app-shell.mobile-route .header-bell-btn::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #fff;
+}
+
+.app-shell.mobile-route .header-brand-logo.app-logo {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  gap: 8px;
+  align-items: center;
+}
+
+.app-shell.mobile-route .header-brand-logo .app-logo-image {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  max-width: 34px;
+  max-height: 34px;
+  border-radius: 50%;
+  border: none;
+  box-shadow: none;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  flex-shrink: 0;
+}
+
+.app-shell.mobile-route .header-brand-logo .app-logo-text {
+  display: flex;
+}
+
+.app-shell.mobile-route .header-brand-logo .app-logo-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  line-height: 1.2;
+  color: var(--ll-text-navy);
+}
+
+.app-shell.mobile-route .header-brand-logo .app-logo-tag {
+  display: none;
+}
+
+/* ── Bottom nav (single source of truth) ── */
+.app-shell.mobile-route .bottom-nav.bottom-nav-ref {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, var(--mobile-shell-max));
+  max-width: var(--mobile-shell-max);
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  margin: 0;
+  background: #fff;
+  border-top: 1px solid var(--ll-border-soft);
+  box-shadow: 0 -4px 12px rgba(91, 33, 182, 0.05);
+  z-index: 999;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.app-shell.mobile-route .bottom-nav-items {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+  height: var(--bottom-nav-height);
+  margin: 0;
+  padding: 0;
+}
+
+.app-shell.mobile-route .bottom-nav-fab-slot {
+  grid-column: 3;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100%;
+  pointer-events: none;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  gap: 3px;
+  padding: 10px 2px 8px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ll-text-muted);
+  background: transparent;
+  text-decoration: none;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-link:hover {
+  color: var(--ll-purple);
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-link.active {
+  color: var(--ll-purple);
+  background: transparent;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--ll-purple);
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-fab {
+  position: relative;
+  top: calc(-1 * var(--bottom-nav-fab-overhang));
+  width: var(--bottom-nav-fab-size);
+  height: var(--bottom-nav-fab-size);
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ll-purple);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-fab:hover {
+  background: #6d28d9;
+  color: #fff;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-fab .bottom-nav-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: #fff;
+}
+
+.app-shell.mobile-route .bottom-nav-ref .bottom-nav-fab.active::after {
+  display: none;
+}
+
+/* ── Typography inside shell ── */
+.app-shell.mobile-route,
+.auth-page {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.app-shell.mobile-route h1,
+.app-shell.mobile-route h2,
+.app-shell.mobile-route h3,
+.app-shell.mobile-route h4,
+.app-shell.mobile-route h5,
+.app-shell.mobile-route h6 {
+  color: var(--ll-text-navy);
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+.app-shell.mobile-route .page-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin: 4px 0 2px;
+}
+
+.app-shell.mobile-route .section-header-row h3,
+.app-shell.mobile-route .quick-menu-heading {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.app-shell.mobile-route h1 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.app-shell.mobile-route h2 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.app-shell.mobile-route h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.app-shell.mobile-route h4,
+.app-shell.mobile-route h5 {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.app-shell.mobile-route .page-intro {
+  margin-bottom: var(--section-gap);
+}
+
+.app-shell.mobile-route .text-center.page-intro {
+  margin-bottom: var(--section-gap);
+}
+
+.app-shell.mobile-route label,
+.app-shell.mobile-route .badge-pill {
+  font-weight: 600;
+}
+
+.app-shell.mobile-route button,
+.app-shell.mobile-route .btn {
+  font-weight: 600;
+}
+
+/* ── Shared surfaces ── */
+.app-shell.mobile-route .card-panel,
+.app-shell.mobile-route .card-panel-strong,
+.app-shell.mobile-route .wallet-summary-card,
+.app-shell.mobile-route .wallet-hero-card,
+.app-shell.mobile-route .wallet-form-card,
+.app-shell.mobile-route .lobby-status-card,
+.app-shell.mobile-route .quick-play-card,
+.app-shell.mobile-route .promotion-card,
+.app-shell.mobile-route .stat-card,
+.app-shell.mobile-route .ticket-card,
+.app-shell.mobile-route .ticket-card-premium,
+.app-shell.mobile-route .lottery-card-premium {
+  border-radius: 16px;
+  border: 1px solid var(--ll-border-soft);
+  box-shadow: var(--ll-shadow-soft);
+  background: #fff;
+}
+
+.app-shell.mobile-route .btn-gradient-primary,
+.app-shell.mobile-route .wallet-submit-btn,
+.app-shell.mobile-route .lottery-card-premium-cta {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+}
+
+.app-shell.mobile-route .btn-secondary-custom {
+  background: #fff;
+  color: var(--ll-text-navy);
+  border: 1px solid var(--ll-border-soft);
+  font-weight: 600;
+}
+
+.app-shell.mobile-route .badge-pill {
+  background: var(--ll-purple-light);
+  color: var(--ll-purple-dark);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.app-shell.mobile-route .section-header-row {
+  margin: 14px 0 10px;
+}
+
+.app-shell.mobile-route .section-header-row h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ll-text-navy);
+}
+
+.app-shell.mobile-route .text-muted {
+  color: var(--ll-text-muted);
+  font-weight: 400;
+}
+
+/* Results / search cards */
+.app-shell.mobile-route .results-card,
+.app-shell.mobile-route button.results-card {
+  border-radius: 16px;
+  border: 1px solid var(--ll-border-soft);
+  background: #fff;
+  box-shadow: var(--ll-shadow-soft);
+  padding: 14px;
+  color: var(--ll-text-navy);
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.app-shell.mobile-route .results-card .home-card-title {
+  color: var(--ll-text-navy);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.app-shell.mobile-route .results-card .home-card-subtitle {
+  color: var(--ll-text-muted);
+  font-size: 0.82rem;
+}
+
+/* Lottery unified theme — compact */
+.app-shell.mobile-route .lottery-card-premium {
+  border: 1px solid var(--ll-border);
+  box-shadow: var(--ll-shadow-soft);
+}
+
+.app-shell.mobile-route .lottery-card-premium-header {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  min-height: 88px;
+  padding: 10px 12px;
+}
+
+.app-shell.mobile-route .lottery-card-premium-media,
+.app-shell.mobile-route .lottery-card-premium-image {
+  height: 110px;
+}
+
+.app-shell.mobile-route .lottery-card-premium-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.app-shell.mobile-route .lottery-card-premium-prize {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.app-shell.mobile-route .lottery-card-premium-prize-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.app-shell.mobile-route .lottery-card-premium-body {
+  padding: 10px;
+  gap: 8px;
+}
+
+.app-shell.mobile-route .lottery-card-premium-cta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.app-shell.mobile-route .lottery-card-grid-premium {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.app-shell.mobile-route .results-prize-line {
+  margin: 4px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ll-text-navy);
+}
+
+/* Dashboard / wallet compact */
+.app-shell.mobile-route .dashboard-top-row {
+  margin-bottom: 12px;
+}
+
+.app-shell.mobile-route .wallet-hero-card {
+  padding: 16px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.app-shell.mobile-route .wallet-hero-balance {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.app-shell.mobile-route .wallet-form-card {
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.app-shell.mobile-route .wallet-section-title {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ll-text-navy);
+}
+
+.app-shell.mobile-route .action-buttons-grid,
+.app-shell.mobile-route .quick-menu-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Search / lottery sections */
+.app-shell.mobile-route .lottery-section,
+.app-shell.mobile-route .search-panel {
+  background: #fff;
+  border: 1px solid var(--ll-border-soft);
+  border-radius: 16px;
+  box-shadow: var(--ll-shadow-soft);
+  padding: 16px;
+  margin: 0 0 12px;
+}
+
+.app-shell.mobile-route .search-input-wrap {
+  margin-bottom: 12px;
+}
+
+.app-shell.mobile-route .search-results-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.app-shell.mobile-route .search-empty {
+  margin-top: 4px;
+  font-size: 0.88rem;
+}
+
+.app-shell.mobile-route .lottery-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.94rem;
+  font-weight: 400;
+  height: 46px;
+  padding: 0 14px;
+}
+
+.app-shell.mobile-route .lottery-input:focus {
+  outline: none;
+  border-color: var(--ll-purple);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.app-shell.mobile-route .lottery-detail-card .lottery-detail-prize {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  color: var(--ll-text-navy);
+}
+
+.app-shell.mobile-route .lottery-detail-stat {
+  margin-top: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ll-text-navy);
+}
+
+.app-shell.mobile-route .lottery-card-premium-ribbon,
+.app-shell.mobile-route .home-card-ribbon.hot,
+.app-shell.mobile-route .home-card-ribbon.new,
+.app-shell.mobile-route .home-card-ribbon.ending-soon,
+.app-shell.mobile-route .home-card-ribbon.sold-out {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+}
+
+.app-shell.mobile-route .btn-gradient-primary:hover,
+.app-shell.mobile-route .btn-gradient-primary:focus-visible {
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.24);
+}
+
+@media (min-width: 431px) {
+  .app-shell.mobile-route.home-page {
+    box-shadow: 0 16px 48px rgba(15, 23, 42, 0.08);
+  }
+}
+
+@media (max-width: 390px) {
+  .app-shell.mobile-route > .page-content {
+    padding: var(--shell-pad-top) 14px var(--shell-pad-bottom);
+  }
+
+  .app-shell.mobile-route .lottery-card-grid-premium {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-shell.mobile-route > .page-content {
+    padding: var(--shell-pad-top) 12px var(--shell-pad-bottom);
+  }
+}

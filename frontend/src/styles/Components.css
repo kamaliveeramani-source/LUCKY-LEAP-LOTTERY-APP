@@ -2,12 +2,12 @@
 .wallet-card-premium {
   position: relative;
   overflow: hidden;
-  border-radius: 18px;
-  padding: 14px 14px 12px;
+  border-radius: 16px;
+  padding: 16px;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 42%, #5b21b6 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: #fff;
-  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.15);
+  box-shadow: 0 4px 14px rgba(91, 33, 182, 0.1);
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
@@ -44,66 +44,65 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .wallet-card-premium-label {
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.9;
 }
 
 .wallet-card-premium-balance {
-  font-size: clamp(1.3rem, 4vw, 1.7rem);
-  font-weight: 700;
-  line-height: 1.05;
-  margin: 0;
-  letter-spacing: -0.02em;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  margin: 2px 0 0;
+  letter-spacing: normal;
 }
 
 .wallet-card-premium-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   margin: 12px 0;
 }
 
 .wallet-card-premium-stat {
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  padding: 10px 12px;
-  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  padding: 8px 10px;
 }
 
 .wallet-card-premium-stat-label {
-  font-size: 0.58rem;
+  font-size: 0.625rem;
   font-weight: 500;
   opacity: 0.85;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 .wallet-card-premium-stat-value {
-  font-size: 0.85rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   margin-top: 2px;
 }
 
 .wallet-card-premium-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-top: 12px;
 }
 
 .wallet-card-premium-actions .btn {
   flex: 1;
-  height: 38px;
-  font-weight: 500;
-  border-radius: 10px;
-  font-size: 0.75rem;
+  height: 42px;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 12px;
 }
 
 .wallet-btn-ghost {
@@ -112,8 +111,6 @@
   color: #fff;
   backdrop-filter: blur(8px);
   transition: background var(--transition), transform var(--transition);
-  font-size: 0.75rem;
-  font-weight: 500;
 }
 
 .wallet-btn-ghost:hover:not(:disabled) {
@@ -125,31 +122,29 @@
 .wallet-btn-solid {
   background: #fff;
   border: none;
-  color: #5b21b6;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  color: #7c3aed;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transition: transform var(--transition), box-shadow var(--transition);
-  font-size: 0.75rem;
-  font-weight: 500;
 }
 
 .wallet-btn-solid:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
-  color: #4c1d95;
+  color: #6d28d9;
 }
 
 .wallet-refresh-btn {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: 0.9rem;
+  font-size: 1rem;
   transition: background var(--transition), transform var(--transition);
 }
 
@@ -166,15 +161,9 @@
 /* ── Action Buttons Grid ── */
 .action-buttons-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-@media (min-width: 520px) {
-  .action-buttons-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .action-btn-tile {
@@ -183,239 +172,241 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px 10px;
-  border: none;
-  border-radius: 16px;
+  padding: 10px 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.75rem;
-  color: #fff;
+  font-size: 0.6875rem;
+  color: #171a3a;
   min-height: 72px;
+  background: #fff;
   transition: transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 2px 8px rgba(91, 33, 182, 0.05);
 }
 
 .action-btn-tile:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(91, 33, 182, 0.12);
 }
 
 .action-btn-tile:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .action-btn-tile-icon {
-  font-size: 1.3rem;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
   line-height: 1;
+  color: #7c3aed;
 }
 
-.action-btn-tile.deposit {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+.action-btn-tile-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
-.action-btn-tile.withdraw {
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-}
-
-.action-btn-tile.transfer {
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
-}
-
+.action-btn-tile.deposit,
+.action-btn-tile.withdraw,
+.action-btn-tile.transfer,
 .action-btn-tile.bets {
-  background: linear-gradient(135deg, #8b5cf6, #4c1d95);
+  background: #fff;
+  color: var(--ll-purple-dark, #5b21b6);
 }
 
 /* ── Quick Menu Grid ── */
 .quick-menu-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-@media (min-width: 520px) {
-  .quick-menu-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .quick-menu-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 18px 12px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  gap: 6px;
+  padding: 10px 4px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-}
-
-.quick-menu-tile:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
-  border-color: rgba(16, 185, 129, 0.35);
+  transition: transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 2px 8px rgba(91, 33, 182, 0.05);
 }
 
 .quick-menu-tile-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 1.25rem;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(124, 58, 237, 0.15));
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.quick-menu-tile-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .quick-menu-tile-label {
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.6875rem;
+  font-weight: 500;
   text-align: center;
-  color: var(--text);
+  color: #171a3a;
+  line-height: 1.15;
 }
 
 .quick-menu-heading {
-  font-size: 1rem;
-  font-weight: 800;
-  margin-bottom: 14px;
-  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #171a3a;
 }
 
-/* ── Lottery Card Premium ── */
+/* ── Lottery Card Premium (compact 2-col mobile) ── */
 .lottery-card-premium {
   position: relative;
   width: 100%;
+  min-width: 0;
   border: none;
   text-align: left;
   cursor: pointer;
-  border-radius: 22px;
+  border-radius: 16px;
   overflow: hidden;
-  background: var(--surface);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
-  transition: transform 0.24s ease, box-shadow 0.24s ease;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 14px rgba(91, 33, 182, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
 .lottery-card-premium:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 22px 52px rgba(15, 23, 42, 0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.1);
 }
 
 .lottery-card-premium-media {
   position: relative;
   width: 100%;
-  min-height: 118px;
-  max-height: 148px;
+  height: 110px;
   overflow: hidden;
-  background: rgba(241, 245, 249, 0.9);
+  background: #f7f5ff;
   flex-shrink: 0;
 }
 
 .lottery-card-premium-image {
   width: 100%;
-  height: 100%;
-  min-height: 118px;
-  max-height: 148px;
+  height: 110px;
   object-fit: contain;
   object-position: center;
   display: block;
-  padding: 6px;
+  padding: 4px;
   box-sizing: border-box;
 }
 
 .lottery-card-premium-header {
   position: relative;
-  padding: 16px 18px;
+  min-height: 88px;
+  padding: 10px 12px;
   color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 2px;
   overflow: hidden;
   flex-shrink: 0;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
 }
 
 .lottery-card-premium-header::before {
   content: "";
   position: absolute;
-  top: -30px;
-  right: -20px;
-  width: 100px;
-  height: 100px;
+  top: -24px;
+  right: -16px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   pointer-events: none;
 }
 
 .lottery-card-premium-header::after {
   content: "";
   position: absolute;
-  bottom: -20px;
-  left: -15px;
-  width: 70px;
-  height: 70px;
+  bottom: -16px;
+  left: -12px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   pointer-events: none;
-}
-
-.lottery-card-premium-icon {
-  display: none;
 }
 
 .lottery-card-premium-name {
   position: relative;
   z-index: 1;
-  font-size: 0.95rem;
-  font-weight: 900;
-  line-height: 1.25;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
   margin-bottom: 0;
-  padding-right: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .lottery-card-premium-prize {
   position: relative;
   z-index: 1;
-  font-size: 1.28rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.15;
 }
 
 .lottery-card-premium-prize-label {
-  font-size: 0.64rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.85;
-  margin-bottom: 2px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  opacity: 0.9;
+  margin-bottom: 1px;
 }
 
 .lottery-card-premium-body {
-  padding: 16px 18px 18px;
+  padding: 10px;
   display: grid;
-  gap: 12px;
-  background: var(--surface);
+  gap: 8px;
+  background: #fff;
 }
 
 .lottery-card-premium-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .lottery-meta-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 11px;
+  gap: 4px;
+  padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.05);
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  background: #f7f5ff;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #667085;
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body.theme-dark .lottery-meta-pill {
@@ -423,146 +414,190 @@ body.theme-dark .lottery-meta-pill {
 }
 
 .lottery-meta-pill.price {
-  background: linear-gradient(135deg, rgba(12, 120, 88, 0.16), rgba(16, 185, 129, 0.12));
-  color: #0a5c45;
-  font-weight: 800;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-weight: 600;
 }
 
 .lottery-card-premium-cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
-  padding: 13px 18px;
+  height: 44px;
+  padding: 0 10px;
   border: none;
-  border-radius: 14px;
-  font-weight: 800;
-  font-size: 0.84rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
   color: #fff;
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
-  box-shadow: 0 10px 24px rgba(12, 76, 52, 0.15);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transition: opacity 0.2s ease;
+  box-shadow: none;
 }
 
 .lottery-card-premium-cta:hover {
-  transform: translateY(-1px);
-  opacity: 0.96;
+  opacity: 0.92;
+  transform: none;
 }
 
 .lottery-card-premium-ribbon {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 6px;
+  left: 6px;
   z-index: 2;
-  padding: 6px 12px;
+  padding: 3px 8px;
   border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
   color: #fff;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
-  max-width: calc(100% - 20px);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  max-width: calc(100% - 12px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
 }
 
-.lottery-card-premium-ribbon.hot {
-  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
-}
-
-.lottery-card-premium-ribbon.new {
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
-}
-
+.lottery-card-premium-ribbon.hot,
+.lottery-card-premium-ribbon.new,
 .lottery-card-premium-ribbon.ending-soon,
 .lottery-card-premium-ribbon.sold-out {
-  background: linear-gradient(135deg, #5b21b6, #8b5cf6);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
 }
 
-/* Lottery type gradients */
-.lottery-theme-kerala {
-  background: linear-gradient(135deg, #2e1065 0%, #5b21b6 42%, #8b5cf6 100%);
-}
-
-.lottery-theme-nagaland {
-  background: linear-gradient(135deg, #2d0b52 0%, #4c1d95 38%, #8b5cf6 100%);
-}
-
-.lottery-theme-karunya {
-  background: linear-gradient(135deg, #3b1f74 0%, #5b21b6 38%, #a78bfa 100%);
-}
-
-.lottery-theme-win {
-  background: linear-gradient(135deg, #43206d 0%, #6d28d9 42%, #c4b5fd 100%);
-}
-
-.lottery-theme-default {
-  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 40%, #ddd6fe 100%);
-}
-
-.lottery-theme-maharashtra {
-  background: linear-gradient(135deg, #3b1f74 0%, #6d28d9 45%, #ddd6fe 100%);
-}
-
-.lottery-theme-tamil {
-  background: linear-gradient(135deg, #312e81 0%, #5b21b6 38%, #c4b5fd 100%);
-}
-
-.lottery-theme-karnataka {
-  background: linear-gradient(135deg, #3b0764 0%, #6d28d9 42%, #a78bfa 100%);
-}
-
-.lottery-cta-kerala { background: linear-gradient(135deg, #3b0764, #6d28d9); }
-.lottery-cta-nagaland { background: linear-gradient(135deg, #4c1d95, #7c3aed); }
-.lottery-cta-karunya { background: linear-gradient(135deg, #5b21b6, #8b5cf6); }
-.lottery-cta-win { background: linear-gradient(135deg, #4c1d95, #8b5cf6); }
-.lottery-cta-default { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
-.lottery-cta-maharashtra { background: linear-gradient(135deg, #4c1d95, #7c3aed); }
-.lottery-cta-tamil { background: linear-gradient(135deg, #0891b2, #06b6d4); }
-.lottery-cta-karnataka { background: linear-gradient(135deg, #be123c, #e11d48); }
-
-@media (max-width: 480px) {
-  .lottery-card-premium-media {
-    min-height: 100px;
-    max-height: 128px;
-  }
-
-  .lottery-card-premium-image {
-    min-height: 100px;
-    max-height: 128px;
-    padding: 5px;
-  }
-
-  .lottery-card-premium-header {
-    padding: 14px 16px;
-  }
-
-  .lottery-card-premium-name {
-    font-size: 0.9rem;
-  }
+/* legacy theme classes — unified purple */
+.lottery-theme-kerala,
+.lottery-theme-nagaland,
+.lottery-theme-karunya,
+.lottery-theme-win,
+.lottery-theme-default,
+.lottery-theme-maharashtra,
+.lottery-theme-tamil,
+.lottery-theme-karnataka,
+.lottery-cta-kerala,
+.lottery-cta-nagaland,
+.lottery-cta-karunya,
+.lottery-cta-win,
+.lottery-cta-default,
+.lottery-cta-maharashtra,
+.lottery-cta-tamil,
+.lottery-cta-karnataka {
+  /* unified in .lottery-card-premium-header / .lottery-card-premium-cta */
 }
 
 .lottery-card-grid-premium {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
-@media (min-width: 520px) {
-  .lottery-card-grid-premium {
-    grid-template-columns: repeat(2, 1fr);
+/* ── Lottery loading / empty states ── */
+.lottery-grid-skeleton {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lottery-skeleton-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+
+.lottery-skeleton-image {
+  height: 110px;
+  background: linear-gradient(90deg, #f3f0ff 25%, #ede9fe 50%, #f3f0ff 75%);
+  background-size: 200% 100%;
+  animation: ll-shimmer 1.2s ease-in-out infinite;
+}
+
+.lottery-skeleton-header {
+  min-height: 72px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  display: grid;
+  gap: 6px;
+}
+
+.lottery-skeleton-body {
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.lottery-skeleton-line {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f3f0ff 25%, #ede9fe 50%, #f3f0ff 75%);
+  background-size: 200% 100%;
+  animation: ll-shimmer 1.2s ease-in-out infinite;
+}
+
+.lottery-skeleton-line--title {
+  width: 70%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.35);
+  animation: none;
+}
+
+.lottery-skeleton-line--prize {
+  width: 55%;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.45);
+  animation: none;
+}
+
+.lottery-skeleton-line--meta {
+  width: 60%;
+}
+
+.lottery-skeleton-cta {
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f3f0ff 25%, #ede9fe 50%, #f3f0ff 75%);
+  background-size: 200% 100%;
+  animation: ll-shimmer 1.2s ease-in-out infinite;
+}
+
+.lottery-state-message {
+  padding: 20px 16px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.lottery-state-text {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #667085;
+}
+
+.lottery-state-retry {
+  min-width: 120px;
+  height: 42px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+@keyframes ll-shimmer {
+  0% {
+    background-position: 200% 0;
   }
-}
-
-@media (min-width: 680px) {
-  .lottery-card-grid-premium {
-    grid-template-columns: repeat(2, 1fr);
+  100% {
+    background-position: -200% 0;
   }
 }
 
@@ -590,8 +625,8 @@ body.theme-dark .lottery-meta-pill {
 }
 
 .ticket-card-number {
-  font-size: 1.05rem;
-  font-weight: 900;
+  font-size: 0.95rem;
+  font-weight: 600;
   font-family: var(--mono);
   color: var(--text);
 }
@@ -603,30 +638,30 @@ body.theme-dark .lottery-meta-pill {
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
 
 .ticket-status-badge.won {
-  background: rgba(124, 58, 237, 0.12);
-  color: #6d28d9;
+  background: var(--ll-purple-light, #ede9fe);
+  color: var(--ll-purple-dark, #5b21b6);
 }
 
 .ticket-status-badge.pending {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
+  background: rgba(109, 40, 217, 0.1);
+  color: var(--ll-purple, #6d28d9);
 }
 
 .ticket-status-badge.lost {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--ll-text-muted, #64748b);
 }
 
 body.theme-dark .ticket-status-badge.won {
-  background: rgba(124, 58, 237, 0.25);
-  color: #c4b5fd;
+  background: rgba(16, 185, 129, 0.25);
+  color: #34d399;
 }
 
 body.theme-dark .ticket-status-badge.pending {
@@ -674,16 +709,22 @@ body.theme-dark .ticket-status-badge.lost {
 
 .ticket-empty-state {
   text-align: center;
-  padding: 32px 20px;
-  border-radius: 18px;
-  border: 2px dashed var(--border);
+  padding: 24px 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--border);
   background: var(--surface);
 }
 
 .ticket-empty-icon {
-  font-size: 2.5rem;
-  margin-bottom: 12px;
-  opacity: 0.7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  background: #ede9fe;
+  color: #7c3aed;
 }
 
 /* ── Section Headers ── */
@@ -692,61 +733,18 @@ body.theme-dark .ticket-status-badge.lost {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 28px 0 16px;
+  margin: 12px 0 8px;
 }
 
 .section-header-row h3 {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ll-text-navy, #171a3a);
 }
 
 .section-header-icon {
   margin-right: 8px;
-}
-
-/* ── Bottom Nav Enhanced ── */
-.bottom-nav {
-  height: 74px;
-  padding: 0 8px 6px;
-}
-
-.bottom-nav-link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: var(--text-muted);
-  text-decoration: none;
-  text-align: center;
-  font-size: 0.66rem;
-  font-weight: 600;
-  padding: 8px 10px;
-  border-radius: 14px;
-  min-width: 56px;
-  min-height: 56px;
-  transition: background var(--transition), color var(--transition), transform var(--transition);
-}
-
-.bottom-nav-link:hover {
-  transform: translateY(-2px);
-  color: var(--accent);
-}
-
-.bottom-nav-link.active {
-  color: var(--accent);
-  background: rgba(245, 158, 11, 0.14);
-}
-
-.bottom-nav-icon {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.bottom-nav-link.active .bottom-nav-icon {
-  transform: scale(1.08);
 }
 
 /* ── Header Enhanced ── */
@@ -772,92 +770,84 @@ body.theme-dark .ticket-status-badge.lost {
 .wallet-hero-card {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
-  padding: 28px 24px;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 42%, #a78bfa 100%);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: #fff;
-  box-shadow: 0 20px 50px rgba(109, 40, 217, 0.22);
+  box-shadow: 0 4px 14px rgba(91, 33, 182, 0.1);
   text-align: center;
 }
 
 .wallet-hero-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.92;
+  opacity: 0.9;
 }
 
 .wallet-hero-balance {
-  font-size: clamp(2.2rem, 7vw, 3rem);
-  font-weight: 900;
-  margin: 8px 0 0;
-  letter-spacing: -0.02em;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 4px 0 0;
+  letter-spacing: normal;
 }
 
 .wallet-mode-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  padding: 6px;
-  border-radius: 16px;
-  background: rgba(15, 23, 42, 0.05);
-  border: 1px solid var(--border);
-}
-
-body.theme-dark .wallet-mode-tabs {
-  background: rgba(255, 255, 255, 0.06);
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #ede9fe;
+  border: 1px solid #e5e7eb;
 }
 
 .wallet-mode-tab {
   flex: 1;
-  padding: 12px 10px;
+  padding: 10px 6px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   background: transparent;
-  color: var(--text-secondary);
-  font-weight: 700;
-  font-size: 0.85rem;
+  color: #667085;
+  font-weight: 600;
+  font-size: 0.8125rem;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+  transition: background var(--transition), color var(--transition);
 }
 
 .wallet-mode-tab.active {
-  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(109, 40, 217, 0.18);
-}
-
-.wallet-mode-tab:hover:not(.active) {
-  color: var(--accent-strong);
-  background: rgba(124, 58, 237, 0.08);
+  background: #fff;
+  color: #7c3aed;
+  box-shadow: 0 2px 8px rgba(91, 33, 182, 0.08);
 }
 
 .wallet-form-card {
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  padding: 22px;
-  margin-bottom: 20px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(91, 33, 182, 0.05);
 }
 
 .wallet-form-card h5 {
-  margin: 0 0 18px;
-  font-weight: 800;
+  margin: 0 0 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
 }
 
 .wallet-input-group {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .wallet-input-group label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #667085;
 }
 
 .wallet-input-wrap {
@@ -866,43 +856,53 @@ body.theme-dark .wallet-mode-tabs {
 
 .wallet-input-prefix {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: #667085;
   pointer-events: none;
 }
 
 .wallet-input-wrap .form-control {
   padding-left: 36px;
-  height: 52px;
-  border-radius: 14px;
-  border: 1px solid var(--input-border);
-  background: var(--input-bg);
-  font-weight: 600;
-}
-
-.wallet-input-wrap .form-control:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f7f5ff;
+  font-weight: 500;
+  font-size: 0.9375rem;
 }
 
 .wallet-submit-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 14px;
-  font-weight: 800;
+  height: 46px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
   border: none;
-  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: #fff;
-  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.18);
-  transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+  box-shadow: none;
+  transition: opacity var(--transition);
+}
+
+.wallet-input-wrap .form-control:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.wallet-mode-tab:hover:not(.active) {
+  color: #171a3a;
+}
+
+body.theme-dark .wallet-mode-tabs {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .wallet-submit-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 16px 32px rgba(109, 40, 217, 0.22);
+  opacity: 0.92;
+  transform: none;
 }
 
 .wallet-submit-btn:disabled {
@@ -938,22 +938,22 @@ body.theme-dark .wallet-mode-tabs {
   display: grid;
   place-items: center;
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .txn-icon.deposit {
-  background: rgba(124, 58, 237, 0.12);
-  color: #6d28d9;
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
 }
 
 .txn-icon.withdrawal {
-  background: rgba(109, 40, 217, 0.1);
-  color: #5b21b6;
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
 }
 
 .txn-icon.transfer {
-  background: rgba(139, 92, 246, 0.12);
-  color: #6d28d9;
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
 }
 
 .txn-body {
@@ -962,7 +962,7 @@ body.theme-dark .wallet-mode-tabs {
 }
 
 .txn-type {
-  font-weight: 800;
+  font-weight: 600;
   font-size: 0.95rem;
 }
 
@@ -995,7 +995,7 @@ body.theme-dark .wallet-mode-tabs {
 
 .home-wallet-banner .wallet-value {
   font-size: clamp(1.6rem, 5vw, 2rem);
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text);
 }
 

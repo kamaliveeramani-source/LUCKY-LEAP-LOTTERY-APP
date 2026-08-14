@@ -1,27 +1,23 @@
 .dashboard-page {
-  animation: pageFadeIn 0.32s ease-out forwards;
-  padding-top: 68px;
+  animation: none;
 }
 
 .dashboard-greeting {
   margin-bottom: 2px;
-  margin-top: 0;
 }
 
 .dashboard-greeting-name {
-  font-size: clamp(1.1rem, 3vw, 1.3rem);
-  font-weight: 500;
-  margin: 2px 0 0;
-  color: var(--text);
-  line-height: 1.2;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 4px 0 2px;
+  color: #17134a;
 }
 
 .dashboard-greeting-meta {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: #64748b;
+  margin: 0;
   font-weight: 400;
-  letter-spacing: -0.01em;
 }
 
 .dashboard-top-row {
@@ -29,26 +25,22 @@
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding-top: 0;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .dashboard-top-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 2px;
 }
 
 .dashboard-logout-btn {
   border-radius: 10px;
-  padding: 6px 12px;
-  font-weight: 500;
-  font-size: 0.75rem;
+  padding: 7px 14px;
+  font-weight: 600;
+  font-size: 0.82rem;
   transition: transform var(--transition), opacity var(--transition);
-  background: rgba(109, 53, 200, 0.1);
-  border: 1px solid rgba(109, 53, 200, 0.2);
 }
 
 .dashboard-logout-btn:hover {
@@ -58,86 +50,47 @@
 .dashboard-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
+  gap: 6px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: linear-gradient(90deg, var(--accent), var(--accent-alt));
-  color: #fff;
-  margin-bottom: 0;
+  letter-spacing: normal;
+  text-transform: none;
+  background: #ede9fe;
+  color: #6d28d9;
 }
 
-/* Dashboard Hero Card Sections */
-.dashboard-hero-card {
-  gap: 8px !important;
-  padding: 12px 14px 10px !important;
+.dashboard-top-actions .theme-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #ede9fe;
+  border: 1px solid rgba(124, 58, 237, 0.12);
 }
 
-.hero-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 0;
-}
-
-.hero-main-row {
+.dashboard-top-actions .theme-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  border-radius: 8px;
   display: grid;
-  gap: 8px;
-  grid-template-columns: 1fr auto;
-  align-items: flex-start;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: #667085;
+  cursor: pointer;
 }
 
-.hero-main-row > div:first-child h1 {
-  font-size: clamp(1.1rem, 2.8vw, 1.3rem) !important;
-  margin: 0 0 2px !important;
-  font-weight: 500 !important;
-  line-height: 1.15;
+.dashboard-top-actions .theme-btn.active {
+  background: #fff;
+  color: #7c3aed;
+  box-shadow: 0 1px 4px rgba(124, 58, 237, 0.15);
 }
 
-.hero-main-row > div:first-child p {
-  font-size: 0.75rem !important;
-  color: rgba(255, 255, 255, 0.88) !important;
-  margin: 0 !important;
-  line-height: 1.3;
-  max-width: 22ch;
-}
-
-.hero-wallet-box {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  align-items: flex-end;
-  text-align: right;
-}
-
-.hero-wallet-box span {
-  font-size: 0.62rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.hero-wallet-box strong {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.hero-actions .btn {
-  font-size: 0.75rem !important;
-  height: 36px !important;
-  padding: 0 14px !important;
-  font-weight: 500 !important;
+.dashboard-top-actions .theme-btn svg {
+  width: 16px;
+  height: 16px;
 }

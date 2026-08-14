@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { useWallet } from "../context/WalletContext";
 import { useNotification } from "../context/NotificationContext";
@@ -107,7 +107,7 @@ function Login() {
 
         <div className="auth-footer">
           New to Lucky Leap?{" "}
-          <a href="/register" className="auth-link">Create Account</a>
+          <Link to="/register" className="auth-link">Create Account</Link>
         </div>
       </div>
     </div>

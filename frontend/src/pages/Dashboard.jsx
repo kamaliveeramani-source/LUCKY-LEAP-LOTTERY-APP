@@ -7,6 +7,7 @@ import { useWallet } from "../context/WalletContext";
 import ActionButtons from "../components/ActionButtons";
 import MenuList from "../components/MenuList";
 import LotteryCard from "../components/LotteryCard";
+import LotteryListState from "../components/LotteryListState";
 import TicketCard from "../components/TicketCard";
 import { addNotification } from "../services/notificationService";
 import { useNotification } from "../context/NotificationContext";
@@ -65,6 +66,7 @@ function Dashboard() {
   const { wallet, loading: walletLoading, error: walletError, refreshWallet } = useWallet();
 
   const [lotteries, setLotteries] = useState([]);
+  const [lotteryStatus, setLotteryStatus] = useState("loading");
   const [tickets, setTickets] = useState([]);
   const [greeting, setGreeting] = useState({ name: "Player", time: "", date: "" });
 
@@ -96,13 +98,22 @@ function Dashboard() {
   };
 
   const getLotteries = async () => {
+    setLotteryStatus("loading");
     try {
       const res = await API.get("/lottery/all");
       const apiLotteries = Array.isArray(res.data.data) ? res.data.data : [];
-      setLotteries([...apiLotteries, ...defaultStateLotteries]);
+      const merged = [...apiLotteries, ...defaultStateLotteries];
+      if (!merged.length) {
+        setLotteries([]);
+        setLotteryStatus("empty");
+        return;
+      }
+      setLotteries(merged);
+      setLotteryStatus("success");
     } catch (err) {
       console.log(err);
-      setLotteries(defaultStateLotteries);
+      setLotteries([]);
+      setLotteryStatus("error");
     }
   };
 
@@ -139,10 +150,8 @@ function Dashboard() {
     navigate("/login");
   };
 
-  const featuredLottery = lotteries[0] || defaultStateLotteries[0];
-
   return (
-    <div className="page-content dashboard-page dashboard-shell">
+    <div className="page-content dashboard-page">
       <div className="dashboard-top-row">
         <div className="dashboard-greeting">
           <span className="dashboard-badge">Dashboard</span>
@@ -158,106 +167,39 @@ function Dashboard() {
         </div>
       </div>
 
-      <section className="emerald-hero-card dashboard-hero-card">
-        <div className="hero-top-row">
-          <span className="hero-live-pill">WELCOME BACK</span>
-          <span className="hero-chip">Ready to play</span>
-        </div>
-
-        <div className="hero-main-row">
-          <div>
-            <h1>Play & Win Big!</h1>
-            <p>Track your wallet, discover new draws, and jump into your next lucky ticket.</p>
-          </div>
-          <div className="hero-wallet-box">
-            <span>Wallet balance</span>
-            <strong>₹ {wallet.wallet?.toLocaleString?.() ?? Number(wallet.wallet || 0).toFixed(2)}</strong>
-          </div>
-        </div>
-
-        <div className="hero-actions">
-          <button type="button" className="btn btn-primary-custom hero-primary-btn" onClick={() => navigate("/lottery")}>
-            Play Now
-          </button>
-          <button type="button" className="btn btn-secondary-custom hero-secondary-btn" onClick={() => navigate("/add-cash")}>
-            Add Cash
-          </button>
-        </div>
-      </section>
-
       <WalletCard wallet={wallet} refreshWallet={refreshWallet} loading={walletLoading} error={walletError} />
       <ActionButtons />
       <MenuList />
 
-      <section className="live-lottery-panel">
-        <div className="section-title-row">
-          <div>
-            <div className="section-kicker">Live Lottery</div>
-            <h3>Featured draw</h3>
-          </div>
-          <button type="button" className="mini-link-btn" onClick={() => navigate("/lottery")}>View All</button>
-        </div>
+      <div className="section-header-row">
+        <h3>Available Lotteries</h3>
+      </div>
 
-        {featuredLottery && (
-          <div className="live-lottery-card" onClick={() => navigate(`/lottery?lotteryId=${featuredLottery.id}`)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate(`/lottery?lotteryId=${featuredLottery.id}`)}>
-            <div className="live-lottery-content">
-              <div className="live-lottery-badge">LIVE</div>
-              <h4>{featuredLottery.lotteryName || featuredLottery.name}</h4>
-              <p>{new Date(featuredLottery.drawDate).toLocaleDateString(undefined, { day: "numeric", month: "short" })} • {new Date(featuredLottery.drawDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
-              <div className="live-lottery-stats">
-                <span>
-                  Prize: ₹
-                  {Number(featuredLottery.firstPrize ?? featuredLottery.prize ?? 0).toLocaleString()}
-                </span>
-                <span>Ticket: ₹{Number(featuredLottery.ticketPrice ?? featuredLottery.price ?? 0).toLocaleString()}</span>
-              </div>
-            </div>
-            <button type="button" className="btn btn-primary-custom live-lottery-btn" onClick={(event) => { event.stopPropagation(); navigate(`/lottery?lotteryId=${featuredLottery.id}`); }}>
-              Play Now
-            </button>
-          </div>
-        )}
-      </section>
-
-      <section className="today-draws-panel">
-        <div className="section-title-row">
-          <div>
-            <div className="section-kicker">Today’s Draws</div>
-            <h3>Lucky picks</h3>
-          </div>
-          <button type="button" className="mini-link-btn" onClick={() => navigate("/lottery")}>View All</button>
-        </div>
-
-        <div className="lottery-card-grid-premium compact-grid">
-          {lotteries.slice(0, 4).map((lottery) => (
+      <LotteryListState status={lotteryStatus} onRetry={getLotteries}>
+        <div className="lottery-card-grid-premium">
+          {lotteries.map((lottery) => (
             <LotteryCard
               key={lottery.id}
               lottery={lottery}
-              actionLabel="Play Now"
+              actionLabel="Buy Ticket"
               onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
               onActionClick={() => buyTicket(lottery.id, lottery.lotteryName)}
             />
           ))}
         </div>
-      </section>
-
-      <section className="security-panel">
-        <div className="trust-card">
-          <div className="trust-icon">🛡️</div>
-          <div className="trust-copy">
-            <h4>Play Safe. Play Smart.</h4>
-            <p>Set a budget, review draw times, and keep your wallet in control before every ticket purchase.</p>
-          </div>
-        </div>
-      </section>
+      </LotteryListState>
 
       <div className="section-header-row">
-        <h3><span className="section-header-icon" aria-hidden="true">🎫</span>My Tickets</h3>
+        <h3>My Tickets</h3>
       </div>
 
       {tickets.length === 0 ? (
         <div className="ticket-empty-state">
-          <div className="ticket-empty-icon" aria-hidden="true">🎫</div>
+          <div className="ticket-empty-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28">
+              <path d="M5 8h14v3a2 2 0 0 1 0 4v3H5v-3a2 2 0 0 0 0-4V8Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+            </svg>
+          </div>
           <p className="text-muted" style={{ margin: 0 }}>No tickets purchased yet.</p>
           <button
             type="button"

@@ -24,9 +24,9 @@ function Results() {
 
   return (
       <div className="page-content">
-        <div className="text-center" style={{ marginBottom: "20px" }}>
+        <div className="text-center page-intro">
           <div className="badge-pill">Results</div>
-          <h2 className="page-title" style={{ margin: "10px 0 6px", fontWeight: 800 }}>Lottery Results</h2>
+          <h2 className="page-title">Lottery Results</h2>
           <p className="text-muted" style={{ margin: 0 }}>Recent draw outcomes from the backend.</p>
         </div>
 
@@ -41,7 +41,7 @@ function Results() {
         ) : (
           <div className="home-card-grid">
             {lotteries.map((lottery) => (
-              <div key={lottery.id} className="home-card" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.96), rgba(4,120,87,0.96))" }}>
+              <div key={lottery.id} className="home-card results-card">
                 <div>
                   <div className="home-card-title">{lottery.lotteryName}</div>
                   <div className="home-card-subtitle" style={{ marginTop: "8px" }}>
@@ -50,7 +50,7 @@ function Results() {
                 </div>
                 <div style={{ marginTop: "16px", color: "var(--text)" }}>
                   <p style={{ margin: "4px 0" }}><strong>Winner Ticket:</strong> {lottery.winnerTicketId ? `#${lottery.winnerTicketId}` : "Not declared yet"}</p>
-                  <p style={{ margin: "4px 0", fontWeight: 700 }}>🎉 First Prize: ₹{lottery.firstPrize}</p>
+                  <p className="results-prize-line">First Prize: ₹{lottery.firstPrize}</p>
                 </div>
               </div>
             ))}

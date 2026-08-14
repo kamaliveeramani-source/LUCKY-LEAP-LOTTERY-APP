@@ -8,36 +8,13 @@ import karunya from "../assets/lotteries/karunya.png";
 import samrudhi from "../assets/lotteries/samrudhi.png";
 import bhagyathara from "../assets/lotteries/bhagyathara.png";
 import winWin from "../assets/lotteries/win-win.png";
+import keralaEmblem from "../assets/lotteries/kerala-emblem.png";
 import keralaBumper from "../assets/lotteries/kerala-bumper.png";
 import defaultLotteryImage from "../assets/lotteries/lottery.png";
 
-function TicketIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M6 4.75h8.3a1.7 1.7 0 0 1 1.7 1.7v1.2a1.7 1.7 0 0 0 0 3.4v1.2a1.7 1.7 0 0 1-1.7 1.7H6a1.7 1.7 0 0 1-1.7-1.7v-1.2a1.7 1.7 0 0 0 0-3.4V6.45A1.7 1.7 0 0 1 6 4.75Zm2 4.2h4.2M8 12.2h4.2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M5.5 4.5V3m9 1.5V3M4 7.5h12M5 9.5h10v6H5v-6Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <circle cx="10" cy="10" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M10 6.2v4.1l2.8 1.7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 const lotteryImages = {
-  "KERALA STATE LOTTERY": keralaBumper,
+  "KERALA LOTTERY": keralaEmblem,
+  "KERALA STATE LOTTERY": keralaEmblem,
   "KERALA BUMPER": keralaBumper,
   "NAGALAND MORNING": nagalandMorning,
   "STHREE SAKTHI": sthreeSakthi,
@@ -113,43 +90,20 @@ function resolveDrawLabels(lottery) {
   return { dateLabel: "Soon", timeLabel: "" };
 }
 
-function getLotteryTheme(name) {
-  const n = (name || "").toLowerCase();
-  if (n.includes("kerala") || n.includes("suvarna") || n.includes("samrudhi") || n.includes("bhagyathara")) {
-    return { theme: "kerala", cta: "kerala" };
-  }
-  if (n.includes("nagaland") || n.includes("sthree")) {
-    return { theme: "nagaland", cta: "nagaland" };
-  }
-  if (n.includes("karunya")) {
-    return { theme: "karunya", cta: "karunya" };
-  }
-  if (n.includes("win")) {
-    return { theme: "win", cta: "win" };
-  }
-  if (n.includes("maharashtra")) {
-    return { theme: "maharashtra", cta: "maharashtra" };
-  }
-  if (n.includes("tamil")) {
-    return { theme: "tamil", cta: "tamil" };
-  }
-  if (n.includes("karnataka")) {
-    return { theme: "karnataka", cta: "karnataka" };
-  }
-  return { theme: "default", cta: "default" };
-}
-
 function getLotteryImage(name, lottery) {
   const imageKey = name.trim().toUpperCase().replace(/\s+/g, " ");
   const normalizedKey = imageKey.replace(/-/g, " ").replace(/\s+/g, " ").trim();
-  return lotteryImages[normalizedKey] || lottery.image || defaultLotteryImage;
+  return lotteryImages[normalizedKey] || lottery?.image || defaultLotteryImage;
+}
+
+export function getLotteryImageByName(name) {
+  return getLotteryImage(name, {});
 }
 
 function LotteryCard({ lottery, onClick, actionLabel = "View Details", onActionClick }) {
   const name = (lottery.lotteryName || lottery.name || "Lottery").toString();
   const ticketPrice = lottery.ticketPrice ?? lottery.price;
   const prize = lottery.firstPrize ?? lottery.prize;
-  const { theme, cta } = getLotteryTheme(name);
   const imageSrc = getLotteryImage(name, lottery);
   const { dateLabel, timeLabel } = resolveDrawLabels(lottery);
 
@@ -188,7 +142,7 @@ function LotteryCard({ lottery, onClick, actionLabel = "View Details", onActionC
         ) : null}
       </div>
 
-      <div className={`lottery-card-premium-header lottery-theme-${theme}`}>
+      <div className="lottery-card-premium-header">
         <div className="lottery-card-premium-name">{name}</div>
         {formattedPrize ? (
           <div>
@@ -201,19 +155,20 @@ function LotteryCard({ lottery, onClick, actionLabel = "View Details", onActionC
       <div className="lottery-card-premium-body">
         <div className="lottery-card-premium-meta">
           {ticketPrice ? (
-            <span className="lottery-meta-pill price"><TicketIcon /> ₹{ticketPrice}</span>
+            <span className="lottery-meta-pill price">₹{ticketPrice}</span>
           ) : null}
-          {dateLabel ? (
-            <span className="lottery-meta-pill"><CalendarIcon /> {dateLabel}</span>
-          ) : null}
-          {timeLabel ? (
-            <span className="lottery-meta-pill"><ClockIcon /> {timeLabel}</span>
+          {dateLabel || timeLabel ? (
+            <span className="lottery-meta-pill">
+              {dateLabel}
+              {dateLabel && timeLabel ? " · " : ""}
+              {timeLabel}
+            </span>
           ) : null}
         </div>
 
         <button
           type="button"
-          className={`lottery-card-premium-cta lottery-cta-${cta}`}
+          className="lottery-card-premium-cta"
           onClick={handleCtaClick}
         >
           {actionLabel}

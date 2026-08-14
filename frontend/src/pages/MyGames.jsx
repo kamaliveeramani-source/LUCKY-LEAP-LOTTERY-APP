@@ -3,41 +3,92 @@ import { useNavigate } from "react-router-dom";
 import { useWallet } from "../context/WalletContext";
 import "./GamePages.css";
 
+function GameLobbyIcon({ type }) {
+  const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinejoin: "round" };
+
+  switch (type) {
+    case "lottery":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 4h10v16l-5-3-5 3V4Z" {...stroke} />
+        </svg>
+      );
+    case "dice":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="5" y="5" width="14" height="14" rx="3" {...stroke} />
+          <circle cx="9" cy="9" r="1" fill="currentColor" />
+          <circle cx="15" cy="15" r="1" fill="currentColor" />
+        </svg>
+      );
+    case "timer":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="13" r="7" {...stroke} />
+          <path d="M12 10v4l2 2M9 3h6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+        </svg>
+      );
+    case "color":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3c-4 0-7 3-7 7a4 4 0 0 0 4 4h1v-4l4-1 1-4H12Z" {...stroke} />
+          <circle cx="8" cy="8" r="1" fill="currentColor" />
+          <circle cx="11" cy="6" r="1" fill="currentColor" />
+          <circle cx="15" cy="9" r="1" fill="currentColor" />
+        </svg>
+      );
+    case "fire":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3s-4 5-4 9a4 4 0 0 0 8 0c0-4-4-9-4-9Z" {...stroke} />
+        </svg>
+      );
+    case "star":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3l2.2 4.5L19 8.3l-3.5 3.4.8 4.9L12 14.8 7.7 16.6l.8-4.9L5 8.3l4.8-.8L12 3Z" {...stroke} />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8" {...stroke} />
+        </svg>
+      );
+  }
+}
+
 const quickGames = [
   {
     id: "kerala-lottery",
-    banner: "🎟",
+    icon: "lottery",
     title: "Kerala Lottery",
     path: "/lottery-game",
     odds: "Varies",
-    image: "🎫",
     duration: "Daily Draws",
   },
   {
     id: "dice-3",
-    banner: "🎲",
+    icon: "dice",
     title: "Dice 3 Minutes",
     path: "/dice-3",
     odds: "1:150",
-    image: "🎲",
     duration: "3 Minutes",
   },
   {
     id: "dice-5",
-    banner: "🎲",
+    icon: "timer",
     title: "Dice 5 Minutes",
     path: "/dice-5",
     odds: "1:150",
-    image: "⏳",
     duration: "5 Minutes",
   },
   {
     id: "color-prediction",
-    banner: "🎨",
+    icon: "color",
     title: "Colour Prediction",
     path: "/color-prediction",
     odds: "50x / 250x",
-    image: "🌈",
     duration: "1 Minute",
   },
 ];
@@ -51,9 +102,9 @@ const demoWinners = [
 ];
 
 const promotions = [
-  { id: "dice-mania", title: "Dice Mania", badge: "🔥", subtitle: "1:150 Odds" },
-  { id: "colour-bonus", title: "Colour Prediction", badge: "🎨", subtitle: "Extra Bonus" },
-  { id: "kerala-lottery", title: "Kerala Lottery", badge: "🎟", subtitle: "Mega Prize" },
+  { id: "dice-mania", title: "Dice Mania", icon: "fire", subtitle: "1:150 Odds" },
+  { id: "colour-bonus", title: "Colour Prediction", icon: "color", subtitle: "Extra Bonus" },
+  { id: "kerala-lottery", title: "Kerala Lottery", icon: "lottery", subtitle: "Mega Prize" },
 ];
 
 const activityFeed = [
@@ -129,7 +180,7 @@ function MyGames() {
           <div className="wallet-summary-value">₹ {winningsToday.toLocaleString()}</div>
         </div>
         <div className="wallet-summary-actions">
-          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/add-cash")}>Add Money</button>
+          <button type="button" className="btn btn-gradient-primary btn-pill" onClick={() => navigate("/wallet?mode=add")}>Add Money</button>
           <button type="button" className="btn btn-secondary-custom btn-pill" onClick={() => navigate("/wallet?mode=withdraw")}>Withdraw</button>
         </div>
       </div>
@@ -149,7 +200,9 @@ function MyGames() {
         {quickGames.map((game) => (
           <article key={game.id} className="quick-play-card">
             <div className="quick-play-card-top">
-              <div className="quick-play-image">{game.image}</div>
+              <div className="quick-play-image">
+                <GameLobbyIcon type={game.icon} />
+              </div>
               <span className="game-badge live">Live</span>
             </div>
             <div className="quick-play-card-body">
@@ -185,7 +238,9 @@ function MyGames() {
       <section className="promotion-grid">
         {promotions.map((promo) => (
           <article key={promo.id} className="promotion-card">
-            <div className="promotion-icon">{promo.badge}</div>
+            <div className="promotion-icon">
+              <GameLobbyIcon type={promo.icon} />
+            </div>
             <h4>{promo.title}</h4>
             <p>{promo.subtitle}</p>
           </article>
@@ -244,10 +299,14 @@ function MyGames() {
       </section>
 
       <div className="fab-container">
-        <button type="button" className="fab-button" onClick={() => setShowFabMenu((prev) => !prev)}>➕</button>
+        <button type="button" className="fab-button" onClick={() => setShowFabMenu((prev) => !prev)} aria-label="Quick actions">
+          <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22">
+            <path d="M12 6v12M6 12h12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </button>
         {showFabMenu && (
           <div className="fab-menu">
-            <button type="button" className="fab-action" onClick={() => navigate("/add-cash")}>Add Money</button>
+            <button type="button" className="fab-action" onClick={() => navigate("/wallet?mode=add")}>Add Money</button>
             <button type="button" className="fab-action" onClick={() => navigate("/history")}>My Bets</button>
             <button type="button" className="fab-action" onClick={() => navigate("/history")}>History</button>
             <button type="button" className="fab-action" onClick={() => navigate("/support")}>Support</button>

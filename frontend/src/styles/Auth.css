@@ -1,12 +1,14 @@
 .auth-page {
+  width: 100%;
   min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  background: linear-gradient(160deg, #fef3c7 0%, #fce7f3 35%, #ede9fe 70%, #eef2ff 100%);
+  padding: 20px 16px;
+  background: #f7f5ff;
   overflow-x: hidden;
   box-sizing: border-box;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body.theme-dark .auth-page {
@@ -15,14 +17,14 @@ body.theme-dark .auth-page {
 
 .auth-card {
   width: 100%;
-  max-width: 440px;
-  padding: 32px 28px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 28px 64px rgba(15, 23, 42, 0.12);
-  backdrop-filter: blur(20px);
-  animation: pageFadeIn 0.4s ease-out forwards;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  box-shadow: 0 12px 32px rgba(91, 33, 182, 0.08);
+  animation: none;
 }
 
 body.theme-dark .auth-card {
@@ -32,7 +34,7 @@ body.theme-dark .auth-card {
 }
 
 .auth-card-wide {
-  max-width: 520px;
+  max-width: 430px;
 }
 
 .auth-header {
@@ -49,41 +51,41 @@ body.theme-dark .auth-card {
 }
 
 .auth-title {
-  margin: 14px 0 4px;
-  font-size: clamp(1.3rem, 3.2vw, 1.6rem);
-  font-weight: 500;
-  color: var(--text);
+  margin: 14px 0 6px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #171a3a;
 }
 
 .auth-subtitle {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  line-height: 1.5;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.45;
   font-weight: 400;
 }
 
 .auth-field {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .auth-field label {
   display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
   margin-bottom: 6px;
-  color: var(--text);
+  color: #171a3a;
 }
 
 .auth-input {
   width: 100%;
-  height: 44px;
+  height: 48px;
   padding: 0 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 0.94rem;
   font-weight: 400;
   box-sizing: border-box;
   transition: border-color var(--transition), box-shadow var(--transition);
@@ -91,8 +93,8 @@ body.theme-dark .auth-card {
 
 .auth-input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.12);
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
 }
 
 .auth-input::placeholder {
@@ -104,21 +106,21 @@ body.theme-dark .auth-card {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .auth-check input[type="checkbox"] {
   width: 18px;
   height: 18px;
   margin-top: 2px;
-  accent-color: var(--accent);
+  accent-color: #7c3aed;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .auth-check label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-size: 0.86rem;
+  color: #64748b;
   line-height: 1.4;
   cursor: pointer;
   font-weight: 400;
@@ -126,22 +128,22 @@ body.theme-dark .auth-card {
 
 .auth-submit {
   width: 100%;
-  height: 42px;
+  height: 48px;
   margin-top: 6px;
   border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: #fff;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.94rem;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(109, 40, 217, 0.2);
+  box-shadow: 0 10px 24px rgba(124, 58, 237, 0.22);
   transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
 }
 
 .auth-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 32px rgba(109, 40, 217, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(124, 58, 237, 0.28);
 }
 
 .auth-submit:active:not(:disabled) {
@@ -155,14 +157,14 @@ body.theme-dark .auth-card {
 
 .auth-footer {
   text-align: center;
-  margin-top: 18px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  margin-top: 20px;
+  font-size: 0.88rem;
+  color: #64748b;
   font-weight: 400;
 }
 
 .auth-link {
-  color: var(--accent);
+  color: #7c3aed;
   font-weight: 600;
   text-decoration: none;
   background: none;
@@ -177,13 +179,14 @@ body.theme-dark .auth-card {
 }
 
 .auth-error {
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   color: #dc2626;
-  font-size: 0.9rem;
-  margin-bottom: 18px;
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+  font-weight: 500;
 }
 
 body.theme-dark .auth-error {
@@ -200,12 +203,12 @@ body.theme-dark .auth-error {
 @media (min-width: 480px) {
   .auth-row {
     grid-template-columns: 1fr 2fr;
-    gap: 16px;
+    gap: 14px;
   }
 }
 
 @media (max-width: 380px) {
   .auth-card {
-    padding: 28px 20px;
+    padding: 24px 18px;
   }
 }

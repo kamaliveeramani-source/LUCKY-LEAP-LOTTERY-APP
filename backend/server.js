@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
+const fs = require("fs");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const walletRoutes = require("./routes/walletRoutes");
@@ -21,11 +23,15 @@ app.use("/api/user", userRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/lottery", lotteryRoutes);
 app.use("/api/ticket", ticketRoutes);
-// Test API
-app.get("/", (req, res) => {
+
+const frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+const frontendIndexPath = path.join(frontendDistPath, "index.html");
+const hasFrontendBuild = fs.existsSync(frontendIndexPath);
+
+app.get("/api/status", (req, res) => {
   res.json({
     success: true,
-    message: "Lottery API Running Successfully"
+    message: "Lottery API Running Successfully",
   });
 });
 
@@ -38,6 +44,24 @@ app.get("/health", async (req, res) => {
     return res.status(503).json({ status: "error", database: "disconnected", timestamp: new Date().toISOString() });
   }
 });
+
+if (hasFrontendBuild) {
+  app.use(express.static(frontendDistPath, { index: false }));
+
+  app.get(/^(?!\/api\/).*/, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      return next();
+    }
+    res.sendFile(frontendIndexPath);
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.json({
+      success: true,
+      message: "Lottery API Running Successfully",
+    });
+  });
+}
 
 // Database Connection
 sequelize

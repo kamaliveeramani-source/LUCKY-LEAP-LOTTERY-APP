@@ -1,0 +1,13 @@
+# Lucky Leap — Render Blueprint
+# Web service: builds the Vite/React frontend and serves it from Express.
+# Non-/api routes fall back to index.html so React Router handles SPA paths.
+
+services:
+  - type: web
+    name: lucky-leap-lottery-app
+    runtime: node
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

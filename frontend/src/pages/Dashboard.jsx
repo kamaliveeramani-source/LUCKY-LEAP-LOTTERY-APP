@@ -120,9 +120,10 @@ function Dashboard() {
   const getMyTickets = async () => {
     try {
       const res = await API.get("/ticket/mytickets", { headers: { Authorization: `Bearer ${token}` } });
-      setTickets(res.data.tickets);
+      setTickets(Array.isArray(res.data?.tickets) ? res.data.tickets : []);
     } catch (err) {
       console.log(err);
+      setTickets([]);
     }
   };
 

@@ -113,8 +113,8 @@ function SideDrawer({ open, onClose }) {
 
           <div className="side-drawer-support">
             <div className="side-drawer-support-title">Support</div>
-            <a className="side-drawer-support-link" href="mailto:support@luckyleap.com">
-              support@luckyleap.com
+            <a className="side-drawer-support-link" href="mailto:support@thumbilotteries.app">
+              support@thumbilotteries.app
             </a>
           </div>
         </div>

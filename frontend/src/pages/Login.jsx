@@ -50,7 +50,7 @@ function Login() {
         <div className="auth-header">
           <AppLogo className="mb-3" />
           <h1 className="auth-title">Sign In</h1>
-          <p className="auth-subtitle">Welcome back! Sign in to your Lucky Leap account.</p>
+          <p className="auth-subtitle">Welcome back! Sign in to your Thumbi Lotteries account.</p>
         </div>
 
         <form onSubmit={loginUser}>
@@ -106,7 +106,7 @@ function Login() {
         </form>
 
         <div className="auth-footer">
-          New to Lucky Leap?{" "}
+          New to Thumbi Lotteries?{" "}
           <Link to="/register" className="auth-link">Create Account</Link>
         </div>
       </div>

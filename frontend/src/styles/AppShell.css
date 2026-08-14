@@ -1,7 +1,7 @@
-/* Lucky Leap — global mobile app shell & design system */
+/* Thumbi Lotteries — global mobile app shell & design system */
 
 :root {
-  /* ── Lucky Leap design tokens (single source of truth) ── */
+  /* ── Thumbi Lotteries design tokens (single source of truth) ── */
   --ll-purple: #7c3aed;
   --ll-purple-dark: #6d28d9;
   --ll-purple-deep: #5b21b6;
@@ -126,6 +126,7 @@ body {
 
 .app-shell.mobile-route .menu-toggle,
 .app-shell.mobile-route .header-action-btn {
+  position: relative;
   width: 38px;
   height: 38px;
   min-width: 38px;
@@ -150,7 +151,19 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--ll-purple);
+  border: 2px solid #fff;
+}
+
+.app-shell.mobile-route .header-profile-btn::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ll-purple);
   border: 2px solid #fff;
 }
 
@@ -181,15 +194,36 @@ body {
 
 .app-shell.mobile-route .header-brand-logo .app-logo-text {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.05;
 }
 
 .app-shell.mobile-route .header-brand-logo .app-logo-name {
   font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: normal;
-  text-transform: none;
-  line-height: 1.2;
-  color: var(--ll-text-navy);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: var(--ll-purple-dark);
+}
+
+.app-shell.mobile-route .header-brand-logo .app-logo-subname {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: var(--ll-purple);
+}
+
+.app-logo-subname {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ll-purple);
+  line-height: 1.1;
 }
 
 .app-shell.mobile-route .header-brand-logo .app-logo-tag {
@@ -218,7 +252,7 @@ body {
 
 .app-shell.mobile-route .bottom-nav-items {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: stretch;
   width: 100%;
   height: var(--bottom-nav-height);
@@ -229,10 +263,23 @@ body {
 .app-shell.mobile-route .bottom-nav-fab-slot {
   grid-column: 3;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
   height: 100%;
   pointer-events: none;
+  gap: 2px;
+}
+
+.app-shell.mobile-route .bottom-nav-fab-label {
+  position: relative;
+  top: calc(-1 * var(--bottom-nav-fab-overhang) + 2px);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ll-text-muted);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .app-shell.mobile-route .bottom-nav-ref .bottom-nav-link {

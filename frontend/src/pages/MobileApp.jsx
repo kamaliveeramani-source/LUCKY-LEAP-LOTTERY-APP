@@ -11,14 +11,14 @@ function MobileApp() {
             Play Lottery Anytime
           </h2>
           <p className="text-muted" style={{ margin: 0 }}>
-            Download the Lucky Leap mobile experience to buy tickets, track draws, and manage your wallet on the go.
+            Download the Thumbi Lotteries mobile experience to buy tickets, track draws, and manage your wallet on the go.
           </p>
         </div>
 
         <div className="card-panel card-panel-strong" style={{ marginBottom: "20px" }}>
           <div style={{ display: "grid", gap: "18px" }}>
             <div>
-              <h4 style={{ color: "var(--accent)", marginBottom: "10px" }}>Why the Lucky Leap App?</h4>
+              <h4 style={{ color: "var(--accent)", marginBottom: "10px" }}>Why the Thumbi Lotteries App?</h4>
               <ul style={{ paddingLeft: "18px", margin: 0, color: "var(--text)" }}>
                 <li style={{ marginBottom: "8px" }}>Quick ticket purchase for Kerala state lotteries</li>
                 <li style={{ marginBottom: "8px" }}>Live draw notifications and prize updates</li>

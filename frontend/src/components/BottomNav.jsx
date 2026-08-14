@@ -8,14 +8,6 @@ function NavIcon({ type }) {
       </svg>
     );
   }
-  if (type === "games") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M8 9h2M14 9h2M9.5 12.5h5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        <path d="M7.5 6.5h9a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4h-1.2l-2.3 2.3a1 1 0 0 1-1.7-.7V17.5H7.5a4 4 0 0 1-4-4v-3a4 4 0 0 1 4-4Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-      </svg>
-    );
-  }
   if (type === "wallet") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -32,24 +24,13 @@ function NavIcon({ type }) {
   }
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M7 4h10v16l-5-3-5 3V4Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M6 20V10M12 20V4M18 20v-7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-const GAME_ROUTES = [
-  "/my-games",
-  "/lottery-game",
-  "/lotterygame",
-  "/dice-3",
-  "/dice-5",
-  "/color-prediction",
-  "/jackpot",
-];
-
 const navItems = [
   { path: "/home", icon: "home", label: "Home" },
-  { path: "/my-games", icon: "games", label: "Games" },
   { path: "/wallet", icon: "wallet", label: "Wallet" },
   { path: "/results", icon: "results", label: "Results" },
 ];
@@ -58,11 +39,11 @@ function BottomNav() {
   const location = useLocation();
 
   const isActive = (path) => {
-    if (path === "/my-games") {
-      return GAME_ROUTES.some((route) => location.pathname === route || location.pathname.startsWith(`${route}/`));
-    }
     if (path === "/wallet") {
       return location.pathname === "/wallet" && !location.search.includes("mode=add");
+    }
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
     }
     return location.pathname === path;
   };
@@ -80,6 +61,8 @@ function BottomNav() {
     </Link>
   );
 
+  const fabActive = location.pathname === "/wallet" && location.search.includes("mode=add");
+
   return (
     <nav className="bottom-nav bottom-nav-ref" aria-label="Main navigation">
       <div className="bottom-nav-items">
@@ -88,16 +71,16 @@ function BottomNav() {
         <div className="bottom-nav-fab-slot">
           <Link
             to="/wallet?mode=add"
-            className="bottom-nav-fab"
+            className={`bottom-nav-fab ${fabActive ? "active" : ""}`}
             aria-label="Add Cash"
           >
             <span className="bottom-nav-icon" aria-hidden="true">
               <NavIcon type="add" />
             </span>
           </Link>
+          <span className="bottom-nav-fab-label">Add Cash</span>
         </div>
         {renderLink(navItems[2])}
-        {renderLink(navItems[3])}
       </div>
     </nav>
   );

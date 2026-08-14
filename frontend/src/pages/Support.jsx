@@ -24,7 +24,7 @@ function Support() {
         <div className="card-panel card-panel-strong">
           <h3 style={{ marginBottom: "12px" }}>Need faster support?</h3>
           <p className="text-muted" style={{ marginBottom: "10px" }}>
-            Reach out at support@luckyleap.app or use the in-app chat for help with any issue.
+            Reach out at support@thumbilotteries.app or use the in-app chat for help with any issue.
           </p>
           <div className="home-card-grid" style={{ gridTemplateColumns: "1fr", gap: "14px" }}>
             <div className="home-card" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)" }}>

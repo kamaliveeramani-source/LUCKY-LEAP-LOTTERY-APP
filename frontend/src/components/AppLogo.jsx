@@ -1,4 +1,4 @@
-import logo from "../assets/thumbi-logo-icon.png";
+import logo from "../assets/thumbi-logo.png";
 
 function AppLogo({ compact = false, headerBrand = false, className = "" }) {
   const logoSize = headerBrand ? 34 : compact ? 42 : 72;

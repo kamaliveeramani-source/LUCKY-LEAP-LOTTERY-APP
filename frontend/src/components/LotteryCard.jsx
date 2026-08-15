@@ -29,10 +29,27 @@ const lotteryImages = {
   "WIN-WIN": winWin,
 };
 
+const CARD_VARIANTS = ["purple", "orange", "blue"];
+
 function parseDrawDate(value) {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatTime(value) {
+  if (!value) return "";
+  const parsed = parseDrawDate(value);
+  if (parsed) {
+    return parsed.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+  if (/^\d{1,2}:\d{2}/.test(String(value))) {
+    return String(value);
+  }
+  return "";
 }
 
 function formatShortDate(dateString) {
@@ -45,21 +62,6 @@ function formatShortDate(dateString) {
     });
   }
   return String(dateString);
-}
-
-function formatTime(value) {
-  if (!value) return "";
-  const parsed = parseDrawDate(value);
-  if (parsed) {
-    return parsed.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-  if (/^\d{1,2}:\d{2}/.test(String(value))) {
-    return String(value);
-  }
-  return "";
 }
 
 function resolveDrawLabels(lottery) {
@@ -82,12 +84,12 @@ function resolveDrawLabels(lottery) {
   if (lottery.drawDate) {
     const label = formatShortDate(lottery.drawDate);
     return {
-      dateLabel: label && label !== "Invalid Date" ? label : "Soon",
+      dateLabel: label && label !== "Invalid Date" ? label : "",
       timeLabel: "",
     };
   }
 
-  return { dateLabel: "Soon", timeLabel: "" };
+  return { dateLabel: "", timeLabel: "" };
 }
 
 function getLotteryImage(name, lottery) {
@@ -100,15 +102,48 @@ export function getLotteryImageByName(name) {
   return getLotteryImage(name, {});
 }
 
-function LotteryCard({ lottery, onClick, actionLabel = "View Details", onActionClick }) {
+function ClockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function formatDrawPill(timeLabel) {
+  if (timeLabel) return `Draw ${timeLabel}`;
+  return "Draw Soon";
+}
+
+function formatCardTime(timeLabel, dateLabel) {
+  if (timeLabel) return timeLabel;
+  if (dateLabel) return dateLabel;
+  return "TBA";
+}
+
+function LotteryCard({
+  lottery,
+  onClick,
+  actionLabel = "Play Now",
+  onActionClick,
+  variantIndex = 0,
+  variant,
+}) {
   const name = (lottery.lotteryName || lottery.name || "Lottery").toString();
-  const ticketPrice = lottery.ticketPrice ?? lottery.price;
-  const prize = lottery.firstPrize ?? lottery.prize;
   const imageSrc = getLotteryImage(name, lottery);
   const { dateLabel, timeLabel } = resolveDrawLabels(lottery);
-
-  const ribbon = lottery.ribbon;
-  const ribbonClass = ribbon ? ribbon.toLowerCase().replace(/\s+/g, "-") : "";
+  const cardVariant = variant || CARD_VARIANTS[variantIndex % CARD_VARIANTS.length];
+  const drawPill = lottery.drawPill || formatDrawPill(timeLabel);
+  const displayTime = formatCardTime(timeLabel, dateLabel);
 
   const handleCtaClick = (e) => {
     e.stopPropagation();
@@ -119,61 +154,31 @@ function LotteryCard({ lottery, onClick, actionLabel = "View Details", onActionC
     }
   };
 
-  const formattedPrize = prize
-    ? typeof prize === "number"
-      ? `₹ ${prize.toLocaleString()}`
-      : prize.toString().startsWith("₹")
-        ? prize
-        : `₹ ${prize}`
-    : null;
-
   return (
     <article
-      className="lottery-card-premium"
+      className={`draw-card draw-card--${cardVariant}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick?.(e)}
     >
-      <div className="lottery-card-premium-media">
-        <img src={imageSrc} alt={name} className="lottery-card-premium-image" loading="lazy" />
-        {ribbon ? (
-          <span className={`lottery-card-premium-ribbon ${ribbonClass}`}>{ribbon}</span>
-        ) : null}
+      <div className="draw-card__badge">{drawPill}</div>
+
+      <h3>{name}</h3>
+
+      <div className="draw-card__time">
+        <ClockIcon />
+        <span>{displayTime}</span>
       </div>
 
-      <div className="lottery-card-premium-header">
-        <div className="lottery-card-premium-name">{name}</div>
-        {formattedPrize ? (
-          <div>
-            <div className="lottery-card-premium-prize-label">First Prize</div>
-            <div className="lottery-card-premium-prize">{formattedPrize}</div>
-          </div>
-        ) : null}
+      <div className="draw-card__watermark" aria-hidden="true">
+        <img src={imageSrc} alt="" loading="lazy" />
       </div>
 
-      <div className="lottery-card-premium-body">
-        <div className="lottery-card-premium-meta">
-          {ticketPrice ? (
-            <span className="lottery-meta-pill price">₹{ticketPrice}</span>
-          ) : null}
-          {dateLabel || timeLabel ? (
-            <span className="lottery-meta-pill">
-              {dateLabel}
-              {dateLabel && timeLabel ? " · " : ""}
-              {timeLabel}
-            </span>
-          ) : null}
-        </div>
-
-        <button
-          type="button"
-          className="lottery-card-premium-cta"
-          onClick={handleCtaClick}
-        >
-          {actionLabel}
-        </button>
-      </div>
+      <button type="button" className="draw-card__button" onClick={handleCtaClick}>
+        <span>{actionLabel}</span>
+        <ArrowRightIcon />
+      </button>
     </article>
   );
 }

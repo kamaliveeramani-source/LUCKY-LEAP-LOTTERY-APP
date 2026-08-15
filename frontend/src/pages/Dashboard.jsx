@@ -254,10 +254,11 @@ function Dashboard() {
 
       <LotteryListState status={lotteryStatus} onRetry={getLotteries}>
         <div className="lottery-card-grid-premium">
-          {lotteries.map((lottery) => (
+          {lotteries.map((lottery, index) => (
             <LotteryCard
               key={lottery.id}
               lottery={lottery}
+              variantIndex={index}
               actionLabel="Buy Ticket"
               onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
               onActionClick={() => buyTicket(lottery.id, lottery.lotteryName)}

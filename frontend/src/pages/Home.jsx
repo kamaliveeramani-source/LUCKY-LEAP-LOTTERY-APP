@@ -1,33 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getLotteryImageByName } from "../components/LotteryCard";
-import heroBanner from "../assets/hero-banner.png";
+import heroArtwork from "../assets/hero-artwork.png";
+import keralaEmblem from "../assets/lotteries/kerala-emblem-white.png";
+import lotteryBowlWatermark from "../assets/thumbi-bowl.png";
 import "../styles/Home.css";
 
 const todaysDraws = [
   {
     id: "state-win-win",
     name: "Win Win",
-    time: "2:00 PM",
+    time: "1:00 PM",
     drawPill: "Draw 2:00 PM",
     route: "/lottery?lotteryId=state-win-win",
-    accent: "purple",
+    variant: "purple",
   },
   {
-    id: "state-sthree",
-    name: "Sthree Sakthi",
-    time: "4:00 PM",
-    drawPill: "Draw 4:00 PM",
-    route: "/lottery?lotteryId=state-sthree",
-    accent: "purple",
-  },
-  {
-    id: "state-nagaland-day",
-    name: "Nagaland Day",
+    id: "state-akshaya",
+    name: "Akshaya",
     time: "6:00 PM",
     drawPill: "Draw 6:00 PM",
-    route: "/lottery?lotteryId=state-nagaland-day",
-    accent: "purple",
+    route: "/lottery?lotteryId=state-akshaya",
+    variant: "orange",
+  },
+  {
+    id: "state-karunya-plus",
+    name: "Karunya Plus",
+    time: "8:00 PM",
+    drawPill: "Draw 8:00 PM",
+    route: "/lottery?lotteryId=state-karunya-plus",
+    variant: "blue",
   },
 ];
 
@@ -73,31 +74,56 @@ function useCountdown(targetTime) {
   return remaining;
 }
 
+function ClockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function QuickActionIcon({ type }) {
   if (type === "home") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+        <path
+          d="M4 10.75 12 4.5l8 6.25V20a1.25 1.25 0 0 1-1.25 1.25H15v-6.5H9v6.5H5.25A1.25 1.25 0 0 1 4 20v-9.25Z"
+          fill="currentColor"
+        />
       </svg>
     );
   }
   if (type === "wallet") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 7.5h14a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2Zm14 4.5h3v3h-3a1.5 1.5 0 1 1 0-3Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+        <path
+          d="M4 8.25A2.25 2.25 0 0 1 6.25 6h11.5A2.25 2.25 0 0 1 20 8.25V9h1a2.25 2.25 0 0 1 2.25 2.25v6.5A2.25 2.25 0 0 1 20.75 20H4V8.25Zm15.75 4.5h-3.25a1.75 1.75 0 1 0 0 3.5H19.75v-3.5Z"
+          fill="currentColor"
+        />
       </svg>
     );
   }
   if (type === "add") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 6v12M6 12h12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M10 4h4v7h7v4h-7v7h-4v-7H3v-4h7V4Z" fill="currentColor" />
       </svg>
     );
   }
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M7 4h10v16l-5-3-5 3V4Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <rect x="4.5" y="12" width="3.75" height="8" rx="1.1" fill="currentColor" />
+      <rect x="10.125" y="8" width="3.75" height="12" rx="1.1" fill="currentColor" />
+      <rect x="15.75" y="4.5" width="3.75" height="15.5" rx="1.1" fill="currentColor" />
     </svg>
   );
 }
@@ -110,96 +136,89 @@ function Home() {
   return (
     <div className="home-screen">
       <section className="home-hero">
-        <div className="home-hero-copy">
-          <h1 className="home-hero-title">How to play &amp; Win Big!</h1>
-          <p className="home-hero-subtitle">Play more, win more</p>
-          <button type="button" className="home-hero-cta" onClick={() => navigate("/lottery")}>
-            Play Now
-            <span aria-hidden="true">→</span>
+        <div className="home-hero__content">
+          <h1>
+            How to play &amp;
+            <br />
+            Win Big!
+          </h1>
+          <p>Play more, win more</p>
+          <button type="button" className="hero-play-btn" onClick={() => navigate("/lottery")}>
+            Play Now <span aria-hidden="true">→</span>
           </button>
         </div>
 
-        <div className="home-hero-art-wrap" aria-hidden="true">
-          <img
-            src={heroBanner}
-            alt=""
-            className="home-hero-art"
-            width={399}
-            height={190}
-            decoding="async"
-          />
+        <div className="home-hero__art" aria-hidden="true">
+          <img src={heroArtwork} alt="Thumbi lottery draw machine with gold coins" />
         </div>
       </section>
 
-      <section
-        className="home-live-card"
+      <div
+        className="live-draw-card"
         onClick={() => navigate("/lottery?lotteryId=state-kerala-bumper")}
+        onKeyDown={(e) => e.key === "Enter" && navigate("/lottery?lotteryId=state-kerala-bumper")}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === "Enter" && navigate("/lottery?lotteryId=state-kerala-bumper")}
       >
-        <div className="home-live-icon-wrap">
-          <img src={getLotteryImageByName("Kerala Lottery")} alt="" className="home-live-icon" />
-        </div>
-        <div className="home-live-info">
-          <div className="home-live-name">Kerala Lottery</div>
-          <div className="home-live-meta">Today, 3:00 PM</div>
-          <span className="home-live-badge">LIVE DRAW</span>
-        </div>
-        <div className="home-live-countdown" aria-label="Countdown to draw">
-          <div className="home-live-countdown-box">
-            <div className="home-live-countdown-digits">
-              {padTime(countdown.hours)} : {padTime(countdown.minutes)} : {padTime(countdown.seconds)}
-            </div>
-            <div className="home-live-countdown-labels">
-              <span>HRS</span>
-              <span>MIN</span>
-              <span>SEC</span>
-            </div>
+        <div className="live-draw-left">
+          <div className="live-draw-emblem">
+            <img src={keralaEmblem} alt="Kerala Lottery" />
+          </div>
+
+          <div className="live-draw-info">
+            <h3>Kerala Lottery</h3>
+            <p>Today, 3:00 PM</p>
+            <span className="live-pill">LIVE DRAW</span>
           </div>
         </div>
-      </section>
 
-      <section className="home-section">
-        <div className="home-section-head">
-          <h2 className="home-section-title">Today&apos;s Draws</h2>
-          <button type="button" className="home-section-link" onClick={() => navigate("/lottery")}>
-            View All
-          </button>
-        </div>
+        <div className="live-draw-timer" aria-label="Countdown to draw">
+          <div className="timer-values">
+            <span>{padTime(countdown.hours)}</span>
+            <span>:</span>
+            <span>{padTime(countdown.minutes)}</span>
+            <span>:</span>
+            <span>{padTime(countdown.seconds)}</span>
+          </div>
 
-        <div className="home-draws-row">
-          {todaysDraws.map((draw) => (
-            <article key={draw.id} className={`home-draw-card home-draw-card--${draw.accent}`}>
-              <div className={`home-draw-top home-draw-top--${draw.accent}`}>{draw.drawPill}</div>
-              <div className="home-draw-body">
-                <h3 className="home-draw-name">{draw.name}</h3>
-                <div className="home-draw-time">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 7v5l3 2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-                    <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.7" />
-                  </svg>
-                  {draw.time}
-                </div>
-                <img
-                  src={getLotteryImageByName(draw.name)}
-                  alt=""
-                  className="home-draw-art"
-                  loading="lazy"
-                />
-                <button
-                  type="button"
-                  className={`home-draw-cta home-draw-cta--${draw.accent}`}
-                  onClick={() => navigate(draw.route)}
-                >
-                  Play Now
-                  <span aria-hidden="true">→</span>
-                </button>
-              </div>
-            </article>
-          ))}
+          <div className="timer-labels">
+            <span>HRS</span>
+            <span>MIN</span>
+            <span>SEC</span>
+          </div>
         </div>
-      </section>
+      </div>
+
+      <div className="todays-draws-header">
+        <h2>Today&apos;s Draws</h2>
+        <button type="button" onClick={() => navigate("/lottery")}>
+          View All
+        </button>
+      </div>
+
+      <div className="draws-grid">
+        {todaysDraws.map((draw) => (
+          <div key={draw.id} className={`draw-card draw-card--${draw.variant}`}>
+            <div className="draw-card__badge">{draw.drawPill}</div>
+
+            <h3>{draw.name}</h3>
+
+            <div className="draw-card__time">
+              <ClockIcon />
+              <span>{draw.time}</span>
+            </div>
+
+            <div className="draw-card__watermark" aria-hidden="true">
+              <img src={lotteryBowlWatermark} alt="" />
+            </div>
+
+            <button className="draw-card__button" type="button" onClick={() => navigate(draw.route)}>
+              <span>Play Now</span>
+              <ArrowRightIcon />
+            </button>
+          </div>
+        ))}
+      </div>
 
       <section className="home-quick-actions">
         {quickActions.map((action) => (
@@ -209,7 +228,7 @@ function Home() {
             className={`home-quick-action ${action.id === "home" ? "is-active" : ""}`}
             onClick={() => navigate(action.path)}
           >
-            <span className="home-quick-action-icon">
+            <span className={`home-quick-action-icon ${action.id === "add-cash" ? "home-quick-action-icon--add" : ""}`}>
               <QuickActionIcon type={action.icon} />
             </span>
             <span className="home-quick-action-label">{action.label}</span>
@@ -226,8 +245,18 @@ function Home() {
       >
         <div className="home-trust-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <path d="M12 3 4 6.5V11c0 4.7 3.4 8.8 8 10.5 4.6-1.7 8-5.8 8-10.5V6.5L12 3Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-            <path d="m9.5 12 1.8 1.8L15.5 10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M12 2.35 4.75 5.55v5.95c0 4.55 3.05 8.45 7.25 10.05 4.2-1.6 7.25-5.5 7.25-10.05V5.55L12 2.35Z"
+              fill="currentColor"
+            />
+            <path
+              d="m9.6 12.15 1.85 1.85 4.15-4.2"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
         <div className="home-trust-copy">
@@ -236,7 +265,7 @@ function Home() {
         </div>
         <span className="home-trust-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9.5 7.5 15 12l-5.5 4.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
       </section>

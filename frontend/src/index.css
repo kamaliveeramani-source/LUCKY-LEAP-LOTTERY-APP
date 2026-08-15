@@ -1,3 +1,17 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  font-family: var(--app-font);
+}
+
 :root {
   --bg: #f7f5ff;
   --page-bg: #f7f5ff;
@@ -13,8 +27,9 @@
   --shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
   --card-shadow: 0 24px 45px rgba(15, 23, 42, 0.08);
   --code-bg: #f8fafc;
-  --font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --heading: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --app-font: "Inter", sans-serif;
+  --font: var(--app-font);
+  --heading: var(--app-font);
   --app-max-width: 430px;
   --mono: ui-monospace, Consolas, monospace;
   --transition: 250ms ease;
@@ -52,11 +67,20 @@ body.theme-dark {
 }
 
 body {
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
+  font-family: var(--app-font);
   transition: background var(--transition), color var(--transition);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 #root {
@@ -69,13 +93,15 @@ body {
   box-sizing: border-box;
   background: transparent;
   overflow-x: hidden;
+  font-family: var(--app-font);
 }
 
 .app-shell {
-  min-height: auto;
   width: 100%;
   max-width: var(--app-max-width);
   margin: 0 auto;
+  min-height: 100vh;
+  overflow-x: hidden;
   background: var(--page-bg);
   color: var(--text);
   padding-bottom: 0;
@@ -1934,7 +1960,37 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--heading);
+  font-family: inherit;
+}
+
+/* ── Global typography (Inter — Home page reference) ── */
+button,
+input,
+textarea,
+select,
+.btn,
+.form-control,
+.form-select,
+.form-label,
+.form-check-label,
+.dropdown-menu,
+.modal,
+.navbar,
+.nav-link {
+  font-family: inherit;
+}
+
+.page-title {
+  font-weight: 600;
+}
+
+button,
+.btn {
+  font-weight: 600;
+}
+
+.badge-pill {
+  font-weight: 600;
 }
 
 p,
@@ -1955,7 +2011,7 @@ button {
   }
 }
 
-/* Legacy lottery image cards removed — use .lottery-card-premium in Components.css */
+/* Legacy lottery image cards removed — use .draw-card in Components.css */
 
 .lottery-detail-card {
   padding: 20px;

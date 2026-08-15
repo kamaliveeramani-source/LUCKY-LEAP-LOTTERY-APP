@@ -3,7 +3,9 @@
   gap: 16px;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .dashboard-welcome {
@@ -13,6 +15,9 @@
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 38%, #6d28d9 72%, #5b21b6 100%);
   box-shadow: var(--ll-shadow-soft);
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .dashboard-welcome::before {
@@ -173,14 +178,14 @@
 
 .dashboard-screen .action-btn-tile-icon svg,
 .dashboard-screen .quick-menu-tile-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .dashboard-screen .action-btn-tile,
 .dashboard-screen .quick-menu-tile-label {
   font-size: 0.74rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ll-text-navy);
 }
 

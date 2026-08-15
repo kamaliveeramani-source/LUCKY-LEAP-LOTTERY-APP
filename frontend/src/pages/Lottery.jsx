@@ -256,12 +256,13 @@ function Lottery() {
               <h2 className="page-title">State Lotteries</h2>
               <p className="text-muted" style={{ margin: 0 }}>Browse draws and place your bets.</p>
             </div>
-            <LotteryListState status={lotteryStatus} onRetry={getLotteries}>
-              <div className="lottery-card-grid-premium">
-                {displayedLotteries.map((lottery) => (
+            <LotteryListState status={lotteryStatus} onRetry={getLotteries} pageGrid>
+              <div className="lottery-card-grid-premium lottery-page-grid">
+                {displayedLotteries.map((lottery, index) => (
                   <LotteryCard
                     key={lottery.id}
                     lottery={lottery}
+                    variantIndex={index}
                     onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
                     actionLabel="See Details"
                   />

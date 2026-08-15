@@ -6,9 +6,11 @@
 
 .game-page {
   padding-bottom: 90px;
-  max-width: 1080px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .game-hero,

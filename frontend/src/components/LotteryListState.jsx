@@ -1,23 +1,22 @@
 function LotterySkeletonCard() {
   return (
     <div className="lottery-skeleton-card" aria-hidden="true">
-      <div className="lottery-skeleton-image" />
-      <div className="lottery-skeleton-header">
-        <div className="lottery-skeleton-line lottery-skeleton-line--title" />
-        <div className="lottery-skeleton-line lottery-skeleton-line--prize" />
-      </div>
-      <div className="lottery-skeleton-body">
-        <div className="lottery-skeleton-line lottery-skeleton-line--meta" />
-        <div className="lottery-skeleton-cta" />
-      </div>
+      <div className="lottery-skeleton-badge" />
+      <div className="lottery-skeleton-line lottery-skeleton-line--title" />
+      <div className="lottery-skeleton-line lottery-skeleton-line--meta" />
+      <div className="lottery-skeleton-cta" />
     </div>
   );
 }
 
-function LotteryListState({ status, onRetry, children }) {
+function LotteryListState({ status, onRetry, children, pageGrid = false }) {
+  const gridClass = pageGrid ? "lottery-page-grid" : "";
+
   if (status === "loading") {
     return (
-      <div className="lottery-grid-skeleton" aria-busy="true" aria-label="Loading lotteries">
+      <div className={`lottery-grid-skeleton ${gridClass}`.trim()} aria-busy="true" aria-label="Loading lotteries">
+        <LotterySkeletonCard />
+        <LotterySkeletonCard />
         <LotterySkeletonCard />
         <LotterySkeletonCard />
         <LotterySkeletonCard />

@@ -39,7 +39,7 @@ function ActionButtons() {
     { id: "deposit", label: "Deposit", icon: "deposit", path: "/wallet?mode=add" },
     { id: "withdraw", label: "Withdraw", icon: "withdraw", path: "/wallet?mode=withdraw" },
     { id: "transfer", label: "Transfer", icon: "transfer", path: "/wallet?mode=transfer" },
-    { id: "bets", label: "My Bets", icon: "bets", path: "/lotterygame" },
+    { id: "bets", label: "My Bets", icon: "bets", path: "/my-games" },
   ];
 
   return (

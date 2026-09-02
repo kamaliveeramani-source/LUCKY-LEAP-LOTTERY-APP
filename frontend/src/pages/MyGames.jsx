@@ -307,8 +307,8 @@ function MyGames() {
         {showFabMenu && (
           <div className="fab-menu">
             <button type="button" className="fab-action" onClick={() => navigate("/wallet?mode=add")}>Add Money</button>
-            <button type="button" className="fab-action" onClick={() => navigate("/history")}>My Bets</button>
-            <button type="button" className="fab-action" onClick={() => navigate("/history")}>History</button>
+            <button type="button" className="fab-action" onClick={() => navigate("/my-games")}>My Bets</button>
+            <button type="button" className="fab-action" onClick={() => navigate("/my-tickets")}>My Tickets</button>
             <button type="button" className="fab-action" onClick={() => navigate("/support")}>Support</button>
           </div>
         )}

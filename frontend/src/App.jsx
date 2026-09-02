@@ -53,6 +53,7 @@ function App() {
             <Route path="/jackpot" element={<JackpotGame />} />
             <Route path="/my-games" element={<MyGames />} />
             <Route path="/results" element={<Results />} />
+            <Route path="/my-tickets" element={<History />} />
             <Route path="/history" element={<History />} />
             <Route path="/promotions" element={<Promotions />} />
             <Route path="/language-settings" element={<LanguageSettings />} />

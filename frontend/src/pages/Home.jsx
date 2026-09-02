@@ -3,31 +3,26 @@ import { useNavigate } from "react-router-dom";
 import heroArtwork from "../assets/hero-artwork.png";
 import keralaEmblem from "../assets/lotteries/kerala-emblem-white.png";
 import lotteryBowlWatermark from "../assets/thumbi-bowl.png";
+import API from "../services/api";
 import "../styles/Home.css";
 
 const todaysDraws = [
   {
-    id: "state-win-win",
     name: "Win Win",
     time: "1:00 PM",
     drawPill: "Draw 2:00 PM",
-    route: "/lottery?lotteryId=state-win-win",
     variant: "purple",
   },
   {
-    id: "state-akshaya",
     name: "Akshaya",
     time: "6:00 PM",
     drawPill: "Draw 6:00 PM",
-    route: "/lottery?lotteryId=state-akshaya",
     variant: "orange",
   },
   {
-    id: "state-karunya-plus",
     name: "Karunya Plus",
     time: "8:00 PM",
     drawPill: "Draw 8:00 PM",
-    route: "/lottery?lotteryId=state-karunya-plus",
     variant: "blue",
   },
 ];
@@ -132,6 +127,61 @@ function Home() {
   const navigate = useNavigate();
   const drawTarget = useMemo(() => getNextDrawTarget(15, 0), []);
   const countdown = useCountdown(drawTarget);
+  const [lotteries, setLotteries] = useState([]);
+
+  useEffect(() => {
+    const loadLotteries = async () => {
+      try {
+        const response = await API.get("/lottery/all");
+        setLotteries(Array.isArray(response.data?.data) ? response.data.data : []);
+      } catch (error) {
+        console.error("Failed to load Home lotteries", error);
+        setLotteries([]);
+      }
+    };
+
+    loadLotteries();
+  }, []);
+
+  const findLottery = (value) => {
+    if (!Array.isArray(lotteries) || lotteries.length === 0) {
+      return null;
+    }
+
+    if (value === undefined || value === null || value === "") {
+      return null;
+    }
+
+    const lookup = String(value).trim();
+    const numericValue = Number(lookup);
+
+    return lotteries.find((lottery) => {
+      const candidateNames = [lottery?.lotteryName, lottery?.name]
+        .filter(Boolean)
+        .map((name) => String(name).trim().toLowerCase());
+
+      if (!Number.isNaN(numericValue) && Number(lottery?.id) === numericValue) {
+        return true;
+      }
+
+      return candidateNames.includes(lookup.toLowerCase());
+    }) || null;
+  };
+
+  const featuredLottery = findLottery(1) || lotteries[0] || null;
+
+  const navigateToLotteryGame = (value) => {
+    const lottery = findLottery(value);
+    if (lottery?.id) {
+      navigate(`/lotterygame?lotteryId=${lottery.id}`);
+    }
+  };
+
+  const handleFeaturedLotteryClick = () => {
+    if (featuredLottery?.id) {
+      navigate(`/lotterygame?lotteryId=${featuredLottery.id}`);
+    }
+  };
 
   return (
     <div className="home-screen">
@@ -155,18 +205,18 @@ function Home() {
 
       <div
         className="live-draw-card"
-        onClick={() => navigate("/lottery?lotteryId=state-kerala-bumper")}
-        onKeyDown={(e) => e.key === "Enter" && navigate("/lottery?lotteryId=state-kerala-bumper")}
+        onClick={handleFeaturedLotteryClick}
+        onKeyDown={(e) => e.key === "Enter" && handleFeaturedLotteryClick()}
         role="button"
         tabIndex={0}
       >
         <div className="live-draw-left">
           <div className="live-draw-emblem">
-            <img src={keralaEmblem} alt="Kerala Lottery" />
+            <img src={keralaEmblem} alt={featuredLottery?.lotteryName || "Lottery"} />
           </div>
 
           <div className="live-draw-info">
-            <h3>Kerala Lottery</h3>
+            <h3>{featuredLottery?.lotteryName || "Lottery"}</h3>
             <p>Today, 3:00 PM</p>
             <span className="live-pill">LIVE DRAW</span>
           </div>
@@ -197,8 +247,12 @@ function Home() {
       </div>
 
       <div className="draws-grid">
-        {todaysDraws.map((draw) => (
-          <div key={draw.id} className={`draw-card draw-card--${draw.variant}`}>
+        {todaysDraws.map((draw) => {
+          const lottery = findLottery(draw.name);
+          if (!lottery?.id) return null;
+
+          return (
+          <div key={lottery.id} className={`draw-card draw-card--${draw.variant}`}>
             <div className="draw-card__badge">{draw.drawPill}</div>
 
             <h3>{draw.name}</h3>
@@ -212,12 +266,13 @@ function Home() {
               <img src={lotteryBowlWatermark} alt="" />
             </div>
 
-            <button className="draw-card__button" type="button" onClick={() => navigate(draw.route)}>
+            <button className="draw-card__button" type="button" onClick={() => navigateToLotteryGame(draw.name)}>
               <span>Play Now</span>
               <ArrowRightIcon />
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <section className="home-quick-actions">

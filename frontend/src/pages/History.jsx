@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API from "../services/api";
+import API, { getAuthToken } from "../services/api";
 
 function History() {
   const [tickets, setTickets] = useState([]);
@@ -10,7 +10,7 @@ function History() {
   }, []);
 
   const loadHistory = async () => {
-    const token = localStorage.getItem("token");
+    const token = getAuthToken();
 
     if (!token) {
       setTickets([]);
@@ -38,8 +38,8 @@ function History() {
       <div className="page-content">
         <div className="text-center page-intro">
           <div className="badge-pill">History</div>
-          <h2 className="page-title">Bet History</h2>
-          <p className="text-muted" style={{ margin: 0 }}>Your purchased tickets and draw status from the backend.</p>
+          <h2 className="page-title">My Tickets</h2>
+          <p className="text-muted" style={{ margin: 0 }}>Your purchased lottery tickets and current draw status.</p>
         </div>
 
         {loading ? (

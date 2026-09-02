@@ -1,6 +1,6 @@
 import ThemeToggle from "../components/ThemeToggle";
 import { useEffect, useState } from "react";
-import API from "../services/api";
+import API, { getAuthToken, clearAuthToken } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import WalletCard from "../components/WalletCard";
 import { useWallet } from "../context/WalletContext";
@@ -11,54 +11,6 @@ import LotteryListState from "../components/LotteryListState";
 import TicketCard from "../components/TicketCard";
 import { addNotification } from "../services/notificationService";
 import { useNotification } from "../context/NotificationContext";
-
-const defaultStateLotteries = [
-  {
-    id: "state-kerala",
-    lotteryName: "Kerala State Lottery",
-    ticketPrice: 100,
-    firstPrize: 1500000,
-    secondPrize: 75000,
-    thirdPrize: 15000,
-    drawDate: "2026-08-12T19:00:00",
-  },
-  {
-    id: "state-mumbai",
-    lotteryName: "Maharashtra Mega",
-    ticketPrice: 120,
-    firstPrize: 1800000,
-    secondPrize: 90000,
-    thirdPrize: 20000,
-    drawDate: "2026-08-12T20:00:00",
-  },
-  {
-    id: "state-tamilnadu",
-    lotteryName: "Tamil Nadu Lucky Draw",
-    ticketPrice: 90,
-    firstPrize: 1300000,
-    secondPrize: 60000,
-    thirdPrize: 12000,
-    drawDate: "2026-08-13T18:30:00",
-  },
-  {
-    id: "state-karnataka",
-    lotteryName: "Karnataka Mega",
-    ticketPrice: 110,
-    firstPrize: 1400000,
-    secondPrize: 70000,
-    thirdPrize: 14000,
-    drawDate: "2026-08-13T20:30:00",
-  },
-  {
-    id: "state-nagaland",
-    lotteryName: "Nagaland Festival Draw",
-    ticketPrice: 80,
-    firstPrize: 1200000,
-    secondPrize: 55000,
-    thirdPrize: 11000,
-    drawDate: "2026-08-14T19:30:00",
-  },
-];
 
 const quickNavActions = [
   { id: "home", label: "Home", icon: "home", path: "/home" },
@@ -98,7 +50,7 @@ function QuickNavIcon({ type }) {
 
 function Dashboard() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const token = getAuthToken();
   const { wallet, loading: walletLoading, error: walletError, refreshWallet } = useWallet();
 
   const [lotteries, setLotteries] = useState([]);
@@ -138,13 +90,14 @@ function Dashboard() {
     try {
       const res = await API.get("/lottery/all");
       const apiLotteries = Array.isArray(res.data.data) ? res.data.data : [];
-      const merged = [...apiLotteries, ...defaultStateLotteries];
-      if (!merged.length) {
+
+      if (!apiLotteries.length) {
         setLotteries([]);
         setLotteryStatus("empty");
         return;
       }
-      setLotteries(merged);
+
+      setLotteries(apiLotteries);
       setLotteryStatus("success");
     } catch (err) {
       console.log(err);
@@ -183,7 +136,7 @@ function Dashboard() {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    clearAuthToken();
     navigate("/login");
   };
 
@@ -260,8 +213,8 @@ function Dashboard() {
               lottery={lottery}
               variantIndex={index}
               actionLabel="Buy Ticket"
-              onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
-              onActionClick={() => buyTicket(lottery.id, lottery.lotteryName)}
+              onClick={() => navigate(`/lotterygame?lotteryId=${lottery.id}`)}
+              onActionClick={() => navigate(`/lotterygame?lotteryId=${lottery.id}`)}
             />
           ))}
         </div>

@@ -33,8 +33,8 @@ function MenuIcon({ type }) {
 
 const menuItems = [
   { icon: "lottery", label: "Buy Lottery", path: "/lottery" },
-  { icon: "bets", label: "My Bets", path: "/lotterygame" },
-  { icon: "tickets", label: "My Tickets", path: "/dashboard" },
+  { icon: "bets", label: "My Bets", path: "/my-games" },
+  { icon: "tickets", label: "My Tickets", path: "/my-tickets" },
   { icon: "wallet", label: "Wallet", path: "/wallet" },
 ];
 

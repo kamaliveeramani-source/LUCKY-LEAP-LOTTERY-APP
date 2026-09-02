@@ -1,31 +1,49 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const searchItems = [
-  { label: "Nagaland Morning", type: "Lottery", route: "/lottery?lotteryId=state-nagaland" },
-  { label: "Sthree Sakthi", type: "Lottery", route: "/lottery?lotteryId=state-sthree" },
-  { label: "Nagaland Day", type: "Lottery", route: "/lottery?lotteryId=state-nagaland-day" },
-  { label: "Nagaland Evening", type: "Lottery", route: "/lottery?lotteryId=state-nagaland-evening" },
-  { label: "Karunya Plus", type: "Lottery", route: "/lottery?lotteryId=state-karunya-plus" },
-  { label: "Suvarna Keralam", type: "Lottery", route: "/lottery?lotteryId=state-suvarna-keralam" },
-  { label: "Karunya", type: "Lottery", route: "/lottery?lotteryId=state-karunya" },
-  { label: "Samrudhi", type: "Lottery", route: "/lottery?lotteryId=state-samrudhi" },
-  { label: "Bhagyathara", type: "Lottery", route: "/lottery?lotteryId=state-bhagyathara" },
-  { label: "Win Win", type: "Lottery", route: "/lottery?lotteryId=state-win-win" },
-  { label: "Mega Draw Bonus", type: "Promotion", route: "/promotions" },
-  { label: "Daily Spin", type: "Promotion", route: "/promotions" },
-  { label: "Bonus Voucher", type: "Promotion", route: "/promotions" },
-];
+import API from "../services/api";
 
 function Search() {
   const [query, setQuery] = useState("");
+  const [lotteries, setLotteries] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchLotteries = async () => {
+      try {
+        const res = await API.get("/lottery/all");
+        const apiLotteries = Array.isArray(res.data?.data) ? res.data.data : [];
+        setLotteries(apiLotteries);
+      } catch (err) {
+        console.error("Failed to load search lottery list", err);
+        setLotteries([]);
+      }
+    };
+
+    fetchLotteries();
+  }, []);
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return [];
-    return searchItems.filter((item) => item.label.toLowerCase().includes(normalized) || item.type.toLowerCase().includes(normalized));
-  }, [query]);
+
+    const lotteryResults = lotteries
+      .filter((lottery) =>
+        (lottery.lotteryName || "").toLowerCase().includes(normalized)
+      )
+      .map((lottery) => ({
+        label: lottery.lotteryName,
+        type: "Lottery",
+        route: `/lottery?lotteryId=${lottery.id}`,
+      }));
+
+    const promoResults = [
+      { label: "Mega Draw Bonus", type: "Promotion", route: "/promotions" },
+      { label: "Daily Spin", type: "Promotion", route: "/promotions" },
+      { label: "Bonus Voucher", type: "Promotion", route: "/promotions" },
+    ].filter((item) => item.label.toLowerCase().includes(normalized) || item.type.toLowerCase().includes(normalized));
+
+    return [...lotteryResults, ...promoResults];
+  }, [lotteries, query]);
 
   return (
       <div className="page-content">

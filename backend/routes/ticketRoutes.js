@@ -8,8 +8,10 @@ const {
   getMyTickets
 } = require("../controllers/ticketController");
 
+// Buy Ticket
 router.post("/buy", authMiddleware, buyTicket);
 
+// Get My Tickets
 router.get("/mytickets", authMiddleware, getMyTickets);
 
 module.exports = router;

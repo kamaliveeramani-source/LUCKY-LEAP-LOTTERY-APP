@@ -1,138 +1,418 @@
+const { Op } = require("sequelize");
+
+const sequelize = require("../config/database");
 const Ticket = require("../models/Ticket");
 const Lottery = require("../models/Lottery");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
 
-// Buy Ticket
+// ======================================================
+// BUY TICKET
+// ======================================================
 exports.buyTicket = async (req, res) => {
-  try {
-    const { lotteryId } = req.body;
+  let transaction;
 
+  try {
+    const {
+      lotteryId,
+      betType,
+      selectedNumber,
+      amount,
+    } = req.body || {};
+
+    // 1. Validate required fields
+    if (
+      lotteryId === undefined ||
+      lotteryId === null ||
+      betType === undefined ||
+      betType === null ||
+      selectedNumber === undefined ||
+      selectedNumber === null ||
+      amount === undefined ||
+      amount === null
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "lotteryId, betType, selectedNumber and amount are required",
+      });
+    }
+
+    // 2. Check authentication
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    // 3. Validate lottery ID
+    const lotteryIdNumber = Number(lotteryId);
+
+    if (!Number.isInteger(lotteryIdNumber) || lotteryIdNumber <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid lotteryId",
+      });
+    }
+
+    // 4. Validate bet type
+    const normalizedBetType = String(betType)
+      .trim()
+      .toUpperCase();
+
+    if (!["SINGLE", "DOUBLE", "TRIPLE"].includes(normalizedBetType)) {
+      return res.status(400).json({
+        success: false,
+        message: "betType must be SINGLE, DOUBLE or TRIPLE",
+      });
+    }
+
+    // 5. Validate selected number
+    const numberString = String(selectedNumber).trim();
+
+    const requiredLength = {
+      SINGLE: 1,
+      DOUBLE: 2,
+      TRIPLE: 3,
+    }[normalizedBetType];
+
+    const numberRegex = new RegExp(
+      `^\\d{${requiredLength}}$`
+    );
+
+    if (!numberRegex.test(numberString)) {
+      return res.status(400).json({
+        success: false,
+        message: `${normalizedBetType} requires exactly ${requiredLength} digit(s)`,
+      });
+    }
+
+    // 6. Validate amount
+    const betAmount = Number(amount);
+
+    if (!Number.isFinite(betAmount) || betAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount must be greater than 0",
+      });
+    }
+
+    // 7. Find user
     const user = await User.findByPk(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
-    const lottery = await Lottery.findByPk(lotteryId);
+    // 8. Find lottery
+    const lottery = await Lottery.findByPk(lotteryIdNumber);
 
     if (!lottery) {
       return res.status(404).json({
         success: false,
-        message: "Lottery not found"
+        message: "Lottery not found",
       });
     }
 
-    // Ensure Wallet exists for user
-    let wallet = await Wallet.findOne({ where: { UserId: user.id } });
-    if (!wallet) {
-      wallet = await Wallet.create({ UserId: user.id, balance: Number(user.wallet) || 0 });
+    // 9. Check draw date and time (draw closes 30 minutes before draw time)
+    if (lottery.drawDate) {
+      const drawDate = new Date(lottery.drawDate);
+      const now = new Date();
+
+      if (!Number.isNaN(drawDate.getTime())) {
+        // Check if draw is today or in the future by comparing just the date parts
+        const drawDateOnly = new Date(drawDate.getFullYear(), drawDate.getMonth(), drawDate.getDate());
+        const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        // Draw closes 30 minutes before the scheduled draw time (15:00 / 3 PM)
+        // Assuming draws are scheduled for 15:00 (3 PM)
+        const drawClosureTime = new Date(drawDateOnly);
+        drawClosureTime.setHours(14, 30, 0, 0); // Closes at 2:30 PM
+
+        // If current time is past the closure time on or after draw date, reject
+        if (now >= drawClosureTime && todayOnly >= drawDateOnly) {
+          return res.status(400).json({
+            success: false,
+            message: "This lottery draw has already closed",
+          });
+        }
+      }
     }
 
-    if (Number(wallet.balance) < Number(lottery.ticketPrice)) {
+    // 10. Start transaction
+    transaction = await sequelize.transaction();
+
+    // 11. Find wallet
+    let wallet = await Wallet.findOne({
+      where: {
+        UserId: user.id,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    // 12. Create wallet if missing
+    if (!wallet) {
+      wallet = await Wallet.create(
+        {
+          UserId: user.id,
+          balance: Number(user.wallet) || 0,
+          todaysBets: 0,
+        },
+        {
+          transaction,
+        }
+      );
+    }
+
+    // 13. Check balance
+    const currentBalance = Number(wallet.balance) || 0;
+
+    if (currentBalance < betAmount) {
+      await transaction.rollback();
+      transaction = null;
+
       return res.status(400).json({
         success: false,
-        message: "Insufficient Wallet Balance"
+        message: "Insufficient Wallet Balance",
+        balance: currentBalance,
+        required: betAmount,
       });
     }
 
-    // Deduct wallet balance and increment todaysBets
-    wallet.balance = Number(wallet.balance) - Number(lottery.ticketPrice);
-    wallet.todaysBets = (wallet.todaysBets || 0) + 1;
-    await wallet.save();
+    // 14. Deduct amount
+    const newBalance = Number(
+      (currentBalance - betAmount).toFixed(2)
+    );
 
-    // Generate ticket number
-    const ticketNumber =
-      "LT" + Date.now() + Math.floor(Math.random() * 1000);
+    wallet.balance = newBalance;
+    wallet.todaysBets =
+      Number(wallet.todaysBets || 0) + 1;
 
-    const ticket = await Ticket.create({
-      ticketNumber,
-      UserId: user.id,
-      LotteryId: lottery.id
+    await wallet.save({
+      transaction,
     });
 
-    res.status(201).json({
+    // 15. Generate ticket number
+    const ticketNumber =
+      "LT" +
+      Date.now() +
+      Math.floor(100000 + Math.random() * 900000);
+
+    // 16. Create ticket
+    const ticket = await Ticket.create(
+      {
+        ticketNumber,
+        betType: normalizedBetType,
+        selectedNumber: numberString,
+        amount: betAmount,
+        winningAmount: 0,
+        status: "PENDING",
+        UserId: user.id,
+        LotteryId: lottery.id,
+      },
+      {
+        transaction,
+      }
+    );
+
+    // 17. Commit
+    await transaction.commit();
+    transaction = null;
+
+    // 18. Response
+    return res.status(201).json({
       success: true,
       message: "Ticket Purchased Successfully",
-      wallet: wallet.balance,
-      ticket
+      wallet: newBalance,
+      ticket,
     });
 
   } catch (error) {
-    console.log(error);
+    console.error("Buy Ticket Error:", error);
 
-    res.status(500).json({
+    if (transaction) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error(
+          "Rollback Error:",
+          rollbackError
+        );
+      }
+    }
+
+    return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
 
-// Get My Tickets
+
+// ======================================================
+// GET MY TICKETS
+// ======================================================
 exports.getMyTickets = async (req, res) => {
   try {
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
     const tickets = await Ticket.findAll({
       where: {
-        UserId: req.user.userId
+        UserId: req.user.userId,
       },
-      include: [Lottery]
+      include: [
+        {
+          model: Lottery,
+        },
+      ],
+      order: [["createdAt", "DESC"]],
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      tickets
+      tickets,
     });
 
   } catch (error) {
-    res.status(500).json({
+    console.error(
+      "Get My Tickets Error:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
 
+
+// ======================================================
+// DRAW WINNER
+// ======================================================
 exports.drawWinner = async (req, res) => {
   try {
+    const { lotteryId } = req.body || {};
 
-    const { lotteryId } = req.body;
+    if (
+      lotteryId === undefined ||
+      lotteryId === null
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "lotteryId is required",
+      });
+    }
 
+    const lotteryIdNumber = Number(lotteryId);
+
+    if (
+      !Number.isInteger(lotteryIdNumber) ||
+      lotteryIdNumber <= 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid lotteryId",
+      });
+    }
+
+    // Find lottery
+    const lottery =
+      await Lottery.findByPk(lotteryIdNumber);
+
+    if (!lottery) {
+      return res.status(404).json({
+        success: false,
+        message: "Lottery not found",
+      });
+    }
+
+    // Don't draw twice
+    if (lottery.winnerTicketId) {
+      return res.status(400).json({
+        success: false,
+        message: "Winner has already been selected",
+        winnerTicketId:
+          lottery.winnerTicketId,
+      });
+    }
+
+    // Get tickets
     const tickets = await Ticket.findAll({
       where: {
-        LotteryId: lotteryId
-      }
+        LotteryId: lotteryIdNumber,
+      },
     });
 
     if (tickets.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No tickets sold for this lottery"
+        message: "No tickets sold for this lottery",
       });
     }
 
-    const randomIndex = Math.floor(Math.random() * tickets.length);
-    const winnerTicket = tickets[randomIndex];
+    // Select winner
+    const randomIndex = Math.floor(
+      Math.random() * tickets.length
+    );
 
-    const lottery = await Lottery.findByPk(lotteryId);
+    const winnerTicket =
+      tickets[randomIndex];
 
-    lottery.winnerTicketId = winnerTicket.id;
+    // Save winner
+    lottery.winnerTicketId =
+      winnerTicket.id;
 
     await lottery.save();
 
-    res.status(200).json({
+    // Update winner
+    winnerTicket.status = "WON";
+    winnerTicket.winningAmount =
+      Number(lottery.firstPrize) || 0;
+
+    await winnerTicket.save();
+
+    // Mark remaining tickets LOST
+    await Ticket.update(
+      {
+        status: "LOST",
+      },
+      {
+        where: {
+          LotteryId: lotteryIdNumber,
+          id: {
+            [Op.ne]: winnerTicket.id,
+          },
+        },
+      }
+    );
+
+    return res.status(200).json({
       success: true,
       message: "Winner Selected Successfully",
-      winner: winnerTicket
+      winner: winnerTicket,
+      lottery,
     });
 
   } catch (error) {
+    console.error(
+      "Draw Winner Error:",
+      error
+    );
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
-
   }
 };

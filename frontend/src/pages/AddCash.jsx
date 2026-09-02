@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { addNotification } from "../services/notificationService";
 import { useWallet } from "../context/WalletContext";
 import { useNotification } from "../context/NotificationContext";
-import API from "../services/api";
+import API, { getAuthToken } from "../services/api";
 
 function AddCash() {
   const { balance, refreshWallet } = useWallet();
@@ -22,7 +22,7 @@ function AddCash() {
       return;
     }
 
-    const token = localStorage.getItem("token");
+    const token = getAuthToken();
     if (!token) {
       notify("warning", "You must be logged in to add cash.");
       return;

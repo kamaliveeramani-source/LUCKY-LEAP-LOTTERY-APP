@@ -1,9 +1,9 @@
 ﻿import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
 import { useWallet } from "../context/WalletContext";
+import API, { getAuthToken } from "../services/api";
 import "./LotteryGame.css";
-
-const TABS = ["Single", "Double", "Triple", "Four"];
 
 function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);
@@ -17,20 +17,102 @@ function createRoundId() {
   return `KL-${Date.now().toString().slice(-5)}`;
 }
 
-function createRandomDigits(length) {
-  return Array.from({ length }, () => Math.floor(Math.random() * 10)).join("");
-}
+const QUICK_GUESS_SLOTS = ["02:30 PM", "03:00 PM", "03:30 PM"];
 
-function sameDigitSet(a, b) {
-  return a.split("").sort().join("") === b.split("").sort().join("");
+function QuickGuessControl({ section, selectedSlot, isOpen, onToggle, onSelect }) {
+  return (
+    <div className="quick-guess-control">
+      <button
+        type="button"
+        className={`quick-guess ${isOpen ? "active" : ""}`}
+        aria-expanded={isOpen}
+        aria-controls={`${section}-quick-guess-slots`}
+        onClick={onToggle}
+      >
+        Quick Guess
+      </button>
+      {isOpen ? (
+        <div className="quick-guess-slots" id={`${section}-quick-guess-slots`} role="group" aria-label={`${section} quick guess time slots`}>
+          {QUICK_GUESS_SLOTS.map((slot) => (
+            <button
+              key={slot}
+              type="button"
+              className={`quick-guess-slot ${selectedSlot === slot ? "selected" : ""}`}
+              aria-pressed={selectedSlot === slot}
+              onClick={() => onSelect(slot)}
+            >
+              {slot}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function LotteryGame() {
-  const { balance, withdraw, deposit } = useWallet();
+  const { balance, refreshWallet } = useWallet();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedLotteryId = searchParams.get("lotteryId");
+  const [selectedLottery, setSelectedLottery] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [timeLeft, setTimeLeft] = useState(3600);
-  const [activeTab, setActiveTab] = useState("Single");
   const [orders, setOrders] = useState([]);
-  const [gameHistory, setGameHistory] = useState([]);
+  const token = getAuthToken();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLottery = async () => {
+      if (!selectedLotteryId) {
+        setSelectedLottery(null);
+        setLoadError("No lottery selected. Please choose a draw from the lottery list.");
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setLoadError("");
+
+      try {
+        const res = await API.get(`/lottery/${selectedLotteryId}`);
+        const lottery = res.data?.data || null;
+
+        if (!isMounted) return;
+
+        if (!lottery) {
+          setSelectedLottery(null);
+          setLoadError(`Lottery ${selectedLotteryId} could not be found.`);
+          return;
+        }
+
+        setSelectedLottery(lottery);
+      } catch (err) {
+        console.error("Failed to load selected lottery", err);
+
+        if (!isMounted) return;
+
+        setSelectedLottery(null);
+        setLoadError(
+          err.response?.status === 404
+            ? `Lottery ${selectedLotteryId} does not exist or is no longer available.`
+            : "Unable to load lottery details. Please try again."
+        );
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadLottery();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedLotteryId]);
 
   const [singleA, setSingleA] = useState("");
   const [singleB, setSingleB] = useState("");
@@ -48,11 +130,14 @@ function LotteryGame() {
 
   const [tripleABC, setTripleABC] = useState("");
   const [tripleAmount, setTripleAmount] = useState("");
-  const [tripleType, setTripleType] = useState("Straight");
-
-  const [fourABCD, setFourABCD] = useState("");
-  const [fourAmount, setFourAmount] = useState("");
-  const [fourType, setFourType] = useState("Straight");
+  const [tripleType, setTripleType] = useState("Box");
+  const [quickGuessSlots, setQuickGuessSlots] = useState({
+    single: "03:00 PM",
+    double: "03:00 PM",
+    triple: "03:00 PM",
+  });
+  const [openQuickGuess, setOpenQuickGuess] = useState(null);
+  const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
 
   const [roundId, setRoundId] = useState(createRoundId());
 
@@ -70,39 +155,51 @@ function LotteryGame() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (!isHowToPlayOpen) return undefined;
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setIsHowToPlayOpen(false);
+    };
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [isHowToPlayOpen]);
+
+  const { notify } = useNotification();
+
   const addBet = (obj) => {
     setOrders((prev) => [...prev, obj]);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const { notify } = useNotification();
-
   const addSingle = (type, number, amount) => {
-    if (number.trim() === "") {
+    if (!number || !String(number).trim()) {
       notify("warning", "Enter Number");
       return;
     }
 
-    if (amount === "") {
+    if (!amount || amount === "") {
       notify("warning", "Enter Amount");
       return;
     }
+
     addBet({ id: Date.now(), game: "Single", type, number, amount: Number(amount) });
     notify("success", "Single bet added to the slip.");
   };
 
   const addDouble = (type, number, amount) => {
-    if (number.trim() === "") {
+    if (!number || !String(number).trim()) {
       notify("warning", "Enter Double Digit");
       return;
     }
 
-    if (number.length !== 2) {
+    if (String(number).length !== 2) {
       notify("warning", "Enter exactly 2 digits.");
       return;
     }
 
-    if (amount === "") {
+    if (!amount || amount === "") {
       notify("warning", "Enter Amount");
       return;
     }
@@ -112,47 +209,31 @@ function LotteryGame() {
   };
 
   const addTriple = () => {
-    if (tripleABC.trim() === "") {
+    if (!tripleABC || !String(tripleABC).trim()) {
       notify("warning", "Enter Triple Digit");
       return;
     }
 
-    if (tripleABC.length !== 3) {
+    if (String(tripleABC).length !== 3) {
       notify("warning", "Triple Digit must contain exactly 3 numbers");
       return;
     }
 
-    if (tripleAmount === "") {
+    if (!tripleAmount || tripleAmount === "") {
       notify("warning", "Enter Amount");
       return;
     }
 
-    addBet({ id: Date.now(), game: "Triple", type: tripleType, number: tripleABC, amount: Number(tripleAmount) });
+    addBet({ id: Date.now(), game: "Triple", type: tripleType, number: String(tripleABC), amount: Number(tripleAmount) });
     setTripleABC("");
     setTripleAmount("");
     notify("success", "Triple bet added to the slip.");
   };
 
-  const addFour = () => {
-    if (fourABCD.trim() === "") {
-      notify("warning", "Enter Four Digit");
-      return;
-    }
-
-    if (fourABCD.length !== 4) {
-      notify("warning", "Four Digit must contain exactly 4 numbers");
-      return;
-    }
-
-    if (fourAmount === "") {
-      notify("warning", "Enter Amount");
-      return;
-    }
-
-    addBet({ id: Date.now(), game: "Four", type: fourType, number: fourABCD, amount: Number(fourAmount) });
-    setFourABCD("");
-    setFourAmount("");
-    notify("success", "Four bet added to the slip.");
+  const updateTripleDigit = (index, value) => {
+    const digits = String(tripleABC).padEnd(3, " ").split("");
+    digits[index] = value.slice(-1);
+    setTripleABC(digits.join("").trimEnd());
   };
 
   const removeOrder = (id) => {
@@ -160,31 +241,11 @@ function LotteryGame() {
   };
 
   const totalAmount = orders.reduce((sum, item) => sum + Number(item.amount), 0);
+  const displayLotteryName = selectedLottery?.lotteryName || "Lottery";
 
-  const resolveBet = (bet, draw) => {
-    if (bet.game === "Single") {
-      const win = bet.number === draw.single[bet.type];
-      return win ? bet.amount * 90 : 0;
-    }
-
-    if (bet.game === "Double") {
-      const win = bet.number === draw.double[bet.type];
-      return win ? bet.amount * 180 : 0;
-    }
-
-    if (bet.game === "Triple") {
-      const exactWin = bet.number === draw.triple;
-      const boxWin = bet.type === "Box" && sameDigitSet(bet.number, draw.triple);
-      return exactWin ? bet.amount * 380 : boxWin ? bet.amount * 140 : 0;
-    }
-
-    if (bet.game === "Four") {
-      const exactWin = bet.number === draw.four;
-      const boxWin = bet.type === "Box" && sameDigitSet(bet.number, draw.four);
-      return exactWin ? bet.amount * 900 : boxWin ? bet.amount * 320 : 0;
-    }
-
-    return 0;
+  const selectQuickGuessSlot = (section, slot) => {
+    setQuickGuessSlots((previous) => ({ ...previous, [section]: slot }));
+    setOpenQuickGuess(null);
   };
 
   const buyTicket = async () => {
@@ -193,315 +254,288 @@ function LotteryGame() {
       return;
     }
 
+    if (!selectedLottery?.id) {
+      notify("error", "No lottery selected. Please return to the lottery list and choose a draw.");
+      return;
+    }
+
     if (totalAmount > balance) {
       notify("error", "Insufficient wallet balance for this ticket.");
       return;
     }
 
-    const draw = {
-      single: {
-        A: String(Math.floor(Math.random() * 10)),
-        B: String(Math.floor(Math.random() * 10)),
-        C: String(Math.floor(Math.random() * 10)),
-      },
-      double: {
-        AB: createRandomDigits(2),
-        AC: createRandomDigits(2),
-        BC: createRandomDigits(2),
-      },
-      triple: createRandomDigits(3),
-      four: createRandomDigits(4),
-    };
-
-    const payout = orders.reduce((sum, order) => sum + resolveBet(order, draw), 0);
-    const outcome = payout > 0 ? "Win" : "Lose";
-    const resultSummary = orders
-      .map((order) => {
-        const betPayout = resolveBet(order, draw);
-        return `${order.game} ${order.number}: ${betPayout > 0 ? `Won ₹${betPayout}` : "No win"}`;
-      })
-      .join(" | ");
-
     try {
-      await withdraw(totalAmount);
-      if (payout > 0) await deposit(payout);
+      for (const order of orders) {
+        const betType = order.game.toUpperCase();
+        await API.post(
+          "/ticket/buy",
+          {
+            lotteryId: Number(selectedLottery.id),
+            betType,
+            selectedNumber: String(order.number),
+            amount: Number(order.amount),
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+
+      await refreshWallet();
+      setOrders([]);
+      setRoundId(createRoundId());
+      setTimeLeft(3600);
+      notify("success", `Ticket(s) purchased for ${selectedLottery.lotteryName}.`);
     } catch (err) {
-      console.error(err);
       const msg = err.response?.data?.message || err.message || "Ticket purchase failed";
       notify("error", msg);
-      return;
     }
-
-    setGameHistory((prev) => [
-      {
-        id: Date.now(),
-        round: roundId,
-        placedAt: new Date().toLocaleTimeString(),
-        totalStake: totalAmount,
-        totalPayout: payout,
-        outcome,
-        resultSummary,
-        draw,
-      },
-      ...prev,
-    ].slice(0, 8));
-
-    setOrders([]);
-    setRoundId(createRoundId());
-    setTimeLeft(3600);
-    notify("success", `Ticket placed. ${outcome === "Win" ? `You won ₹${payout}!` : "No winning bets this round."}`);
-  };
-
-  const sectionTitleStyle = {
-    color: "var(--accent)",
-    fontWeight: 700,
-    letterSpacing: "0.04em",
-    marginBottom: "8px",
   };
 
   return (
-      <div className="page-content lottery-page">
-        <div className="lottery-hero">
-          <div className="lottery-hero-badge">Festive Draw</div>
-          <h2>Kerala Lottery</h2>
-          <p>Place demo lottery bets on a live-style draw with instant frontend results.</p>
+    <div className="page-content lottery-page">
+      <div className="lottery-mobile-shell">
+        <div className="lottery-mobile-header">
+          <button type="button" className="lottery-mobile-back" aria-label="Back" onClick={() => navigate(-1)}>
+            ←
+          </button>
+          <div className="lottery-mobile-title">{displayLotteryName}</div>
+          <div className="lottery-mobile-balance">
+            <span className="lottery-balance-label">3Digit Balance</span>
+            <span className="lottery-balance-value">₹ {Number(balance || 0).toLocaleString("en-IN")}</span>
+            <svg className="lottery-wallet-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19a1 1 0 0 1 1 1v2H6.5A2.5 2.5 0 0 0 4 9.5v8A2.5 2.5 0 0 0 6.5 20H19a1 1 0 0 0 1-1v-2H6.5A2.5 2.5 0 0 1 4 14.5z" fill="currentColor" />
+              <path d="M6.5 8H20v9H6.5a2.5 2.5 0 0 1 0-5H20" fill="#a875e8" />
+              <circle cx="17" cy="14" r="1" fill="white" />
+            </svg>
+          </div>
         </div>
 
-        <div className="lottery-section">
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        {!selectedLotteryId ? (
+          <div className="lottery-empty-state">
+            <h2>No lottery selected</h2>
+            <p>{loadError || "Please choose a lottery to continue."}</p>
+            <button type="button" className="lottery-back-btn" onClick={() => navigate("/lottery")}>Browse lotteries</button>
+          </div>
+        ) : null}
+
+        {isLoading ? (
+          <div className="lottery-loading-state" role="status" aria-live="polite">
+            Loading lottery details...
+          </div>
+        ) : null}
+
+        {!isLoading && !selectedLottery && selectedLotteryId ? (
+          <div className="lottery-empty-state">
+            <h2>Lottery unavailable</h2>
+            <p>{loadError || "The selected lottery could not be loaded."}</p>
+            <button type="button" className="lottery-back-btn" onClick={() => navigate("/lottery")}>Browse lotteries</button>
+          </div>
+        ) : null}
+
+        {selectedLottery ? (
+          <div className="lottery-bet-panel">
+            <div className="lottery-bet-header">
+              <button type="button" className="lottery-pill ghost" onClick={() => setIsHowToPlayOpen(true)}>How to play</button>
+              <div className="lottery-bet-header__meta">Ticket</div>
+            </div>
+
+          <div className="lottery-countdown-box">
+            <div className="lottery-type-indicators" aria-label="Lottery type indicators">
+              <div className="bet-letter red">*</div>
+              <div className="bet-letter orange">*</div>
+              <div className="bet-letter blue">*</div>
+            </div>
+            <div className="lottery-countdown-separator" aria-hidden="true" />
             <div>
-              <h4 className="mb-2">Live draw session</h4>
-              <p className="lottery-description">Choose your bet type, add selections to the slip, and confirm to resolve the draw.</p>
-            </div>
-            <div className="text-end">
-              <div className="text-muted" style={{ fontSize: "0.8rem", marginBottom: "6px" }}>TIME REMAINING</div>
-              <div className="lottery-total-pill lottery-timer">{formatTime(timeLeft)}</div>
-              <div className="lottery-total-pill" style={{ marginTop: "10px" }}>Wallet: ₹ {balance.toLocaleString()}</div>
+              <div className="label">Time remaining</div>
+              <div className="timer" aria-label={`Time remaining ${formatTime(timeLeft)}`}>
+                {formatTime(timeLeft).split("").map((character, index) => (
+                  character === ":"
+                    ? <span className="timer-separator" key={`separator-${index}`}>:</span>
+                    : <span className="timer-digit" key={`digit-${index}`}>{character}</span>
+                ))}
+              </div>
+              <div className="suffix">03:00 PM</div>
             </div>
           </div>
 
-          <div className="lottery-tabs">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                className={`lottery-tab ${activeTab === tab ? "active" : ""}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {activeTab === "Single" && (
-          <div className="lottery-section">
-            <h4 style={sectionTitleStyle}>Single Digit</h4>
-            <p className="lottery-description">Select one lucky digit from A, B, or C.</p>
-
-            <div className="lottery-grid">
+          <div className="bet-section">
+            <div className="bet-section-head">
+              <div className="bet-section-title">
+                <strong>Single Digit</strong>
+                <span>₹10.50</span>
+                <span className="win-pill">Win ₹100.00</span>
+              </div>
+              <QuickGuessControl
+                section="single"
+                selectedSlot={quickGuessSlots.single}
+                isOpen={openQuickGuess === "single"}
+                onToggle={() => setOpenQuickGuess((current) => current === "single" ? null : "single")}
+                onSelect={(slot) => selectQuickGuessSlot("single", slot)}
+              />
+            </div>
+            <div className="bet-array">
               {[
-                { label: "A", value: singleA, onChange: setSingleA, amount: amountA, setAmount: setAmountA },
-                { label: "B", value: singleB, onChange: setSingleB, amount: amountB, setAmount: setAmountB },
-                { label: "C", value: singleC, onChange: setSingleC, amount: amountC, setAmount: setAmountC },
+                { label: "A", value: singleA, onChange: setSingleA, amount: amountA, setAmount: setAmountA, color: "red" },
+                { label: "B", value: singleB, onChange: setSingleB, amount: amountB, setAmount: setAmountB, color: "orange" },
+                { label: "C", value: singleC, onChange: setSingleC, amount: amountC, setAmount: setAmountC, color: "blue" },
               ].map((item) => (
-                <div key={item.label} className="lottery-grid-row bet-row">
-                  <div className="lottery-grid-label bet-label">{item.label}</div>
+                <div key={item.label} className="bet-row">
+                  <div className={`bet-letter ${item.color}`}>{item.label}</div>
                   <input
-                    className="form-control lottery-input bet-input"
+                    className="bet-input"
                     maxLength={1}
                     value={item.value}
                     onChange={(e) => item.onChange(e.target.value)}
-                    placeholder="Digit"
+                    placeholder="-"
                   />
                   <input
-                    className="form-control lottery-input bet-amount"
-                    placeholder="Amount"
+                    className="bet-amount"
+                    placeholder="-"
                     type="number"
                     value={item.amount}
                     onChange={(e) => item.setAmount(e.target.value)}
                   />
-                  <button className="btn btn-gradient-success lottery-button bet-button" onClick={() => addSingle(item.label, item.value, item.amount)}>
-                    Add Bet
-                  </button>
+                  <button type="button" className="bet-add-btn" onClick={() => addSingle(item.label, item.value, item.amount)}>ADD</button>
                 </div>
               ))}
             </div>
           </div>
-        )}
 
-        {activeTab === "Double" && (
-          <div className="lottery-section">
-            <h4 style={{ ...sectionTitleStyle, color: "var(--accent-alt)" }}>Double Digit</h4>
-            <p className="lottery-description">Try a two-digit combination like AB, AC, or BC.</p>
-
-            <div className="lottery-grid">
+          <div className="bet-section">
+            <div className="bet-section-head">
+              <div className="bet-section-title">
+                <strong>Double Digit</strong>
+                <span>₹11.00</span>
+                <span className="win-pill">Win ₹1,000.00</span>
+              </div>
+              <QuickGuessControl
+                section="double"
+                selectedSlot={quickGuessSlots.double}
+                isOpen={openQuickGuess === "double"}
+                onToggle={() => setOpenQuickGuess((current) => current === "double" ? null : "double")}
+                onSelect={(slot) => selectQuickGuessSlot("double", slot)}
+              />
+            </div>
+            <div className="bet-array">
               {[
                 { label: "AB", value: doubleAB, onChange: setDoubleAB, amount: amountAB, setAmount: setAmountAB },
                 { label: "AC", value: doubleAC, onChange: setDoubleAC, amount: amountAC, setAmount: setAmountAC },
                 { label: "BC", value: doubleBC, onChange: setDoubleBC, amount: amountBC, setAmount: setAmountBC },
               ].map((item) => (
-                <div key={item.label} className="lottery-grid-row bet-row">
-                  <div className="lottery-grid-label bet-label">{item.label}</div>
-                  <input
-                    className="form-control lottery-input bet-input"
-                    maxLength={2}
-                    value={item.value}
-                    onChange={(e) => item.onChange(e.target.value)}
-                    placeholder="2 digits"
-                  />
-                  <input
-                    className="form-control lottery-input bet-amount"
-                    placeholder="Amount"
-                    type="number"
-                    value={item.amount}
-                    onChange={(e) => item.setAmount(e.target.value)}
-                  />
-                  <button className="btn btn-gradient-secondary lottery-button bet-button" onClick={() => addDouble(item.label, item.value, item.amount)}>
-                    Add Bet
-                  </button>
+                <div key={item.label} className="bet-row">
+                  <div className="double-pair">
+                    <div className="bet-letter red">{item.label[0]}</div>
+                    <div className="bet-letter orange">{item.label[1]}</div>
+                    <input
+                      className="bet-input"
+                      maxLength={2}
+                      value={item.value}
+                      onChange={(e) => item.onChange(e.target.value)}
+                      placeholder="-"
+                    />
+                    <input
+                      className="bet-amount"
+                      placeholder="-"
+                      type="number"
+                      value={item.amount}
+                      onChange={(e) => item.setAmount(e.target.value)}
+                    />
+                    <button type="button" className="bet-add-btn" onClick={() => addDouble(item.label, item.value, item.amount)}>ADD</button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        )}
 
-        {activeTab === "Triple" && (
-          <div className="lottery-section">
-            <h4 style={{ ...sectionTitleStyle, color: "var(--accent-strong)" }}>Triple Digit</h4>
-            <p className="lottery-description">Choose a three-digit combination and pick Straight or Box.</p>
-
-            <div className="lottery-grid-row bet-row">
-              <input
-                type="text"
-                maxLength={3}
-                className="form-control lottery-input bet-input"
-                placeholder="Enter 3-digit number"
-                value={tripleABC}
-                onChange={(e) => setTripleABC(e.target.value)}
+          <div className="bet-section">
+            <div className="bet-section-head">
+              <div className="bet-section-title">
+                <strong>Triple Digit</strong>
+                <span>₹29.00</span>
+                <span className="win-pill">Win ₹15,000.00</span>
+              </div>
+              <QuickGuessControl
+                section="triple"
+                selectedSlot={quickGuessSlots.triple}
+                isOpen={openQuickGuess === "triple"}
+                onToggle={() => setOpenQuickGuess((current) => current === "triple" ? null : "triple")}
+                onSelect={(slot) => selectQuickGuessSlot("triple", slot)}
               />
-              <input
-                type="number"
-                className="form-control lottery-input bet-amount"
-                placeholder="Amount"
-                value={tripleAmount}
-                onChange={(e) => setTripleAmount(e.target.value)}
-              />
-              <select className="form-select lottery-input bet-input" value={tripleType} onChange={(e) => setTripleType(e.target.value)}>
-                <option>Straight</option>
-                <option>Box</option>
-              </select>
-              <button className="btn btn-gradient-warning lottery-button bet-button" onClick={addTriple}>
-                Add Bet
-              </button>
+            </div>
+            <div className="triple-controls">
+              <div className="triple-labels" aria-hidden="true">
+                <div className="bet-letter red">A</div>
+                <div className="bet-letter orange">B</div>
+                <div className="bet-letter blue">C</div>
+              </div>
+              <div className="triple-digit-inputs">
+                {[0, 1, 2].map((index) => (
+                  <input
+                    key={index}
+                    className="triple-digit-input"
+                    type="text"
+                    maxLength={1}
+                    inputMode="numeric"
+                    value={tripleABC[index] || ""}
+                    onChange={(e) => updateTripleDigit(index, e.target.value)}
+                    placeholder="-"
+                    aria-label={`Triple Digit ${index + 1}`}
+                  />
+                ))}
+              </div>
+              <div className="triple-actions">
+                <input
+                  className="bet-amount"
+                  type="number"
+                  value={tripleAmount}
+                  onChange={(e) => setTripleAmount(e.target.value)}
+                  placeholder="-"
+                />
+                <button type="button" className={`bet-box-button ${tripleType === "Box" ? "active" : ""}`} onClick={() => setTripleType("Box")}>BOX</button>
+                <button type="button" className="bet-add-btn" onClick={addTriple}>ADD</button>
+              </div>
             </div>
           </div>
-        )}
 
-        {activeTab === "Four" && (
-          <div className="lottery-section">
-            <h4 style={{ ...sectionTitleStyle, color: "var(--accent)" }}>Four Digit</h4>
-            <p className="lottery-description">Go big with a four-number lucky pick.</p>
-
-            <div className="lottery-grid-row bet-row">
-              <input
-                type="text"
-                maxLength={4}
-                className="form-control lottery-input bet-input"
-                placeholder="Enter 4-digit number"
-                value={fourABCD}
-                onChange={(e) => setFourABCD(e.target.value)}
-              />
-              <input
-                type="number"
-                className="form-control lottery-input bet-amount"
-                placeholder="Amount"
-                value={fourAmount}
-                onChange={(e) => setFourAmount(e.target.value)}
-              />
-              <select className="form-select lottery-input bet-input" value={fourType} onChange={(e) => setFourType(e.target.value)}>
-                <option>Straight</option>
-                <option>Box</option>
-              </select>
-              <button className="btn btn-gradient-danger lottery-button bet-button" onClick={addFour}>
-                Add Bet
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="lottery-section">
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+          <div className="lottery-cart-bar">
             <div>
-              <h3 style={{ color: "var(--accent)", margin: 0 }}>Bet Slip</h3>
-              <p className="lottery-description">Your active bets are held here until you confirm the ticket.</p>
+              <div className="cart-total">
+                <span className="cart-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M5 8h14v11H5z" fill="currentColor" />
+                    <path d="M8 8V6.5a4 4 0 0 1 8 0V8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="m8 12 3 3 5-5" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                <span>₹{Number(totalAmount).toFixed(2)}</span>
+              </div>
+              <div className="cart-meta">{orders.length} numbers</div>
             </div>
-            <div className="lottery-total-pill">Slip Total: ₹ {totalAmount}</div>
+            <button type="button" className="pay-now-btn" onClick={buyTicket}>Pay Now</button>
           </div>
-
-          {orders.length === 0 ? (
-            <p className="text-muted mb-0">No bets added yet. Use the tabs above to add a selection.</p>
-          ) : (
-            <div className="table-responsive">
-              <table className="lottery-order-table">
-                <thead>
-                  <tr>
-                    <th>Game</th>
-                    <th>Type</th>
-                    <th>Number</th>
-                    <th>Amount</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.game}</td>
-                      <td>{item.type}</td>
-                      <td>{item.number}</td>
-                      <td>₹ {item.amount}</td>
-                      <td>
-                        <button className="btn btn-sm btn-gradient-danger lottery-button-small" onClick={() => removeOrder(item.id)}>
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-3">
-            <button className="btn btn-gradient-success lottery-button lottery-footer-button" onClick={buyTicket}>
-              Confirm Ticket
-            </button>
-            <div className="text-muted">Round {roundId} • {orders.length} bet{orders.length !== 1 ? "s" : ""}</div>
           </div>
-        </div>
-
-        <div className="lottery-section">
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-            <h3 style={{ color: "var(--accent)", margin: 0 }}>Draw History</h3>
-            <p className="text-muted mb-0">See your most recent demo ticket outcomes.</p>
-          </div>
-
-          {gameHistory.length === 0 ? (
-            <p className="text-muted">No draw history yet. Place a ticket to see results.</p>
-          ) : (
-            <div className="history-panel">
-              {gameHistory.map((entry) => (
-                <div key={entry.id} className="history-row">
-                  <strong>{entry.round} • {entry.outcome}</strong>
-                  <span>Stake ₹{entry.totalStake} • Payout ₹{entry.totalPayout}</span>
-                  <span>{entry.placedAt}</span>
-                  <span>{entry.resultSummary}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        ) : null}
       </div>
+      {isHowToPlayOpen ? (
+        <div className="how-to-play-overlay" role="presentation" onClick={() => setIsHowToPlayOpen(false)}>
+          <section className="how-to-play-modal" role="dialog" aria-modal="true" aria-labelledby="how-to-play-title" onClick={(event) => event.stopPropagation()}>
+            <div className="how-to-play-modal-header">
+              <h2 id="how-to-play-title">How to play</h2>
+              <button type="button" className="how-to-play-close" aria-label="Close How to play" onClick={() => setIsHowToPlayOpen(false)}>×</button>
+            </div>
+            <ol className="how-to-play-list">
+              <li>Choose a Quick Guess time slot for the bet section.</li>
+              <li>Enter your number and amount for A, B, or C.</li>
+              <li>Use BOX for a Triple Digit combination when needed.</li>
+              <li>Tap ADD to place the selection in your bet slip.</li>
+              <li>Review the total and tap Pay Now to purchase your ticket.</li>
+            </ol>
+          </section>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

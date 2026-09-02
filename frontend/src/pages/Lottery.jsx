@@ -3,101 +3,8 @@ import LotteryListState from "../components/LotteryListState";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
-import API from "../services/api";
+import API, { getAuthToken } from "../services/api";
 import { useWallet } from "../context/WalletContext";
-
-const defaultStateLotteries = [
-  {
-    id: "state-nagaland",
-    lotteryName: "Nagaland Morning",
-    ticketPrice: 120,
-    firstPrize: 960000,
-    secondPrize: 55000,
-    thirdPrize: 11000,
-    drawDate: "2026-08-04T13:00:00",
-  },
-  {
-    id: "state-sthree",
-    lotteryName: "Sthree Sakthi",
-    ticketPrice: 100,
-    firstPrize: 960000,
-    secondPrize: 53000,
-    thirdPrize: 10500,
-    drawDate: "2026-08-04T15:00:00",
-  },
-  {
-    id: "state-nagaland-day",
-    lotteryName: "Nagaland Day",
-    ticketPrice: 110,
-    firstPrize: 960000,
-    secondPrize: 54000,
-    thirdPrize: 10800,
-    drawDate: "2026-08-04T18:00:00",
-  },
-  {
-    id: "state-nagaland-evening",
-    lotteryName: "Nagaland Evening",
-    ticketPrice: 115,
-    firstPrize: 960000,
-    secondPrize: 56000,
-    thirdPrize: 11200,
-    drawDate: "2026-08-04T20:00:00",
-  },
-  {
-    id: "state-karunya-plus",
-    lotteryName: "Karunya Plus",
-    ticketPrice: 90,
-    firstPrize: 960000,
-    secondPrize: 52000,
-    thirdPrize: 10400,
-    drawDate: "2026-08-06T15:00:00",
-  },
-  {
-    id: "state-suvarna-keralam",
-    lotteryName: "Suvarna Keralam",
-    ticketPrice: 95,
-    firstPrize: 960000,
-    secondPrize: 54000,
-    thirdPrize: 10600,
-    drawDate: "2026-08-07T15:00:00",
-  },
-  {
-    id: "state-karunya",
-    lotteryName: "Karunya",
-    ticketPrice: 100,
-    firstPrize: 960000,
-    secondPrize: 55000,
-    thirdPrize: 10800,
-    drawDate: "2026-08-08T15:00:00",
-  },
-  {
-    id: "state-samrudhi",
-    lotteryName: "Samrudhi",
-    ticketPrice: 110,
-    firstPrize: 960000,
-    secondPrize: 56000,
-    thirdPrize: 11000,
-    drawDate: "2026-08-09T15:00:00",
-  },
-  {
-    id: "state-bhagyathara",
-    lotteryName: "Bhagyathara",
-    ticketPrice: 125,
-    firstPrize: 960000,
-    secondPrize: 58000,
-    thirdPrize: 11500,
-    drawDate: "2026-08-10T15:00:00",
-  },
-  {
-    id: "state-win-win",
-    lotteryName: "Win Win",
-    ticketPrice: 130,
-    firstPrize: 960000,
-    secondPrize: 59000,
-    thirdPrize: 11800,
-    drawDate: "2026-08-11T15:00:00",
-  },
-];
 
 function formatShortDate(dateString) {
   if (!dateString) return "TBD";
@@ -124,7 +31,7 @@ function Lottery() {
   const { refreshWallet } = useWallet();
   const { notify } = useNotification();
 
-  const token = localStorage.getItem("token");
+  const token = getAuthToken();
 
   useEffect(() => {
     refreshWallet();
@@ -136,21 +43,14 @@ function Lottery() {
     try {
       const res = await API.get("/lottery/all");
       const apiLotteries = Array.isArray(res.data.data) ? res.data.data : [];
-      const mergedLotteries = [...apiLotteries];
 
-      defaultStateLotteries.forEach((defaultLottery) => {
-        if (!mergedLotteries.some((lottery) => String(lottery.id) === String(defaultLottery.id))) {
-          mergedLotteries.push(defaultLottery);
-        }
-      });
-
-      if (!mergedLotteries.length) {
+      if (!apiLotteries.length) {
         setLotteries([]);
         setLotteryStatus("empty");
         return;
       }
 
-      setLotteries(mergedLotteries);
+      setLotteries(apiLotteries);
       setLotteryStatus("success");
     } catch (err) {
       console.log(err);
@@ -176,102 +76,36 @@ function Lottery() {
 
   const searchParams = new URLSearchParams(location.search);
   const selectedLotteryId = searchParams.get("lotteryId");
-  const selectedLottery = selectedLotteryId
-    ? lotteries.find((lottery) => String(lottery.id) === selectedLotteryId) ||
-      defaultStateLotteries.find((lottery) => String(lottery.id) === selectedLotteryId)
-    : null;
-  const isDetailsPage = Boolean(selectedLotteryId && selectedLottery);
-  const displayedLotteries = isDetailsPage ? [selectedLottery] : lotteries;
+
+  useEffect(() => {
+    if (selectedLotteryId) {
+      navigate(`/lotterygame?lotteryId=${selectedLotteryId}`, { replace: true });
+    }
+  }, [selectedLotteryId, navigate]);
+
+  const displayedLotteries = lotteries;
 
   return (
-      <div className="page-content">
-        {selectedLotteryId && !selectedLottery ? (
-          <div className="card-panel card-panel-strong" style={{ marginBottom: "16px" }}>
-            <p className="text-muted" style={{ margin: 0 }}>
-              Lottery not found. Please select a different draw.
-            </p>
-          </div>
-        ) : null}
-
-        {isDetailsPage ? (
-          <div className="lottery-detail-card card-panel card-panel-strong">
-            <div className="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
-              <div>
-                <div className="badge-pill">
-                  {selectedLottery.lotteryName}
-                </div>
-                <h3 className="lottery-detail-prize">₹ {selectedLottery.firstPrize.toLocaleString()}</h3>
-                <p className="text-muted" style={{ margin: 0 }}>
-                  Ticket ₹{selectedLottery.ticketPrice} • {formatShortDate(selectedLottery.drawDate)} • {formatTime(selectedLottery.drawDate)}
-                </p>
-              </div>
-              <button type="button" className="btn btn-outline-primary" onClick={() => navigate("/lottery")}>Back to list</button>
-            </div>
-
-            <div className="row g-3 mb-3">
-              <div className="col-6">
-                <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
-                  <small className="text-muted">Ticket Price</small>
-                  <div className="lottery-detail-stat">₹ {selectedLottery.ticketPrice}</div>
-                </div>
-              </div>
-              <div className="col-6">
-                <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
-                  <small className="text-muted">Draw Time</small>
-                  <div className="lottery-detail-stat">{formatTime(selectedLottery.drawDate)}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="row g-3">
-              <div className="col-6">
-                <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
-                  <small className="text-muted">Second Prize</small>
-                  <div className="lottery-detail-stat">₹ {selectedLottery.secondPrize.toLocaleString()}</div>
-                </div>
-              </div>
-              <div className="col-6">
-                <div className="card-panel card-panel-strong" style={{ padding: "16px" }}>
-                  <small className="text-muted">Third Prize</small>
-                  <div className="lottery-detail-stat">₹ {selectedLottery.thirdPrize.toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <button
-                type="button"
-                className="btn btn-gradient-primary btn-pill w-100"
-                style={{ height: "52px" }}
-                onClick={() => navigate(`/lotterygame?lotteryId=${selectedLottery.id}`)}
-              >
-                Place Bet
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="text-center page-intro">
-              <div className="badge-pill">Lottery</div>
-              <h2 className="page-title">State Lotteries</h2>
-              <p className="text-muted" style={{ margin: 0 }}>Browse draws and place your bets.</p>
-            </div>
-            <LotteryListState status={lotteryStatus} onRetry={getLotteries} pageGrid>
-              <div className="lottery-card-grid-premium lottery-page-grid">
-                {displayedLotteries.map((lottery, index) => (
-                  <LotteryCard
-                    key={lottery.id}
-                    lottery={lottery}
-                    variantIndex={index}
-                    onClick={() => navigate(`/lottery?lotteryId=${lottery.id}`)}
-                    actionLabel="See Details"
-                  />
-                ))}
-              </div>
-            </LotteryListState>
-          </>
-        )}
+    <div className="page-content">
+      <div className="text-center page-intro">
+        <div className="badge-pill">Lottery</div>
+        <h2 className="page-title">State Lotteries</h2>
+        <p className="text-muted" style={{ margin: 0 }}>Browse draws and place your bets.</p>
       </div>
+      <LotteryListState status={lotteryStatus} onRetry={getLotteries} pageGrid>
+        <div className="lottery-card-grid-premium lottery-page-grid">
+          {displayedLotteries.map((lottery, index) => (
+            <LotteryCard
+              key={lottery.id}
+              lottery={lottery}
+              variantIndex={index}
+              onClick={() => navigate(`/lotterygame?lotteryId=${lottery.id}`)}
+              actionLabel="Play Now"
+            />
+          ))}
+        </div>
+      </LotteryListState>
+    </div>
   );
 }
 

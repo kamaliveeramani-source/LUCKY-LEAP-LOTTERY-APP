@@ -9,13 +9,11 @@ import samrudhi from "../assets/lotteries/samrudhi.png";
 import bhagyathara from "../assets/lotteries/bhagyathara.png";
 import winWin from "../assets/lotteries/win-win.png";
 import keralaEmblem from "../assets/lotteries/kerala-emblem.png";
-import keralaBumper from "../assets/lotteries/kerala-bumper.png";
 import defaultLotteryImage from "../assets/lotteries/lottery.png";
 
 const lotteryImages = {
   "KERALA LOTTERY": keralaEmblem,
   "KERALA STATE LOTTERY": keralaEmblem,
-  "KERALA BUMPER": keralaBumper,
   "NAGALAND MORNING": nagalandMorning,
   "STHREE SAKTHI": sthreeSakthi,
   "NAGALAND DAY": nagalandDay,

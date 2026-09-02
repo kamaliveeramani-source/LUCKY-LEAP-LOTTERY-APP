@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import API from "../services/api";
+import API, { getAuthToken, clearAuthToken } from "../services/api";
 
 const WalletContext = createContext(null);
 
@@ -18,10 +18,14 @@ export function WalletProvider({ children }) {
   const [wallet, setWallet] = useState(EMPTY_WALLET);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [authReady, setAuthReady] = useState(false);
 
   const refreshWallet = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
+    const token = getAuthToken();
+    if (!token) {
+      setWallet(EMPTY_WALLET);
+      return null;
+    }
 
     setLoading(true);
     setError("");
@@ -46,7 +50,15 @@ export function WalletProvider({ children }) {
       setWallet(next);
       return next;
     } catch (err) {
-      console.error("refreshWallet", err);
+      console.error("[WALLET] Failed to refresh wallet:", err.response?.status, err.response?.data?.message);
+      // Handle 401 Unauthorized
+      if (err.response?.status === 401) {
+        console.warn("[WALLET] Token expired or invalid, clearing storage");
+        clearAuthToken();
+        setWallet(EMPTY_WALLET);
+        setError("Session expired. Please log in again.");
+        return null;
+      }
       setError(err.response?.data?.message || "Unable to load wallet");
       return null;
     } finally {
@@ -55,40 +67,55 @@ export function WalletProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // auto-refresh on mount if token present
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (token) refreshWallet();
+    // Auto-refresh wallet on mount if token is present
+    const token = getAuthToken();
+    if (token) {
+      console.log("[WALLET] Token found, refreshing wallet on mount");
+      refreshWallet();
+    } else {
+      console.log("[WALLET] No token found on mount");
+      setWallet(EMPTY_WALLET);
     }
-  }, [refreshWallet]);
+    setAuthReady(true);
+  }, []);
 
   // Server-backed update helpers used by games and UI
   const deposit = async (amount) => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("No authentication token available");
+    }
     try {
       await API.post("/wallet/add", { amount }, { headers: { Authorization: `Bearer ${token}` } });
       return await refreshWallet();
     } catch (err) {
-      console.error("deposit", err);
+      console.error("[WALLET] Deposit failed:", err.response?.status, err.response?.data?.message);
+      if (err.response?.status === 401) {
+        clearAuthToken();
+      }
       throw err;
     }
   };
 
   const withdraw = async (amount) => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("No authentication token available");
+    }
     try {
       await API.post("/wallet/withdraw", { amount }, { headers: { Authorization: `Bearer ${token}` } });
       return await refreshWallet();
     } catch (err) {
-      console.error("withdraw", err);
+      console.error("[WALLET] Withdraw failed:", err.response?.status, err.response?.data?.message);
+      if (err.response?.status === 401) {
+        clearAuthToken();
+      }
       throw err;
     }
   };
 
   return (
-    <WalletContext.Provider value={{ wallet, balance: wallet.wallet, loading, error, refreshWallet, deposit, withdraw }}>
+    <WalletContext.Provider value={{ wallet, balance: wallet.wallet, loading, error, authReady, refreshWallet, deposit, withdraw }}>
       {children}
     </WalletContext.Provider>
   );

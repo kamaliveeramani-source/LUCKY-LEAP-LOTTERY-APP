@@ -21,12 +21,7 @@ function Login() {
     e.preventDefault();
 
     if (!acceptTerms || !acceptAge) {
-      notify("warning", "Please accept Terms & Conditions");
-      return;
-    }
-
-    if (!mobile.trim() || !password) {
-      notify("warning", "Please enter your mobile number and password");
+      notify("warning", "Please accept Terms & Conditions and confirm your age");
       return;
     }
 
@@ -38,41 +33,74 @@ function Login() {
         password,
       });
 
-      const token = res.data?.token;
+      console.log("Login response:", res.data);
+
+      // Support different backend response structures
+      const token =
+        res.data?.token ||
+        res.data?.accessToken ||
+        res.data?.access_token ||
+        res.data?.data?.token ||
+        res.data?.data?.accessToken ||
+        res.data?.data?.access_token;
 
       if (!token) {
+        console.error("Login response did not contain a token:", res.data);
         throw new Error("Login token was not received");
       }
 
-      // Clear any old login session first
-      localStorage.removeItem("token");
-      localStorage.removeItem("userName");
-
-      // Save current user's session
+      // Save token
       localStorage.setItem("token", token);
-      localStorage.setItem(
-        "userName",
-        res.data?.data?.fullName || res.data?.user?.fullName || "Player"
-      );
 
-      await refreshWallet();
+      // Get user information safely
+      const user =
+        res.data?.user ||
+        res.data?.data?.user ||
+        res.data?.data ||
+        {};
+
+      const userName =
+        user?.fullName ||
+        user?.name ||
+        res.data?.fullName ||
+        res.data?.name ||
+        "Player";
+
+      localStorage.setItem("userName", userName);
+
+      // Save user ID if backend provides it
+      const userId =
+        user?.id ||
+        user?._id ||
+        res.data?.userId ||
+        res.data?.data?.userId;
+
+      if (userId) {
+        localStorage.setItem("userId", userId.toString());
+      }
+
+      // Refresh wallet after token is stored
+      try {
+        await refreshWallet();
+      } catch (walletError) {
+        console.warn("Wallet refresh failed:", walletError);
+      }
 
       notify("success", "Login Successful");
 
-      // Clear form values before navigating
-      setMobile("");
-      setPassword("");
-
       navigate("/dashboard", { replace: true });
+
     } catch (err) {
       console.error("Login error:", err);
 
-      notify(
-        "error",
+      const errorMessage =
         err.response?.data?.message ||
-          err.message ||
-          "Login Failed"
-      );
+        err.response?.data?.error ||
+        err.message ||
+        "Login Failed";
+
+      notify("error", errorMessage);
+
     } finally {
       setSubmitting(false);
     }
@@ -81,6 +109,7 @@ function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
+
         <div className="auth-header">
           <AppLogo className="mb-3" />
 
@@ -91,36 +120,38 @@ function Login() {
           </p>
         </div>
 
-        <form onSubmit={loginUser} autoComplete="off">
+        <form onSubmit={loginUser}>
+
           <div className="auth-field">
-            <label htmlFor="login-mobile">Phone Number</label>
+            <label htmlFor="login-mobile">
+              Phone Number
+            </label>
 
             <input
               id="login-mobile"
-              name="lottery-login-mobile"
               type="tel"
-              inputMode="numeric"
               className="auth-input"
               placeholder="Enter your mobile number"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
-              autoComplete="off"
+              autoComplete="username"
               required
             />
           </div>
 
           <div className="auth-field">
-            <label htmlFor="login-password">Password</label>
+            <label htmlFor="login-password">
+              Password
+            </label>
 
             <input
               id="login-password"
-              name="lottery-login-password"
               type="password"
               className="auth-input"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
+              autoComplete="current-password"
               required
             />
           </div>
@@ -158,6 +189,7 @@ function Login() {
           >
             {submitting ? "Signing In..." : "Sign In"}
           </button>
+
         </form>
 
         <div className="auth-footer">
@@ -166,6 +198,7 @@ function Login() {
             Create Account
           </Link>
         </div>
+
       </div>
     </div>
   );

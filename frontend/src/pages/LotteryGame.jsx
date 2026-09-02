@@ -209,22 +209,20 @@ function LotteryGame() {
   };
 
   const addTriple = () => {
-    if (!tripleABC || !String(tripleABC).trim()) {
+    const tripleNumber = String(tripleABC).trim();
+
+    if (!/^\d{3}$/.test(tripleNumber)) {
       notify("warning", "Enter Triple Digit");
       return;
     }
 
-    if (String(tripleABC).length !== 3) {
-      notify("warning", "Triple Digit must contain exactly 3 numbers");
-      return;
-    }
-
-    if (!tripleAmount || tripleAmount === "") {
+    const amount = Number(tripleAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
       notify("warning", "Enter Amount");
       return;
     }
 
-    addBet({ id: Date.now(), game: "Triple", type: tripleType, number: String(tripleABC), amount: Number(tripleAmount) });
+    addBet({ id: Date.now(), game: "Triple", type: tripleType, number: tripleNumber, amount });
     setTripleABC("");
     setTripleAmount("");
     notify("success", "Triple bet added to the slip.");
@@ -232,7 +230,7 @@ function LotteryGame() {
 
   const updateTripleDigit = (index, value) => {
     const digits = String(tripleABC).padEnd(3, " ").split("");
-    digits[index] = value.slice(-1);
+    digits[index] = value.replace(/\D/g, "").slice(-1);
     setTripleABC(digits.join("").trimEnd());
   };
 
@@ -478,6 +476,7 @@ function LotteryGame() {
                     type="text"
                     maxLength={1}
                     inputMode="numeric"
+                    pattern="[0-9]"
                     value={tripleABC[index] || ""}
                     onChange={(e) => updateTripleDigit(index, e.target.value)}
                     placeholder="-"

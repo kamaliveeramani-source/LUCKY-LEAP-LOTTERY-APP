@@ -88,6 +88,11 @@ if (hasFrontendBuild) {
   app.use(
     express.static(frontendDistPath, {
       index: false,
+      setHeaders: (res, filePath) => {
+        if (path.extname(filePath).toLowerCase() === ".js") {
+          res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+        }
+      },
     })
   );
 

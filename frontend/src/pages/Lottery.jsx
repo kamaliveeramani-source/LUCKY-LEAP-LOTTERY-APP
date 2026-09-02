@@ -79,7 +79,7 @@ function Lottery() {
 
   useEffect(() => {
     if (selectedLotteryId) {
-      navigate(`/lotterygame?lotteryId=${selectedLotteryId}`, { replace: true });
+      navigate(`/lotterygame?lotteryId=${selectedLotteryId}`);
     }
   }, [selectedLotteryId, navigate]);
 

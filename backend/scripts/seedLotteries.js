@@ -4,7 +4,7 @@ const Lottery = require("../models/Lottery");
 const Ticket = require("../models/Ticket");
 
 const REQUIRED_LOTTERIES = [
-  "Kerala Bumper",
+  "Kerala Lottery",
   "Win Win",
   "Akshaya",
   "Karunya",
@@ -107,8 +107,8 @@ async function ensureAllLotteries() {
     });
     const primaryLottery = existing.find((lottery) => lottery.id === 1);
 
-    if (primaryLottery && /^(kerala bumper|kerala lottery)$/i.test(primaryLottery.lotteryName)) {
-      primaryLottery.lotteryName = "Kerala Bumper";
+    if (primaryLottery && /^(kerala\s+bumper|kerala\s+lottery)$/i.test(primaryLottery.lotteryName)) {
+      primaryLottery.lotteryName = "Kerala Lottery";
       await primaryLottery.save({ transaction });
     }
 

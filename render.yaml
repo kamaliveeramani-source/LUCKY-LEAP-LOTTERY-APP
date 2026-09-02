@@ -1,14 +1,26 @@
 # Lucky Leap — Render Blueprint
-# Web service: builds the Vite/React frontend and serves it from Express.
-# Non-/api routes fall back to index.html so React Router handles SPA paths.
+# The frontend is a static site and the backend is the API web service.
 
 services:
+  - type: static_site
+    name: thumbi-lotteries-frontend
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://lucky-leap-lottery-app.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
   - type: web
     name: lucky-leap-lottery-app
     runtime: node
-    rootDir: .
-    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm run seed && npm start
     envVars:
       - key: NODE_ENV
         value: production

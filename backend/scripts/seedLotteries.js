@@ -1,9 +1,10 @@
 const { Op } = require("sequelize");
 const sequelize = require("../config/database");
 const Lottery = require("../models/Lottery");
+const Ticket = require("../models/Ticket");
 
 const REQUIRED_LOTTERIES = [
-  "Kerala Lottery",
+  "Kerala Bumper",
   "Win Win",
   "Akshaya",
   "Karunya",
@@ -99,19 +100,38 @@ async function ensureAllLotteries() {
   const transaction = await sequelize.transaction();
   
   try {
-    const primaryLottery = await Lottery.findByPk(1, {
+    const existing = await Lottery.findAll({
       transaction,
       lock: transaction.LOCK.UPDATE,
+      order: [["id", "ASC"]],
     });
+    const primaryLottery = existing.find((lottery) => lottery.id === 1);
 
-    if (primaryLottery && /^kerala\s+bumper$/i.test(primaryLottery.lotteryName)) {
-      primaryLottery.lotteryName = "Kerala Lottery";
+    if (primaryLottery && /^(kerala bumper|kerala lottery)$/i.test(primaryLottery.lotteryName)) {
+      primaryLottery.lotteryName = "Kerala Bumper";
       await primaryLottery.save({ transaction });
-      console.log("✓ Renamed legacy lottery ID 1 to Kerala Lottery");
     }
 
-    const existing = await Lottery.findAll({ transaction });
-    const existingNames = new Set(existing.map(l => l.lotteryName.toLowerCase()));
+    const refreshed = await Lottery.findAll({ transaction, order: [["id", "ASC"]] });
+    const requiredNames = new Set(REQUIRED_LOTTERIES.map((name) => name.toLowerCase()));
+    const existingByName = new Map();
+
+    for (const lottery of refreshed) {
+      const normalizedName = lottery.lotteryName.toLowerCase();
+      if (!requiredNames.has(normalizedName)) {
+        const ticketCount = await Ticket.count({ where: { LotteryId: lottery.id }, transaction });
+        if (ticketCount > 0) {
+          throw new Error(`Cannot remove lottery ${lottery.id} (${lottery.lotteryName}); ${ticketCount} tickets are linked to it.`);
+        }
+        await lottery.destroy({ transaction });
+        continue;
+      }
+
+      if (existingByName.has(normalizedName)) {
+        throw new Error(`Found duplicate lottery records for ${lottery.lotteryName}; refusing to remove records automatically.`);
+      }
+      existingByName.set(normalizedName, lottery);
+    }
     
     // Draw times: 3 draws today, 3 draws tomorrow
     // 2:30 PM, 3:00 PM, 3:30 PM (on different day)
@@ -124,7 +144,7 @@ async function ensureAllLotteries() {
     for (let i = 0; i < REQUIRED_LOTTERIES.length; i++) {
       const lotteryName = REQUIRED_LOTTERIES[i];
       
-      if (existingNames.has(lotteryName.toLowerCase())) {
+      if (existingByName.has(lotteryName.toLowerCase())) {
         continue; // Already exists
       }
 
@@ -146,6 +166,8 @@ async function ensureAllLotteries() {
         totalTickets: 1000,
         drawDate,
       }, { transaction });
+
+      existingByName.set(lotteryName.toLowerCase(), true);
 
       console.log(`✓ Created lottery: ${lotteryName} (Draw: ${drawDate.toLocaleString()})`);
     }

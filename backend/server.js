@@ -47,10 +47,6 @@ const frontendIndexPath = path.join(frontendDistPath, "index.html");
 
 const hasFrontendBuild = fs.existsSync(frontendIndexPath);
 
-if (process.env.NODE_ENV === "production" && !hasFrontendBuild) {
-  throw new Error(`Frontend build not found at ${frontendIndexPath}`);
-}
-
 // =====================================================
 // STATUS
 // =====================================================

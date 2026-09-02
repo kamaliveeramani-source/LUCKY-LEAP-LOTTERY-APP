@@ -7,8 +7,8 @@ services:
     name: lucky-leap-lottery-app
     runtime: node
     rootDir: .
-    buildCommand: npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci
-    startCommand: npm --prefix backend start
+    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci
+    startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production

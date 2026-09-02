@@ -21,69 +21,78 @@ function Login() {
     e.preventDefault();
 
     if (!acceptTerms || !acceptAge) {
-      notify("warning", "Please accept Terms & Conditions and confirm your age");
+      notify(
+        "warning",
+        "Please accept the Terms & Conditions and confirm that you are 18 years or older"
+      );
+      return;
+    }
+
+    if (!mobile.trim() || !password) {
+      notify("error", "Please enter your phone number and password");
       return;
     }
 
     setSubmitting(true);
 
     try {
-      const res = await API.post("/auth/login", {
+      console.log("[LOGIN] Sending login request...");
+
+      const response = await API.post("/auth/login", {
         mobile: mobile.trim(),
         password,
       });
 
-      console.log("Login response:", res.data);
+      console.log("[LOGIN] Full response:", response);
+      console.log("[LOGIN] Response data:", response.data);
 
-      // Support different backend response structures
+      const responseData = response?.data;
+
+      // Support different possible backend response structures
       const token =
-        res.data?.token ||
-        res.data?.accessToken ||
-        res.data?.access_token ||
-        res.data?.data?.token ||
-        res.data?.data?.accessToken ||
-        res.data?.data?.access_token;
+        responseData?.token ||
+        responseData?.accessToken ||
+        responseData?.data?.token ||
+        responseData?.data?.accessToken ||
+        null;
 
-      if (!token) {
-        console.error("Login response did not contain a token:", res.data);
+      console.log("[LOGIN] Token received:", !!token);
+
+      if (!token || typeof token !== "string") {
+        console.error(
+          "[LOGIN] Token missing. Actual API response:",
+          responseData
+        );
+
         throw new Error("Login token was not received");
       }
 
-      // Save token
       localStorage.setItem("token", token);
 
-      // Get user information safely
       const user =
-        res.data?.user ||
-        res.data?.data?.user ||
-        res.data?.data ||
-        {};
+        responseData?.data?.user ||
+        responseData?.data ||
+        responseData?.user ||
+        null;
 
-      const userName =
+      localStorage.setItem(
+        "userName",
         user?.fullName ||
-        user?.name ||
-        res.data?.fullName ||
-        res.data?.name ||
-        "Player";
+          user?.name ||
+          responseData?.fullName ||
+          "Player"
+      );
 
-      localStorage.setItem("userName", userName);
+      console.log("[LOGIN] Token saved successfully");
 
-      // Save user ID if backend provides it
-      const userId =
-        user?.id ||
-        user?._id ||
-        res.data?.userId ||
-        res.data?.data?.userId;
-
-      if (userId) {
-        localStorage.setItem("userId", userId.toString());
-      }
-
-      // Refresh wallet after token is stored
+      // Refresh wallet, but don't fail login if wallet refresh has an issue
       try {
         await refreshWallet();
       } catch (walletError) {
-        console.warn("Wallet refresh failed:", walletError);
+        console.warn(
+          "[LOGIN] Wallet refresh failed, continuing login:",
+          walletError
+        );
       }
 
       notify("success", "Login Successful");
@@ -91,15 +100,14 @@ function Login() {
       navigate("/dashboard", { replace: true });
 
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("[LOGIN] Login error:", err);
 
-      const errorMessage =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
         "Login Failed";
 
-      notify("error", errorMessage);
+      notify("error", message);
 
     } finally {
       setSubmitting(false);
@@ -109,7 +117,6 @@ function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-
         <div className="auth-header">
           <AppLogo className="mb-3" />
 
@@ -121,7 +128,6 @@ function Login() {
         </div>
 
         <form onSubmit={loginUser}>
-
           <div className="auth-field">
             <label htmlFor="login-mobile">
               Phone Number
@@ -129,12 +135,12 @@ function Login() {
 
             <input
               id="login-mobile"
-              type="tel"
+              type="text"
               className="auth-input"
               placeholder="Enter your mobile number"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
-              autoComplete="username"
+              autoComplete="tel"
               required
             />
           </div>
@@ -159,9 +165,9 @@ function Login() {
           <div className="auth-check">
             <input
               type="checkbox"
+              id="terms"
               checked={acceptTerms}
               onChange={(e) => setAcceptTerms(e.target.checked)}
-              id="terms"
             />
 
             <label htmlFor="terms">
@@ -172,9 +178,9 @@ function Login() {
           <div className="auth-check">
             <input
               type="checkbox"
+              id="age"
               checked={acceptAge}
               onChange={(e) => setAcceptAge(e.target.checked)}
-              id="age"
             />
 
             <label htmlFor="age">
@@ -189,7 +195,6 @@ function Login() {
           >
             {submitting ? "Signing In..." : "Sign In"}
           </button>
-
         </form>
 
         <div className="auth-footer">
@@ -198,7 +203,6 @@ function Login() {
             Create Account
           </Link>
         </div>
-
       </div>
     </div>
   );

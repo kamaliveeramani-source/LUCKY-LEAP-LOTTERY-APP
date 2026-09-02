@@ -59,6 +59,7 @@ exports.signup = async (req, res) => {
       {
         userId: user.id,
         mobile: user.mobile,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       {
@@ -113,6 +114,7 @@ exports.login = async (req, res) => {
       {
         userId: user.id,
         mobile: user.mobile,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       {

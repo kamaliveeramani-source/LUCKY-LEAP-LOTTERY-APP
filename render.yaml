@@ -20,7 +20,7 @@ services:
     runtime: node
     rootDir: backend
     buildCommand: npm ci
-    startCommand: npm run seed && npm start
+    startCommand: npm run seed && npm run setup-admin && npm start
     envVars:
       - key: NODE_ENV
         value: production

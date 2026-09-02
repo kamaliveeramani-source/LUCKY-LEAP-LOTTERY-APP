@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
+const requireAdmin = require("../middleware/requireAdmin");
 
 const {
   createLottery,
@@ -12,7 +13,7 @@ const {
 } = require("../controllers/lotteryController");
 
 // Create Lottery
-router.post("/create", authMiddleware, createLottery);
+router.post("/create", requireAdmin, createLottery);
 
 // Get All Lotteries
 router.get("/all", getLotteries);
@@ -21,6 +22,6 @@ router.get("/all", getLotteries);
 router.get("/:id", getLotteryById);
 
 // Draw Winner
-router.post("/draw", authMiddleware, drawWinner);
+router.post("/draw", requireAdmin, drawWinner);
 
 module.exports = router;

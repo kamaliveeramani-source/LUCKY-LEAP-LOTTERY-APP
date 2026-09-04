@@ -1,7 +1,6 @@
 const { Op } = require("sequelize");
 const sequelize = require("../config/database");
 const Lottery = require("../models/Lottery");
-const Ticket = require("../models/Ticket");
 
 const REQUIRED_LOTTERIES = [
   "Kerala Lottery",
@@ -81,12 +80,8 @@ async function validateLotteries() {
     order: [["id", "ASC"]],
   });
   const names = lotteries.map((lottery) => lottery.lotteryName);
-  const expected = [...REQUIRED_LOTTERIES].sort();
-  const actual = [...names].sort();
-
-  if (lotteries.length !== REQUIRED_LOTTERIES.length || JSON.stringify(actual) !== JSON.stringify(expected)) {
-    throw new Error(`Lottery set is invalid. Expected exactly: ${REQUIRED_LOTTERIES.join(", ")}. Actual: ${names.join(", ")}`);
-  }
+  const missing = REQUIRED_LOTTERIES.filter((name) => !names.some((actual) => actual.toLowerCase() === name.toLowerCase()));
+  if (missing.length > 0) throw new Error(`Required lotteries are missing: ${missing.join(", ")}`);
 
   const uniqueIds = new Set(lotteries.map((lottery) => lottery.id));
   if (uniqueIds.size !== lotteries.length) {
@@ -118,16 +113,7 @@ async function ensureAllLotteries() {
 
     for (const lottery of refreshed) {
       const normalizedName = lottery.lotteryName.toLowerCase();
-      if (!requiredNames.has(normalizedName)) {
-        const ticketCount = await Ticket.count({ where: { LotteryId: lottery.id }, transaction });
-        if (ticketCount > 0) {
-          throw new Error(`Cannot remove lottery ${lottery.id} (${lottery.lotteryName}); ${ticketCount} tickets are linked to it.`);
-        }
-        await lottery.destroy({ transaction });
-        continue;
-      }
-
-      if (existingByName.has(normalizedName)) {
+      if (requiredNames.has(normalizedName) && existingByName.has(normalizedName)) {
         throw new Error(`Found duplicate lottery records for ${lottery.lotteryName}; refusing to remove records automatically.`);
       }
       existingByName.set(normalizedName, lottery);
@@ -182,7 +168,7 @@ async function ensureAllLotteries() {
 
 async function main() {
   await sequelize.authenticate();
-  
+
   // Ensure all required lotteries exist
   await ensureAllLotteries();
   

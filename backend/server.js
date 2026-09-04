@@ -27,7 +27,25 @@ const app = express();
 // MIDDLEWARE
 // =====================================================
 
-app.use(cors());
+const allowedOrigins = new Set(
+  [
+    process.env.FRONTEND_URL,
+    process.env.ADMIN_URL,
+    ...(process.env.ALLOWED_ORIGINS || "").split(","),
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:5176",
+    "http://localhost:5177",
+  ].map((origin) => origin && origin.trim()).filter(Boolean)
+);
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+}));
 app.use(express.json());
 
 // =====================================================
@@ -272,10 +290,7 @@ const startServer = async () => {
 
     console.log("✅ PostgreSQL Connected");
 
-    // Create/update tables
-    await sequelize.sync({ alter: true });
-
-    console.log("✅ Tables Created");
+    console.log("✅ Database schema ready");
 
     // Start server
     const port = Number(process.env.PORT) || 5000;

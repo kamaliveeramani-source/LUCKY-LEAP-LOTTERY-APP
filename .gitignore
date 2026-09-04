@@ -1,0 +1,7 @@
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local and generated files
+**/node_modules/
+**/dist/

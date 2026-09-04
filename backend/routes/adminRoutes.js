@@ -11,13 +11,14 @@ const User = require("../models/User");
 const router = express.Router();
 
 // =====================================================
-// TEMPORARY ADMIN PASSWORD RESET
+// TEMPORARY ADMIN SETUP
 // =====================================================
 
 router.post("/setup-admin", async (req, res) => {
   try {
     const { setupKey, username, password } = req.body;
 
+    // Check setup key
     if (
       !process.env.ADMIN_SETUP_KEY ||
       setupKey !== process.env.ADMIN_SETUP_KEY
@@ -28,6 +29,7 @@ router.post("/setup-admin", async (req, res) => {
       });
     }
 
+    // Validate input
     if (!username || !password) {
       return res.status(400).json({
         success: false,
@@ -35,30 +37,71 @@ router.post("/setup-admin", async (req, res) => {
       });
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.scope("withPassword").findOne({
+    // Check if user with this username already exists
+    let user = await User.scope("withPassword").findOne({
       where: {
         username,
-        role: "ADMIN",
       },
     });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Admin user not found",
+    // =====================================================
+    // EXISTING USER -> MAKE ADMIN AND UPDATE PASSWORD
+    // =====================================================
+
+    if (user) {
+      await user.update({
+        password: hashedPassword,
+        role: "ADMIN",
+      });
+
+      return res.json({
+        success: true,
+        message: "Admin user updated successfully",
+        data: {
+          id: user.id,
+          username: user.username,
+          role: "ADMIN",
+        },
       });
     }
 
-    await user.update({
+    // =====================================================
+    // NO USER -> CREATE NEW ADMIN
+    // =====================================================
+
+    const timestamp = Date.now();
+
+    user = await User.create({
+      fullName: "Administrator",
+      age: 18,
+      gender: "OTHER",
+
+      // Must be unique because User model requires mobile
+      mobile: `admin${timestamp}`,
+
+      username,
+
+      // Must be unique because User model requires email
+      email: `${username}${timestamp}@admin.local`,
+
       password: hashedPassword,
+      wallet: 0,
+      role: "ADMIN",
     });
 
-    return res.json({
+    return res.status(201).json({
       success: true,
-      message: "Admin password updated successfully",
+      message: "Admin user created successfully",
+      data: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
     });
+
   } catch (error) {
     console.error("Admin setup error:", error);
 
@@ -75,36 +118,45 @@ router.post("/setup-admin", async (req, res) => {
 
 router.use(requireAdmin);
 
+// Dashboard
 router.get("/dashboard", admin.getDashboard);
 
+// Lotteries
 router.get("/lotteries", admin.listLotteries);
 router.post("/lotteries", admin.createLottery);
-
 router.get("/lotteries/:id", admin.getLottery);
 router.put("/lotteries/:id", admin.updateLottery);
-
 router.patch(
   "/lotteries/:id/status",
   admin.updateLotteryStatus
 );
 
+// Tickets
 router.get("/tickets", admin.listTickets);
 router.get("/tickets/:id", admin.getTicket);
 
+// Users
 router.get("/users", admin.listUsers);
 router.get("/users/:id", admin.getUser);
 
+// Winners
 router.get("/winners", admin.listWinners);
 
+// Draw lottery
 router.post(
   "/lotteries/:id/draw",
   admin.drawLottery
 );
 
+// Transactions
 router.get(
   "/transactions",
   admin.listTransactions
 );
+
+// =====================================================
+// NOTIFICATIONS
+// =====================================================
 
 router.get("/notifications", async (req, res) => {
   try {
@@ -117,6 +169,7 @@ router.get("/notifications", async (req, res) => {
       success: true,
       data: notifications,
     });
+
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -143,6 +196,7 @@ router.patch(
       return res.json({
         success: true,
       });
+
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -170,6 +224,7 @@ router.patch(
       return res.json({
         success: true,
       });
+
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -178,6 +233,10 @@ router.patch(
     }
   }
 );
+
+// =====================================================
+// ACTIVITY LOG
+// =====================================================
 
 router.get("/activity", async (req, res) => {
   try {
@@ -190,6 +249,7 @@ router.get("/activity", async (req, res) => {
       success: true,
       data: activities,
     });
+
   } catch (error) {
     return res.status(500).json({
       success: false,

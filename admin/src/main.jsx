@@ -5,7 +5,11 @@ import axios from "axios";
 import thumbiLogo from "../../frontend/src/assets/thumbi-logo.png";
 import "./styles.css";
 
-const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || "/api" });
+const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
+const apiBaseUrl = configuredApiUrl.replace(/\/$/, "").endsWith("/api")
+  ? configuredApiUrl
+  : `${configuredApiUrl.replace(/\/$/, "")}/api`;
+const API = axios.create({ baseURL: apiBaseUrl });
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("adminToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;

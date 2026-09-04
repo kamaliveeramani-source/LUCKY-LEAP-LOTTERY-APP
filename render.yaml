@@ -20,9 +20,34 @@ services:
     runtime: node
     rootDir: backend
     buildCommand: npm ci
-    startCommand: npm run seed && npm run setup-admin && npm start
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: FRONTEND_URL
+        value: https://thumbi-lotteries-frontend.onrender.com
+      - key: ADMIN_URL
+        value: https://thumbi-lotteries-admin.onrender.com
+      - key: ALLOWED_ORIGINS
+        value: https://thumbi-lotteries-frontend.onrender.com,https://thumbi-lotteries-admin.onrender.com
+
+  - type: static_site
+    name: thumbi-lotteries-admin
+    rootDir: admin
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://lucky-leap-lottery-app.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

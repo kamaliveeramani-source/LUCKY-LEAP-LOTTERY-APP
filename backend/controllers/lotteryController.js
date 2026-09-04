@@ -72,6 +72,9 @@ exports.getLotteries = async (req, res) => {
               [Op.notILike]: "%test%",
             },
           },
+          {
+            isActive: true,
+          },
         ],
       },
       order: [["id", "ASC"]],
@@ -102,7 +105,12 @@ exports.getLotteryById = async (req, res) => {
       });
     }
 
-    const lottery = await Lottery.findByPk(Number(id));
+    const lottery = await Lottery.findOne({
+      where: {
+        id: Number(id),
+        isActive: true,
+      },
+    });
 
     if (!lottery) {
       return res.status(404).json({

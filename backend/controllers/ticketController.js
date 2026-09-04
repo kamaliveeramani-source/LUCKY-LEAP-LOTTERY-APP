@@ -119,6 +119,13 @@ exports.buyTicket = async (req, res) => {
       });
     }
 
+    if (!lottery.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: "Lottery is inactive",
+      });
+    }
+
     // 9. Check draw date and time (draw closes 30 minutes before draw time)
     if (lottery.drawDate) {
       const drawDate = new Date(lottery.drawDate);

@@ -17,9 +17,9 @@ const adminRoutes = require("./routes/adminRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
 // Models
-const User = require("./models/User");
-const Lottery = require("./models/Lottery");
-const Ticket = require("./models/Ticket");
+require("./models/User");
+require("./models/Lottery");
+require("./models/Ticket");
 
 const app = express();
 
@@ -37,15 +37,24 @@ const allowedOrigins = new Set(
     "http://localhost:5175",
     "http://localhost:5176",
     "http://localhost:5177",
-  ].map((origin) => origin && origin.trim()).filter(Boolean)
+  ]
+    .map((origin) => origin && origin.trim())
+    .filter(Boolean)
 );
 
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
-    return callback(null, false);
-  },
-}));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+
+      console.warn("Blocked by CORS:", origin);
+      return callback(null, false);
+    },
+  })
+);
+
 app.use(express.json());
 
 // =====================================================
@@ -110,9 +119,13 @@ if (hasFrontendBuild) {
   app.use(
     express.static(frontendDistPath, {
       index: false,
+
       setHeaders: (res, filePath) => {
         if (path.extname(filePath).toLowerCase() === ".js") {
-          res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+          res.setHeader(
+            "Content-Type",
+            "application/javascript; charset=utf-8"
+          );
         }
       },
     })
@@ -138,7 +151,7 @@ if (hasFrontendBuild) {
 // 404 HANDLER
 // =====================================================
 
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Cannot ${req.method} ${req.originalUrl}`,
@@ -159,12 +172,16 @@ app.use((err, req, res, next) => {
 });
 
 // =====================================================
-// SERVER
+// SERVER VARIABLES
 // =====================================================
 
 let server;
 let isShuttingDown = false;
 let isStarting = false;
+
+// =====================================================
+// LISTEN WITH RETRY
+// =====================================================
 
 const listenWithRetry = (
   port,
@@ -213,9 +230,7 @@ const shutdown = (signal, exitCode = 0) => {
 
   isShuttingDown = true;
 
-  console.log(
-    `\n${signal} received. Shutting down gracefully...`
-  );
+  console.log(`\n${signal} received. Shutting down gracefully...`);
 
   const finish = () => {
     if (signal === "SIGUSR2") {
@@ -239,10 +254,7 @@ const shutdown = (signal, exitCode = 0) => {
     sequelize
       .close()
       .catch((err) => {
-        console.error(
-          "❌ Error closing database:",
-          err
-        );
+        console.error("❌ Error closing database:", err);
       })
       .finally(finish);
   });
@@ -290,12 +302,22 @@ const startServer = async () => {
 
     console.log("✅ PostgreSQL Connected");
 
-    console.log("✅ Database schema ready");
+    // =================================================
+    // SYNC DATABASE MODELS
+    // This adds missing columns such as "username"
+    // =================================================
+
+    await sequelize.sync({
+      alter: true,
+    });
+
+    console.log("✅ Database schema synced");
 
     // Start server
     const port = Number(process.env.PORT) || 5000;
 
     server = await listenWithRetry(port);
+
   } catch (err) {
     if (err.code === "EADDRINUSE") {
       console.error(

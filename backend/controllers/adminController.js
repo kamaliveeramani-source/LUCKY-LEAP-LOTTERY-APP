@@ -4,8 +4,10 @@ const Lottery = require("../models/Lottery");
 const Ticket = require("../models/Ticket");
 const Wallet = require("../models/Wallet");
 const { drawWinner } = require("./lotteryController");
+const { safeRecordActivity } = require("../services/operationalEvents");
+const ActivityLog = require("../models/ActivityLog");
 
-const publicUserAttributes = ["id", "fullName", "age", "gender", "mobile", "email", "wallet", "role", "createdAt", "updatedAt"];
+const publicUserAttributes = ["id", "fullName", "age", "gender", "mobile", "username", "email", "wallet", "role", "createdAt", "updatedAt"];
 
 function dateRange(date) {
   if (!date) return null;
@@ -60,12 +62,15 @@ function lotteryPayload(body, partial = false) {
 exports.getDashboard = async (req, res) => {
   try {
     const today = dateRange(new Date().toISOString().slice(0, 10));
-    const [totalUsers, totalLotteries, todayBets, winners, wallets] = await Promise.all([
+    const [totalUsers, totalLotteries, activeLotteries, todayBets, winners, wallets, todayActivity, recentActivity] = await Promise.all([
       User.count(),
       Lottery.count(),
+      Lottery.count({ where: { isActive: true } }),
       Ticket.findAll({ where: { createdAt: today }, attributes: ["amount"] }),
       Ticket.findAll({ where: { status: "WON" }, attributes: ["winningAmount"] }),
       Wallet.findAll({ attributes: ["totalDeposit", "totalWithdraw"] }),
+      ActivityLog.findAll({ where: { createdAt: today }, order: [["createdAt", "DESC"]], limit: 100 }),
+      ActivityLog.findAll({ order: [["createdAt", "DESC"]], limit: 12 }),
     ]);
 
     const sum = (rows, field) => rows.reduce((total, row) => total + (Number(row[field]) || 0), 0);
@@ -74,6 +79,14 @@ exports.getDashboard = async (req, res) => {
       data: {
         totalUsers,
         totalLotteries,
+        activeLotteries,
+        recentActivity,
+        dailyActivity: {
+          newUsers: todayActivity.filter((item) => item.action === "USER_REGISTERED").length,
+          tickets: todayActivity.filter((item) => item.action === "TICKET_PURCHASED").length,
+          winners: todayActivity.filter((item) => item.action === "WINNER_SELECTED").length,
+          events: todayActivity.length,
+        },
         todaysBets: todayBets.length,
         todaysBettingAmount: sum(todayBets, "amount"),
         totalWinners: winners.length,
@@ -98,7 +111,9 @@ exports.createLottery = async (req, res) => {
     if (error) return res.status(400).json({ success: false, message: error });
     const duplicate = await Lottery.findOne({ where: { lotteryName: { [Op.iLike]: fields.lotteryName } } });
     if (duplicate) return res.status(409).json({ success: false, message: "Lottery already exists" });
-    return res.status(201).json({ success: true, data: await Lottery.create(fields) });
+    const lottery = await Lottery.create(fields);
+    await safeRecordActivity({ action: "LOTTERY_CREATED", title: "Lottery created", message: `${lottery.lotteryName} was created.`, actorUserId: req.user.userId, LotteryId: lottery.id, eventKey: `lottery-created:${lottery.id}` });
+    return res.status(201).json({ success: true, data: lottery });
   } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
 };
 
@@ -121,6 +136,7 @@ exports.updateLottery = async (req, res) => {
       if (duplicate) return res.status(409).json({ success: false, message: "Lottery already exists" });
     }
     await lottery.update(fields);
+    await safeRecordActivity({ action: "LOTTERY_UPDATED", title: "Lottery updated", message: `${lottery.lotteryName} was updated.`, actorUserId: req.user.userId, LotteryId: lottery.id, eventKey: `lottery-updated:${lottery.id}:${lottery.updatedAt?.getTime() || Date.now()}` });
     return res.json({ success: true, data: lottery });
   } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
 };
@@ -134,6 +150,7 @@ exports.updateLotteryStatus = async (req, res) => {
     }
     lottery.isActive = req.body.isActive;
     await lottery.save();
+    await safeRecordActivity({ action: lottery.isActive ? "LOTTERY_ENABLED" : "LOTTERY_DISABLED", title: `Lottery ${lottery.isActive ? "enabled" : "disabled"}`, message: `${lottery.lotteryName} status changed.`, actorUserId: req.user.userId, LotteryId: lottery.id, eventKey: `lottery-status:${lottery.id}:${lottery.isActive}:${lottery.updatedAt?.getTime() || Date.now()}` });
     return res.json({ success: true, data: lottery });
   } catch (error) { return res.status(500).json({ success: false, message: error.message }); }
 };
@@ -146,6 +163,12 @@ exports.listTickets = async (req, res) => {
     if (lotteryId) where.LotteryId = lotteryId;
     if (userId) where.UserId = userId;
     if (req.query.status) where.status = String(req.query.status).toUpperCase();
+    if (req.query.ticketId) {
+      const ticketQuery = String(req.query.ticketId).trim();
+      const ticketId = numberOrNull(ticketQuery);
+      if (ticketId) where.id = ticketId;
+      else where.ticketNumber = { [Op.iLike]: `%${ticketQuery}%` };
+    }
     const createdAt = dateRange(req.query.date);
     if (createdAt) where.createdAt = createdAt;
     const tickets = await Ticket.findAll({ where, include: [
@@ -165,7 +188,12 @@ exports.getTicket = async (req, res) => {
 };
 
 exports.listUsers = async (req, res) => {
-  try { return res.json({ success: true, data: await User.findAll({ attributes: publicUserAttributes, include: [{ model: Wallet, attributes: { exclude: ["UserId", "createdAt", "updatedAt"] } }] }) }); }
+  try {
+    const where = {};
+    if (req.query.search) where[Op.or] = [{ fullName: { [Op.iLike]: `%${req.query.search}%` } }, { username: { [Op.iLike]: `%${req.query.search}%` } }, { mobile: { [Op.iLike]: `%${req.query.search}%` } }];
+    const users = await User.findAll({ where, attributes: publicUserAttributes, include: [{ model: Wallet, attributes: { exclude: ["UserId", "createdAt", "updatedAt"] } }, { model: Ticket, attributes: ["id", "amount", "winningAmount", "status"] }] });
+    return res.json({ success: true, data: users.map((user) => { const tickets = user.Tickets || []; return { ...user.toJSON(), totalTickets: tickets.length, totalBetAmount: tickets.reduce((sum, ticket) => sum + Number(ticket.amount || 0), 0), totalWinningAmount: tickets.reduce((sum, ticket) => sum + Number(ticket.winningAmount || 0), 0), winningHistory: tickets.filter((ticket) => ticket.status === "WON").map((ticket) => ticket.id) }; }) });
+  }
   catch (error) { return res.status(500).json({ success: false, message: error.message }); }
 };
 

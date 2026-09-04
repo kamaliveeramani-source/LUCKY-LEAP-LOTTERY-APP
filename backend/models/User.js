@@ -29,6 +29,12 @@ const User = sequelize.define("User", {
     unique: true
   },
 
+  username: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  },
+
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -55,7 +61,19 @@ const User = sequelize.define("User", {
   }
 
 }, {
-  timestamps: true
+  timestamps: true,
+  defaultScope: {
+    attributes: { exclude: ["password"] }
+  },
+  scopes: {
+    withPassword: { attributes: {} }
+  }
 });
+
+User.prototype.toJSON = function toJSON() {
+  const values = { ...this.get() };
+  delete values.password;
+  return values;
+};
 
 module.exports = User;

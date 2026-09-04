@@ -1,5 +1,6 @@
 const sequelize = require("../config/database");
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 
 const normalizeRole = (role) => (String(role || "").toUpperCase() === "ADMIN" ? "ADMIN" : "USER");
 
@@ -19,27 +20,29 @@ async function setupAdmin() {
     }
 
     const selectors = [
+      process.env.ADMIN_USERNAME ? { username: process.env.ADMIN_USERNAME } : null,
       process.env.ADMIN_USER_ID ? { id: Number(process.env.ADMIN_USER_ID) } : null,
       process.env.ADMIN_EMAIL ? { email: process.env.ADMIN_EMAIL } : null,
       process.env.ADMIN_MOBILE ? { mobile: process.env.ADMIN_MOBILE } : null,
     ].filter(Boolean);
 
     if (selectors.length > 1) {
-      throw new Error("Set only one of ADMIN_USER_ID, ADMIN_EMAIL, or ADMIN_MOBILE.");
+      throw new Error("Set only one admin selector in ADMIN_USERNAME, ADMIN_USER_ID, ADMIN_EMAIL, or ADMIN_MOBILE.");
     }
 
-    if (selectors.length === 1) {
-      const admin = await User.findOne({ where: selectors[0], transaction, lock: transaction.LOCK.UPDATE });
-      if (!admin) {
-        throw new Error("Configured admin account was not found; no account was promoted.");
-      }
+    const admin = selectors.length === 1
+      ? await User.findOne({ where: selectors[0], transaction, lock: transaction.LOCK.UPDATE })
+      : await User.findOne({ where: { role: "ADMIN" }, transaction, lock: transaction.LOCK.UPDATE });
 
-      admin.role = "ADMIN";
-      await admin.save({ transaction });
-      console.log(`Admin role ensured for existing user ID ${admin.id}`);
-    } else {
-      console.log("No admin selector configured; existing users remain USER.");
+    if (!admin) {
+      throw new Error("No admin account found; configure ADMIN_USERNAME or an existing admin selector.");
     }
+
+    admin.username = process.env.ADMIN_USERNAME || "admin";
+    admin.role = "ADMIN";
+    admin.password = await bcrypt.hash(process.env.ADMIN_PASSWORD || "admin@123", 12);
+    await admin.save({ transaction });
+    console.log(`Admin account ensured for user ID ${admin.id}`);
 
     await transaction.commit();
   } catch (error) {

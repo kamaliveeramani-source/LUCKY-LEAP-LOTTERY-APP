@@ -5,6 +5,7 @@ const Ticket = require("../models/Ticket");
 const Lottery = require("../models/Lottery");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
+const { safeRecordActivity } = require("../services/operationalEvents");
 
 // ======================================================
 // BUY TICKET
@@ -223,6 +224,8 @@ exports.buyTicket = async (req, res) => {
     // 17. Commit
     await transaction.commit();
     transaction = null;
+
+    await safeRecordActivity({ action: "TICKET_PURCHASED", title: "Ticket purchased", message: `${user.fullName} purchased ticket ${ticket.ticketNumber}.`, UserId: user.id, LotteryId: lottery.id, TicketId: ticket.id, eventKey: `ticket-purchased:${ticket.id}` });
 
     // 18. Response
     return res.status(201).json({

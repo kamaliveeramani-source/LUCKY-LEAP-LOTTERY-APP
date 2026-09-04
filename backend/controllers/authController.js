@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
 const User = require("../models/User");
+const { safeRecordActivity } = require("../services/operationalEvents");
 
 // ================== SIGNUP ==================
 exports.signup = async (req, res) => {
@@ -67,6 +68,7 @@ exports.signup = async (req, res) => {
       }
     );
 
+    await safeRecordActivity({ action: "USER_REGISTERED", title: "New user registered", message: `${user.fullName} created an account.`, UserId: user.id, eventKey: `user-registered:${user.id}` });
     res.status(201).json({
       success: true,
       message: "Registration Successful",
@@ -85,11 +87,10 @@ exports.signup = async (req, res) => {
 // ================== LOGIN ==================
 exports.login = async (req, res) => {
   try {
-    const { mobile, password } = req.body;
+    const { username, mobile, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({
-      where: { mobile }
+    const user = await User.scope("withPassword").findOne({
+      where: username ? { username, role: "ADMIN" } : { mobile }
     });
 
     if (!user) {
@@ -122,6 +123,7 @@ exports.login = async (req, res) => {
       }
     );
 
+    if (user.role === "ADMIN") await safeRecordActivity({ action: "ADMIN_LOGIN", title: "Admin login", message: `${user.username || "Admin"} signed in.`, actorUserId: user.id, eventKey: `admin-login:${user.id}:${Date.now()}` });
     res.status(200).json({
       success: true,
       message: "Login Successful",

@@ -3,6 +3,7 @@ const Ticket = require("../models/Ticket");
 const Lottery = require("../models/Lottery");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
+const { safeRecordActivity } = require("../services/operationalEvents");
 
 // ==========================================
 // CREATE LOTTERY
@@ -289,6 +290,8 @@ exports.drawWinner = async (req, res) => {
     lottery.winnerTicketId = winnerTicket.id;
 
     await lottery.save();
+    await safeRecordActivity({ action: "DRAW_COMPLETED", title: "Draw completed", message: `${lottery.lotteryName} draw completed.`, actorUserId: req.user?.userId || null, LotteryId: lottery.id, eventKey: `draw-completed:${lottery.id}` });
+    await safeRecordActivity({ action: "WINNER_SELECTED", title: "Winner notification processed", message: `${winner.fullName} won ${lottery.lotteryName} with ticket ${winnerTicket.ticketNumber} for ₹${prizeAmount}.`, actorUserId: req.user?.userId || null, UserId: winner.id, LotteryId: lottery.id, TicketId: winnerTicket.id, notifyUser: true, eventKey: `winner-selected:${lottery.id}` });
 
     // ------------------------------------------
     // 13. Success response

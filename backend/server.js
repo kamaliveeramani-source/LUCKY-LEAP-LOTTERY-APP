@@ -14,6 +14,7 @@ const walletRoutes = require("./routes/walletRoutes");
 const lotteryRoutes = require("./routes/lotteryRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // Models
 const User = require("./models/User");
@@ -39,6 +40,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/lottery", lotteryRoutes);
 app.use("/api/ticket", ticketRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // =====================================================
 // FRONTEND BUILD

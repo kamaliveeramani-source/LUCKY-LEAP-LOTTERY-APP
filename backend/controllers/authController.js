@@ -1,10 +1,12 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
+
 const User = require("../models/User");
 const { safeRecordActivity } = require("../services/operationalEvents");
 
 // ================== SIGNUP ==================
+
 exports.signup = async (req, res) => {
   try {
     const { fullName, age, gender, mobile, email, password } = req.body;
@@ -12,32 +14,29 @@ exports.signup = async (req, res) => {
     if (!fullName || !age || !gender || !mobile || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required: fullName, age, gender, mobile, email, password"
+        message:
+          "All fields are required: fullName, age, gender, mobile, email, password",
       });
     }
 
-    // Check existing user by mobile or email
     const existingUser = await User.findOne({
       where: {
-        [Op.or]: [
-          { mobile },
-          { email }
-        ]
-      }
+        [Op.or]: [{ mobile }, { email }],
+      },
     });
 
     if (existingUser) {
-      const duplicateField = existingUser.mobile === mobile ? "Mobile number" : "Email";
+      const duplicateField =
+        existingUser.mobile === mobile ? "Mobile number" : "Email";
+
       return res.status(400).json({
         success: false,
-        message: `${duplicateField} already registered`
+        message: `${duplicateField} already registered`,
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await User.create({
       fullName,
       age,
@@ -45,17 +44,22 @@ exports.signup = async (req, res) => {
       mobile,
       email,
       password: hashedPassword,
-      wallet: 0
+      wallet: 0,
+      role: "USER",
     });
 
-    // Create associated Wallet record if not present
     const Wallet = require("../models/Wallet");
-    const existingWallet = await Wallet.findOne({ where: { UserId: user.id } });
+
+    const existingWallet = await Wallet.findOne({
+      where: { UserId: user.id },
+    });
+
     if (!existingWallet) {
-      await Wallet.create({ UserId: user.id });
+      await Wallet.create({
+        UserId: user.id,
+      });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       {
         userId: user.id,
@@ -68,49 +72,88 @@ exports.signup = async (req, res) => {
       }
     );
 
-    await safeRecordActivity({ action: "USER_REGISTERED", title: "New user registered", message: `${user.fullName} created an account.`, UserId: user.id, eventKey: `user-registered:${user.id}` });
-    res.status(201).json({
+    await safeRecordActivity({
+      action: "USER_REGISTERED",
+      title: "New user registered",
+      message: `${user.fullName} created an account.`,
+      UserId: user.id,
+      eventKey: `user-registered:${user.id}`,
+    });
+
+    return res.status(201).json({
       success: true,
       message: "Registration Successful",
       token,
       data: user,
     });
-
   } catch (error) {
-    res.status(500).json({
+    console.error("Signup error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Registration failed",
     });
   }
 };
 
 // ================== LOGIN ==================
+
 exports.login = async (req, res) => {
   try {
     const { username, mobile, password } = req.body;
 
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Password is required",
+      });
+    }
+
+    let whereCondition;
+
+    // ADMIN LOGIN
+    if (username && username.trim()) {
+      whereCondition = {
+        username: username.trim(),
+        role: "ADMIN",
+      };
+    }
+
+    // NORMAL USER LOGIN
+    else if (mobile && mobile.trim()) {
+      whereCondition = {
+        mobile: mobile.trim(),
+      };
+    }
+
+    // NO LOGIN IDENTIFIER
+    else {
+      return res.status(400).json({
+        success: false,
+        message: "Username or mobile number is required",
+      });
+    }
+
     const user = await User.scope("withPassword").findOne({
-      where: username ? { username, role: "ADMIN" } : { mobile }
+      where: whereCondition,
     });
 
     if (!user) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
-        message: "User not found"
+        message: "Invalid username or password",
       });
     }
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({
+      return res.status(401).json({
         success: false,
-        message: "Invalid password"
+        message: "Invalid username or password",
       });
     }
 
-    // Generate token
     const token = jwt.sign(
       {
         userId: user.id,
@@ -123,18 +166,28 @@ exports.login = async (req, res) => {
       }
     );
 
-    if (user.role === "ADMIN") await safeRecordActivity({ action: "ADMIN_LOGIN", title: "Admin login", message: `${user.username || "Admin"} signed in.`, actorUserId: user.id, eventKey: `admin-login:${user.id}:${Date.now()}` });
-    res.status(200).json({
+    if (user.role === "ADMIN") {
+      await safeRecordActivity({
+        action: "ADMIN_LOGIN",
+        title: "Admin login",
+        message: `${user.username || "Admin"} signed in.`,
+        actorUserId: user.id,
+        eventKey: `admin-login:${user.id}:${Date.now()}`,
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       message: "Login Successful",
       token,
       data: user,
     });
-
   } catch (error) {
-    res.status(500).json({
+    console.error("Login error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Login failed",
     });
   }
 };

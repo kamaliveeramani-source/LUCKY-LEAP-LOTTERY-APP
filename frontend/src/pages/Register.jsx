@@ -6,12 +6,14 @@ import AppLogo from "../components/AppLogo";
 
 function Register() {
   const navigate = useNavigate();
+  const initialReferralCode = new URLSearchParams(window.location.search).get("ref") || "";
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -67,6 +69,7 @@ function Register() {
         mobile,
         email,
         password,
+        referralCode: referralCode.trim(),
       });
 
       localStorage.setItem("token", res.data.token);
@@ -191,6 +194,20 @@ function Register() {
               required
             />
           </div>
+
+          {referralCode ? (
+            <div className="auth-field">
+              <label htmlFor="referral-code">Referral Code</label>
+              <input
+                id="referral-code"
+                type="text"
+                className="auth-input"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="Referral code"
+              />
+            </div>
+          ) : null}
 
           <button type="submit" className="auth-submit" disabled={submitting}>
             {submitting ? "Creating Account..." : "Create Account"}

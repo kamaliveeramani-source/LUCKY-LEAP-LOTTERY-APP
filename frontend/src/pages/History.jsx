@@ -55,7 +55,7 @@ function History() {
                 <div className="d-flex justify-content-between align-items-center" style={{ gap: "10px" }}>
                   <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
                   <span className="badge-pill" style={{ padding: "6px 12px", fontSize: "0.8rem" }}>
-                    {ticket.Lottery?.winnerTicketId === ticket.id ? "Won" : "Pending"}
+                    {ticket.status === "WON" ? `Won · ₹${Number(ticket.winningAmount || 0).toLocaleString("en-IN")}` : ticket.status}
                   </span>
                 </div>
               </div>

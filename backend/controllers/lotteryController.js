@@ -3,6 +3,7 @@ const Ticket = require("../models/Ticket");
 const Lottery = require("../models/Lottery");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
+const WinningResult = require("../models/WinningResult");
 const { safeRecordActivity } = require("../services/operationalEvents");
 
 // ==========================================
@@ -78,6 +79,7 @@ exports.getLotteries = async (req, res) => {
         ],
       },
       order: [["id", "ASC"]],
+      include: [{ model: WinningResult, as: "winningResults", required: false, where: { status: "DECLARED" } }],
     });
 
     return res.status(200).json({
@@ -110,6 +112,7 @@ exports.getLotteryById = async (req, res) => {
         id: Number(id),
         isActive: true,
       },
+      include: [{ model: WinningResult, as: "winningResults", required: false, where: { status: "DECLARED" } }],
     });
 
     if (!lottery) {

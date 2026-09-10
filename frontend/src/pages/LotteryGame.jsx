@@ -1,539 +1,321 @@
-﻿import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
 import { useWallet } from "../context/WalletContext";
 import API, { getAuthToken } from "../services/api";
 import "./LotteryGame.css";
 
+const LETTER_COLORS = { A: "red", B: "orange", C: "blue" };
+const groups = [
+  { key: "single", title: "Single Digit", labels: ["A", "B", "C"], maxLength: 1, amountKey: "singleDigitAmount" },
+  { key: "double", title: "Double Digit", labels: ["A+B", "A+C", "B+C"], maxLength: 2, amountKey: "doubleDigitAmount" },
+  { key: "triple", title: "Triple Digit", labels: ["A+B+C"], maxLength: 3, amountKey: "tripleDigitAmount" },
+];
+
 function formatTime(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const safeSeconds = Math.max(0, seconds);
+  return `${String(Math.floor(safeSeconds / 3600)).padStart(2, "0")}:${String(Math.floor((safeSeconds % 3600) / 60)).padStart(2, "0")}:${String(safeSeconds % 60).padStart(2, "0")}`;
 }
 
-function createRoundId() {
-  return `KL-${Date.now().toString().slice(-5)}`;
+function formatCredits(value) {
+  return Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
-const QUICK_GUESS_SLOTS = ["02:30 PM", "03:00 PM", "03:30 PM"];
+function randomDigits(length) {
+  return Array.from({ length }, () => String(Math.floor(Math.random() * 10))).join("");
+}
 
-function QuickGuessControl({ section, selectedSlot, isOpen, onToggle, onSelect }) {
+function Letter({ label, color }) {
+  return <span className={`bet-letter ${color}`}>{label}</span>;
+}
+
+function LetterGroup({ label }) {
+  const parts = label.split("+");
   return (
-    <div className="quick-guess-control">
-      <button
-        type="button"
-        className={`quick-guess ${isOpen ? "active" : ""}`}
-        aria-expanded={isOpen}
-        aria-controls={`${section}-quick-guess-slots`}
-        onClick={onToggle}
-      >
-        Quick Guess
-      </button>
-      {isOpen ? (
-        <div className="quick-guess-slots" id={`${section}-quick-guess-slots`} role="group" aria-label={`${section} quick guess time slots`}>
-          {QUICK_GUESS_SLOTS.map((slot) => (
-            <button
-              key={slot}
-              type="button"
-              className={`quick-guess-slot ${selectedSlot === slot ? "selected" : ""}`}
-              aria-pressed={selectedSlot === slot}
-              onClick={() => onSelect(slot)}
-            >
-              {slot}
-            </button>
-          ))}
-        </div>
-      ) : null}
+    <div className={parts.length > 1 ? "double-pair" : "bet-letter-wrap"}>
+      {parts.map((letter, index) => (
+        <span key={`${label}-${letter}-${index}`} className="letter-cluster">
+          {index > 0 && <span className="bet-plus">+</span>}
+          <Letter label={letter} color={LETTER_COLORS[letter] || "blue"} />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function QuantityControl({ quantity, onChange }) {
+  return (
+    <div className="lottery-quantity" aria-label="Quantity">
+      <button type="button" onClick={() => onChange(Math.max(0, quantity - 1))} aria-label="Decrease quantity">−</button>
+      <span>{quantity}</span>
+      <button type="button" onClick={() => onChange(quantity + 1)} aria-label="Increase quantity">+</button>
     </div>
   );
 }
 
 function LotteryGame() {
-  const { balance, refreshWallet } = useWallet();
+  const { demoBalance, refreshWallet } = useWallet();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedLotteryId = searchParams.get("lotteryId");
-  const [selectedLottery, setSelectedLottery] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState("");
-  const [timeLeft, setTimeLeft] = useState(3600);
-  const [orders, setOrders] = useState([]);
   const token = getAuthToken();
+  const { notify } = useNotification();
+  const [selectedLottery, setSelectedLottery] = useState(null);
+  const [entryAmounts, setEntryAmounts] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [now, setNow] = useState(Date.now());
+  const [values, setValues] = useState({ single: {}, double: {}, triple: {} });
+  const [quantities, setQuantities] = useState({ single: {}, double: {}, triple: {} });
+  const [orders, setOrders] = useState([]);
+  const [tripleType, setTripleType] = useState("Box");
+  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
+  const [quickGuessOpen, setQuickGuessOpen] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadLottery = async () => {
+    let mounted = true;
+    async function loadLottery() {
       if (!selectedLotteryId) {
         setSelectedLottery(null);
         setLoadError("No lottery selected. Please choose a draw from the lottery list.");
-        setIsLoading(false);
         return;
       }
-
       setIsLoading(true);
       setLoadError("");
-
       try {
-        const res = await API.get(`/lottery/${selectedLotteryId}`);
-        const lottery = res.data?.data || null;
-
-        if (!isMounted) return;
-
-        if (!lottery) {
+        const [lotteryResponse, amountsResponse] = await Promise.all([
+          API.get(`/lottery/${selectedLotteryId}`),
+          API.get("/lottery/entry-amounts"),
+        ]);
+        if (!mounted) return;
+        if (!lotteryResponse.data?.data) throw new Error("Lottery not found");
+        setSelectedLottery(lotteryResponse.data.data);
+        setEntryAmounts(amountsResponse.data?.data || null);
+      } catch (error) {
+        if (mounted) {
           setSelectedLottery(null);
-          setLoadError(`Lottery ${selectedLotteryId} could not be found.`);
-          return;
+          setLoadError(error.response?.data?.message || "Unable to load lottery details.");
         }
-
-        setSelectedLottery(lottery);
-      } catch (err) {
-        console.error("Failed to load selected lottery", err);
-
-        if (!isMounted) return;
-
-        setSelectedLottery(null);
-        setLoadError(
-          err.response?.status === 404
-            ? `Lottery ${selectedLotteryId} does not exist or is no longer available.`
-            : "Unable to load lottery details. Please try again."
-        );
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (mounted) setIsLoading(false);
       }
-    };
-
+    }
     loadLottery();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { mounted = false; };
   }, [selectedLotteryId]);
 
-  const [singleA, setSingleA] = useState("");
-  const [singleB, setSingleB] = useState("");
-  const [singleC, setSingleC] = useState("");
-  const [amountA, setAmountA] = useState("");
-  const [amountB, setAmountB] = useState("");
-  const [amountC, setAmountC] = useState("");
-
-  const [doubleAB, setDoubleAB] = useState("");
-  const [doubleAC, setDoubleAC] = useState("");
-  const [doubleBC, setDoubleBC] = useState("");
-  const [amountAB, setAmountAB] = useState("");
-  const [amountAC, setAmountAC] = useState("");
-  const [amountBC, setAmountBC] = useState("");
-
-  const [tripleABC, setTripleABC] = useState("");
-  const [tripleAmount, setTripleAmount] = useState("");
-  const [tripleType, setTripleType] = useState("Box");
-  const [quickGuessSlots, setQuickGuessSlots] = useState({
-    single: "03:00 PM",
-    double: "03:00 PM",
-    triple: "03:00 PM",
-  });
-  const [openQuickGuess, setOpenQuickGuess] = useState(null);
-  const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
-
-  const [roundId, setRoundId] = useState(createRoundId());
-
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 0) {
-          setRoundId(createRoundId());
-          return 3600;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!isHowToPlayOpen) return undefined;
+  const drawTime = selectedLottery?.drawDate ? new Date(selectedLottery.drawDate).getTime() : 0;
+  const secondsLeft = drawTime > now ? Math.ceil((drawTime - now) / 1000) : 0;
+  const drawLabel = selectedLottery?.drawDate ? new Date(selectedLottery.drawDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Next draw";
+  const totalAmount = orders.reduce((sum, order) => sum + order.amount, 0);
+  const totalEntries = orders.reduce((sum, order) => sum + order.quantity, 0);
+  const progress = drawTime > now ? Math.min(100, Math.max(0, ((drawTime - now) / (60 * 60 * 1000)) * 100)) : 0;
+  const availableCredits = Number(demoBalance || 0);
 
-    const closeOnEscape = (event) => {
-      if (event.key === "Escape") setIsHowToPlayOpen(false);
-    };
+  function unitAmount(group) {
+    return Number(entryAmounts?.[group.amountKey] || 0);
+  }
 
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [isHowToPlayOpen]);
+  function setValue(group, label, value) {
+    const maxLength = groups.find((item) => item.key === group)?.maxLength || 1;
+    setValues((current) => ({ ...current, [group]: { ...current[group], [label]: value.replace(/\D/g, "").slice(0, maxLength) } }));
+  }
 
-  const { notify } = useNotification();
+  function setQuantity(group, label, quantity) {
+    setQuantities((current) => ({ ...current, [group]: { ...current[group], [label]: quantity } }));
+  }
 
-  const addBet = (obj) => {
-    setOrders((prev) => [...prev, obj]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const addSingle = (type, number, amount) => {
-    if (!number || !String(number).trim()) {
-      notify("warning", "Enter Number");
+  function addEntry(groupKey, label) {
+    const group = groups.find((item) => item.key === groupKey);
+    const number = values[groupKey][label] || "";
+    const quantity = quantities[groupKey][label] || 0;
+    const amountEach = unitAmount(group);
+    if (!amountEach) {
+      notify("warning", "Lottery entry amounts are not configured yet.");
       return;
     }
-
-    if (!amount || amount === "") {
-      notify("warning", "Enter Amount");
+    if (number.length !== group.maxLength) {
+      notify("warning", `Enter ${group.maxLength} digit${group.maxLength > 1 ? "s" : ""} for ${label}.`);
       return;
     }
-
-    addBet({ id: Date.now(), game: "Single", type, number, amount: Number(amount) });
-    notify("success", "Single bet added to the slip.");
-  };
-
-  const addDouble = (type, number, amount) => {
-    if (!number || !String(number).trim()) {
-      notify("warning", "Enter Double Digit");
+    if (!quantity) {
+      notify("warning", "Increase the quantity before adding.");
       return;
     }
+    setOrders((current) => [
+      ...current,
+      {
+        id: `${groupKey}-${label}-${Date.now()}`,
+        game: groupKey,
+        type: label,
+        number,
+        quantity,
+        amount: Number((amountEach * quantity).toFixed(2)),
+      },
+    ]);
+    notify("success", `${label} entry added.`);
+  }
 
-    if (String(number).length !== 2) {
-      notify("warning", "Enter exactly 2 digits.");
+  function applyQuickGuess(group) {
+    const nextValues = {};
+    group.labels.forEach((label) => {
+      nextValues[label] = randomDigits(group.maxLength);
+    });
+    setValues((current) => ({ ...current, [group.key]: { ...current[group.key], ...nextValues } }));
+    setQuickGuessOpen("");
+    notify("success", `${group.title} numbers filled.`);
+  }
+
+  async function placeEntries() {
+    if (!orders.length) {
+      notify("warning", "Add at least one lottery entry first.");
       return;
     }
-
-    if (!amount || amount === "") {
-      notify("warning", "Enter Amount");
+    if (totalAmount > availableCredits) {
+      notify("error", "Insufficient credits");
       return;
     }
-
-    addBet({ id: Date.now(), game: "Double", type, number, amount: Number(amount) });
-    notify("success", "Double bet added to the slip.");
-  };
-
-  const addTriple = () => {
-    const tripleNumber = String(tripleABC).trim();
-
-    if (!/^\d{3}$/.test(tripleNumber)) {
-      notify("warning", "Enter Triple Digit");
-      return;
-    }
-
-    const amount = Number(tripleAmount);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      notify("warning", "Enter Amount");
-      return;
-    }
-
-    addBet({ id: Date.now(), game: "Triple", type: tripleType, number: tripleNumber, amount });
-    setTripleABC("");
-    setTripleAmount("");
-    notify("success", "Triple bet added to the slip.");
-  };
-
-  const updateTripleDigit = (index, value) => {
-    const digits = String(tripleABC).padEnd(3, " ").split("");
-    digits[index] = value.replace(/\D/g, "").slice(-1);
-    setTripleABC(digits.join("").trimEnd());
-  };
-
-  const removeOrder = (id) => {
-    setOrders((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const totalAmount = orders.reduce((sum, item) => sum + Number(item.amount), 0);
-  const displayLotteryName = selectedLottery?.lotteryName || "Lottery";
-
-  const selectQuickGuessSlot = (section, slot) => {
-    setQuickGuessSlots((previous) => ({ ...previous, [section]: slot }));
-    setOpenQuickGuess(null);
-  };
-
-  const buyTicket = async () => {
-    if (orders.length === 0) {
-      notify("warning", "Add at least one bet to place your ticket.");
-      return;
-    }
-
-    if (!selectedLottery?.id) {
-      notify("error", "No lottery selected. Please return to the lottery list and choose a draw.");
-      return;
-    }
-
-    if (totalAmount > balance) {
-      notify("error", "Insufficient wallet balance for this ticket.");
-      return;
-    }
-
+    setConfirming(true);
     try {
-      for (const order of orders) {
-        const betType = order.game.toUpperCase();
-        await API.post(
-          "/ticket/buy",
-          {
-            lotteryId: Number(selectedLottery.id),
-            betType,
-            selectedNumber: String(order.number),
-            amount: Number(order.amount),
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-      }
-
-      await refreshWallet();
+      await API.post("/lottery/entries", {
+        lotteryId: Number(selectedLottery.id),
+        entries: orders.map((order) => ({
+          betType: order.game.toUpperCase(),
+          selectedNumber: order.number,
+          quantity: order.quantity,
+        })),
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      const updated = await refreshWallet();
       setOrders([]);
-      setRoundId(createRoundId());
-      setTimeLeft(3600);
-      notify("success", `Ticket(s) purchased for ${selectedLottery.lotteryName}.`);
-    } catch (err) {
-      const msg = err.response?.data?.message || err.message || "Ticket purchase failed";
-      notify("error", msg);
+      notify("success", `Entries confirmed. Balance: ${formatCredits(updated?.demoBalance ?? availableCredits - totalAmount)}`);
+    } catch (error) {
+      notify("error", error.response?.data?.message || "Unable to place lottery entries.");
+    } finally {
+      setConfirming(false);
     }
-  };
+  }
 
   return (
     <div className="page-content lottery-page">
       <div className="lottery-mobile-shell">
         <div className="lottery-mobile-header">
-          <button type="button" className="lottery-mobile-back" aria-label="Back" onClick={() => navigate(-1)}>
-            ←
-          </button>
-          <div className="lottery-mobile-title">{displayLotteryName}</div>
+          <button type="button" className="lottery-mobile-back" aria-label="Back" onClick={() => navigate(-1)}>←</button>
+          <div className="lottery-mobile-title">{selectedLottery?.lotteryName || "Kerala Lottery"}</div>
           <div className="lottery-mobile-balance">
-            <span className="lottery-balance-label">3Digit Balance</span>
-            <span className="lottery-balance-value">₹ {Number(balance || 0).toLocaleString("en-IN")}</span>
-            <svg className="lottery-wallet-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19a1 1 0 0 1 1 1v2H6.5A2.5 2.5 0 0 0 4 9.5v8A2.5 2.5 0 0 0 6.5 20H19a1 1 0 0 0 1-1v-2H6.5A2.5 2.5 0 0 1 4 14.5z" fill="currentColor" />
-              <path d="M6.5 8H20v9H6.5a2.5 2.5 0 0 1 0-5H20" fill="#a875e8" />
-              <circle cx="17" cy="14" r="1" fill="white" />
-            </svg>
+            <span className="lottery-balance-label">Credits</span>
+            <span className="lottery-balance-value">{formatCredits(availableCredits)}</span>
+            <span className="lottery-wallet-icon">▰</span>
           </div>
         </div>
-
-        {!selectedLotteryId ? (
+        {!selectedLotteryId || isLoading || !selectedLottery ? (
           <div className="lottery-empty-state">
-            <h2>No lottery selected</h2>
-            <p>{loadError || "Please choose a lottery to continue."}</p>
+            <h2>{isLoading ? "Loading lottery details..." : "Lottery unavailable"}</h2>
+            <p>{loadError || "Please choose a draw to continue."}</p>
             <button type="button" className="lottery-back-btn" onClick={() => navigate("/lottery")}>Browse lotteries</button>
           </div>
-        ) : null}
-
-        {isLoading ? (
-          <div className="lottery-loading-state" role="status" aria-live="polite">
-            Loading lottery details...
-          </div>
-        ) : null}
-
-        {!isLoading && !selectedLottery && selectedLotteryId ? (
-          <div className="lottery-empty-state">
-            <h2>Lottery unavailable</h2>
-            <p>{loadError || "The selected lottery could not be loaded."}</p>
-            <button type="button" className="lottery-back-btn" onClick={() => navigate("/lottery")}>Browse lotteries</button>
-          </div>
-        ) : null}
-
-        {selectedLottery ? (
+        ) : (
           <div className="lottery-bet-panel">
-            <div className="lottery-bet-header">
-              <button type="button" className="lottery-pill ghost" onClick={() => setIsHowToPlayOpen(true)}>How to play</button>
-              <div className="lottery-bet-header__meta">Ticket</div>
-            </div>
-
-          <div className="lottery-countdown-box">
-            <div className="lottery-type-indicators" aria-label="Lottery type indicators">
-              <div className="bet-letter red">*</div>
-              <div className="bet-letter orange">*</div>
-              <div className="bet-letter blue">*</div>
-            </div>
-            <div className="lottery-countdown-separator" aria-hidden="true" />
-            <div>
-              <div className="label">Time remaining</div>
-              <div className="timer" aria-label={`Time remaining ${formatTime(timeLeft)}`}>
-                {formatTime(timeLeft).split("").map((character, index) => (
-                  character === ":"
-                    ? <span className="timer-separator" key={`separator-${index}`}>:</span>
-                    : <span className="timer-digit" key={`digit-${index}`}>{character}</span>
-                ))}
-              </div>
-              <div className="suffix">03:00 PM</div>
-            </div>
-          </div>
-
-          <div className="bet-section">
-            <div className="bet-section-head">
-              <div className="bet-section-title">
-                <strong>Single Digit</strong>
-                <span>₹10.50</span>
-                <span className="win-pill">Win ₹100.00</span>
-              </div>
-              <QuickGuessControl
-                section="single"
-                selectedSlot={quickGuessSlots.single}
-                isOpen={openQuickGuess === "single"}
-                onToggle={() => setOpenQuickGuess((current) => current === "single" ? null : "single")}
-                onSelect={(slot) => selectQuickGuessSlot("single", slot)}
-              />
-            </div>
-            <div className="bet-array">
-              {[
-                { label: "A", value: singleA, onChange: setSingleA, amount: amountA, setAmount: setAmountA, color: "red" },
-                { label: "B", value: singleB, onChange: setSingleB, amount: amountB, setAmount: setAmountB, color: "orange" },
-                { label: "C", value: singleC, onChange: setSingleC, amount: amountC, setAmount: setAmountC, color: "blue" },
-              ].map((item) => (
-                <div key={item.label} className="bet-row">
-                  <div className={`bet-letter ${item.color}`}>{item.label}</div>
-                  <input
-                    className="bet-input"
-                    maxLength={1}
-                    value={item.value}
-                    onChange={(e) => item.onChange(e.target.value)}
-                    placeholder="-"
-                  />
-                  <input
-                    className="bet-amount"
-                    placeholder="-"
-                    type="number"
-                    value={item.amount}
-                    onChange={(e) => item.setAmount(e.target.value)}
-                  />
-                  <button type="button" className="bet-add-btn" onClick={() => addSingle(item.label, item.value, item.amount)}>ADD</button>
+            <div className="lottery-countdown-box">
+              <div className="lottery-countdown-leading">
+                <button type="button" className="lottery-pill ghost" onClick={() => setHowToPlayOpen(true)}>How to play</button>
+                <div className="lottery-type-indicators">
+                  <Letter label="A" color="red" />
+                  <Letter label="B" color="orange" />
+                  <Letter label="C" color="blue" />
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bet-section">
-            <div className="bet-section-head">
-              <div className="bet-section-title">
-                <strong>Double Digit</strong>
-                <span>₹11.00</span>
-                <span className="win-pill">Win ₹1,000.00</span>
               </div>
-              <QuickGuessControl
-                section="double"
-                selectedSlot={quickGuessSlots.double}
-                isOpen={openQuickGuess === "double"}
-                onToggle={() => setOpenQuickGuess((current) => current === "double" ? null : "double")}
-                onSelect={(slot) => selectQuickGuessSlot("double", slot)}
-              />
+              <div className="lottery-countdown-separator" />
+              <div>
+                <div className="label">Time remaining</div>
+                <div className="timer" aria-label={`Time remaining ${formatTime(secondsLeft)}`}>
+                  {formatTime(secondsLeft).split("").map((character, index) => (
+                    character === ":"
+                      ? <span className="timer-separator" key={index}>:</span>
+                      : <span className="timer-digit" key={index}>{character}</span>
+                  ))}
+                </div>
+                <div className="suffix">{drawLabel}</div>
+              </div>
+              <div className="lottery-progress"><span style={{ width: `${progress}%` }} /></div>
             </div>
-            <div className="bet-array">
-              {[
-                { label: "AB", value: doubleAB, onChange: setDoubleAB, amount: amountAB, setAmount: setAmountAB },
-                { label: "AC", value: doubleAC, onChange: setDoubleAC, amount: amountAC, setAmount: setAmountAC },
-                { label: "BC", value: doubleBC, onChange: setDoubleBC, amount: amountBC, setAmount: setAmountBC },
-              ].map((item) => (
-                <div key={item.label} className="bet-row">
-                  <div className="double-pair">
-                    <div className="bet-letter red">{item.label[0]}</div>
-                    <div className="bet-letter orange">{item.label[1]}</div>
-                    <input
-                      className="bet-input"
-                      maxLength={2}
-                      value={item.value}
-                      onChange={(e) => item.onChange(e.target.value)}
-                      placeholder="-"
-                    />
-                    <input
-                      className="bet-amount"
-                      placeholder="-"
-                      type="number"
-                      value={item.amount}
-                      onChange={(e) => item.setAmount(e.target.value)}
-                    />
-                    <button type="button" className="bet-add-btn" onClick={() => addDouble(item.label, item.value, item.amount)}>ADD</button>
+            {groups.map((group) => (
+              <section className="bet-section" key={group.key}>
+                <div className="bet-section-head">
+                  <div className="bet-section-title">
+                    <strong>{group.title}</strong>
+                    <span>{formatCredits(unitAmount(group))} credits each</span>
+                  </div>
+                  <div className="quick-guess-control">
+                    <button type="button" className={`quick-guess ${quickGuessOpen === group.key ? "active" : ""}`} onClick={() => setQuickGuessOpen((current) => current === group.key ? "" : group.key)}>Quick Guess</button>
+                    {quickGuessOpen === group.key && (
+                      <div className="quick-guess-slots">
+                        <button type="button" className="quick-guess-slot selected" onClick={() => applyQuickGuess(group)}>Fill numbers</button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
+                <div className="bet-array">
+                  {group.labels.map((label) => (
+                    <div className="bet-row" key={label}>
+                      <LetterGroup label={label} />
+                      <input
+                        className="bet-input"
+                        maxLength={group.maxLength}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={values[group.key][label] || ""}
+                        onChange={(event) => setValue(group.key, label, event.target.value)}
+                        placeholder="-"
+                        aria-label={`${label} number`}
+                        readOnly={false}
+                      />
+                      <QuantityControl quantity={quantities[group.key][label] || 0} onChange={(quantity) => setQuantity(group.key, label, quantity)} />
+                      {group.key === "triple" && (
+                        <button type="button" className={`bet-box-button ${tripleType === "Box" ? "active" : ""}`} onClick={() => setTripleType((current) => current === "Box" ? "Straight" : "Box")}>BOX</button>
+                      )}
+                      <button type="button" className="bet-add-btn" onClick={() => addEntry(group.key, label)}>ADD</button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+            <div className="lottery-cart-bar">
+              <div>
+                <div className="cart-total">
+                  <span className="cart-icon">▾</span>
+                  <span>{formatCredits(totalAmount)} credits</span>
+                </div>
+                <div className="cart-meta">{totalEntries} selected {totalEntries === 1 ? "entry" : "entries"}</div>
+              </div>
+              <button type="button" className="pay-now-btn" disabled={confirming} onClick={placeEntries}>
+                {confirming ? "Processing..." : "Pay Now"}
+              </button>
             </div>
           </div>
-
-          <div className="bet-section">
-            <div className="bet-section-head">
-              <div className="bet-section-title">
-                <strong>Triple Digit</strong>
-                <span>₹29.00</span>
-                <span className="win-pill">Win ₹15,000.00</span>
+        )}
+        {howToPlayOpen && (
+          <div className="how-to-play-overlay" role="presentation" onClick={() => setHowToPlayOpen(false)}>
+            <section className="how-to-play-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+              <div className="how-to-play-modal-header">
+                <h2>How to play</h2>
+                <button type="button" className="how-to-play-close" onClick={() => setHowToPlayOpen(false)}>×</button>
               </div>
-              <QuickGuessControl
-                section="triple"
-                selectedSlot={quickGuessSlots.triple}
-                isOpen={openQuickGuess === "triple"}
-                onToggle={() => setOpenQuickGuess((current) => current === "triple" ? null : "triple")}
-                onSelect={(slot) => selectQuickGuessSlot("triple", slot)}
-              />
-            </div>
-            <div className="triple-controls">
-              <div className="triple-labels" aria-hidden="true">
-                <div className="bet-letter red">A</div>
-                <div className="bet-letter orange">B</div>
-                <div className="bet-letter blue">C</div>
-              </div>
-              <div className="triple-digit-inputs">
-                {[0, 1, 2].map((index) => (
-                  <input
-                    key={index}
-                    className="triple-digit-input"
-                    type="text"
-                    maxLength={1}
-                    inputMode="numeric"
-                    pattern="[0-9]"
-                    value={tripleABC[index] || ""}
-                    onChange={(e) => updateTripleDigit(index, e.target.value)}
-                    placeholder="-"
-                    aria-label={`Triple Digit ${index + 1}`}
-                  />
-                ))}
-              </div>
-              <div className="triple-actions">
-                <input
-                  className="bet-amount"
-                  type="number"
-                  value={tripleAmount}
-                  onChange={(e) => setTripleAmount(e.target.value)}
-                  placeholder="-"
-                />
-                <button type="button" className={`bet-box-button ${tripleType === "Box" ? "active" : ""}`} onClick={() => setTripleType("Box")}>BOX</button>
-                <button type="button" className="bet-add-btn" onClick={addTriple}>ADD</button>
-              </div>
-            </div>
+              <ol className="how-to-play-list">
+                <li>Each digit type uses the credit amount configured by Admin.</li>
+                <li>Enter digits for A, B, C, A+B, A+C, B+C, or A+B+C.</li>
+                <li>Set quantity with − / +. Total = configured amount × quantity.</li>
+                <li>Tap ADD, then Pay Now using your credit balance.</li>
+              </ol>
+            </section>
           </div>
-
-          <div className="lottery-cart-bar">
-            <div>
-              <div className="cart-total">
-                <span className="cart-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M5 8h14v11H5z" fill="currentColor" />
-                    <path d="M8 8V6.5a4 4 0 0 1 8 0V8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    <path d="m8 12 3 3 5-5" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-                <span>₹{Number(totalAmount).toFixed(2)}</span>
-              </div>
-              <div className="cart-meta">{orders.length} numbers</div>
-            </div>
-            <button type="button" className="pay-now-btn" onClick={buyTicket}>Pay Now</button>
-          </div>
-          </div>
-        ) : null}
+        )}
       </div>
-      {isHowToPlayOpen ? (
-        <div className="how-to-play-overlay" role="presentation" onClick={() => setIsHowToPlayOpen(false)}>
-          <section className="how-to-play-modal" role="dialog" aria-modal="true" aria-labelledby="how-to-play-title" onClick={(event) => event.stopPropagation()}>
-            <div className="how-to-play-modal-header">
-              <h2 id="how-to-play-title">How to play</h2>
-              <button type="button" className="how-to-play-close" aria-label="Close How to play" onClick={() => setIsHowToPlayOpen(false)}>×</button>
-            </div>
-            <ol className="how-to-play-list">
-              <li>Choose a Quick Guess time slot for the bet section.</li>
-              <li>Enter your number and amount for A, B, or C.</li>
-              <li>Use BOX for a Triple Digit combination when needed.</li>
-              <li>Tap ADD to place the selection in your bet slip.</li>
-              <li>Review the total and tap Pay Now to purchase your ticket.</li>
-            </ol>
-          </section>
-        </div>
-      ) : null}
     </div>
   );
 }

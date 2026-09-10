@@ -25,7 +25,7 @@ function formatIndianCurrency(amount) {
 function ResultCard({ lottery, variantIndex = 0 }) {
   const variant = CARD_VARIANTS[variantIndex % CARD_VARIANTS.length];
   const imageSrc = getLotteryImageByName(lottery.lotteryName || lottery.name || "");
-  const winnerLabel = lottery.winnerTicketId ? `#${lottery.winnerTicketId}` : "Not declared yet";
+  const results = lottery.winningResults || [];
 
   return (
     <article className={`result-card result-card--${variant}`}>
@@ -35,16 +35,14 @@ function ResultCard({ lottery, variantIndex = 0 }) {
       <p className="result-card__draw-date">Draw {formatDrawDate(lottery.drawDate)}</p>
 
       <div className="result-card__details">
-        <div className="result-card__detail">
-          <span className="result-card__label">Winner Ticket</span>
-          <span className="result-card__value">{winnerLabel}</span>
-        </div>
-        <div className="result-card__detail">
-          <span className="result-card__label">First Prize</span>
-          <span className="result-card__value result-card__value--prize">
-            {formatIndianCurrency(lottery.firstPrize)}
-          </span>
-        </div>
+        {results.length ? results.map((result) => (
+          <div className="result-card__detail" key={result.id || result.betType}>
+            <span className="result-card__label">{result.betType} · Winning Number</span>
+            <span className="result-card__value">{result.winningNumber}</span>
+            <span className="result-card__label">Prize</span>
+            <span className="result-card__value result-card__value--prize">{formatIndianCurrency(result.prizeAmount)}</span>
+          </div>
+        )) : <div className="result-card__detail"><span className="result-card__label">Winning Results</span><span className="result-card__value">Not declared yet</span></div>}
       </div>
 
       <div className="result-card__watermark" aria-hidden="true">

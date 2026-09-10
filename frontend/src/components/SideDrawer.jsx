@@ -20,6 +20,10 @@ function DrawerIcon({ type }) {
       return <svg {...props}><path d="M8 9h2M14 9h2M9.5 12.5h5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /><path d="M7.5 6.5h9a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4h-1.2l-2.3 2.3a1 1 0 0 1-1.7-.7V17.5H7.5a4 4 0 0 1-4-4v-3a4 4 0 0 1 4-4Z" {...stroke} /></svg>;
     case "promotions":
       return <svg {...props}><path d="M12 3l2.2 4.5L19 8.3l-3.5 3.4.8 4.9L12 14.8 7.7 16.6l.8-4.9L5 8.3l4.8-.8L12 3Z" {...stroke} /></svg>;
+    case "offers":
+      return <svg {...props}><path d="M5 7h14v12H5zM8 7V5h8v2M8 12h8" {...stroke} /></svg>;
+    case "referral":
+      return <svg {...props}><path d="M8 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm8 0a3 3 0 1 1 0-6 3 3 0 0 1 0 6ZM3 19c0-2.2 2.2-4 5-4s5 1.8 5 4M13 19c0-1.8 1.8-3.5 4-3.5s4 1.7 4 3.5" {...stroke} /></svg>;
     case "about":
       return <svg {...props}><circle cx="12" cy="12" r="8.5" {...stroke} /><path d="M12 10v5M12 8h.01" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>;
     case "language":
@@ -36,6 +40,8 @@ const menuItems = [
   { icon: "add-cash", label: "Add Cash", path: "/add-cash" },
   { icon: "games", label: "My Games", path: "/my-games" },
   { icon: "promotions", label: "Promotions", path: "/promotions" },
+  { icon: "offers", label: "Offers", path: "/offers" },
+  { icon: "referral", label: "Refer a Friend", path: "/referrals" },
   { icon: "about", label: "About Us", path: "/about" },
   { icon: "language", label: "Language", path: "/language-settings" },
   { icon: "settings", label: "Settings", path: "/settings" },

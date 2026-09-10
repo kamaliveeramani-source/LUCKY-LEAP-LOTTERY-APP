@@ -11,12 +11,9 @@ import AddCash from "./pages/AddCash";
 import Lottery from "./pages/Lottery";
 import LotteryGame from "./pages/LotteryGame";
 import MyGames from "./pages/MyGames";
-import JackpotGame from "./pages/JackpotGame";
-import Dice3MinGame from "./pages/Dice3MinGame";
-import Dice5MinGame from "./pages/Dice5MinGame";
-import ColorPrediction from "./pages/ColorPrediction";
-import GamePage from "./pages/GamePage";
+import GameDetail from "./pages/GameDetail";
 import Promotions from "./pages/Promotions";
+import Offers from "./pages/Offers";
 import Notifications from "./pages/Notifications";
 import LanguageSettings from "./pages/LanguageSettings";
 import Results from "./pages/Results";
@@ -27,6 +24,8 @@ import MobileLayout from "./components/MobileLayout";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
 import Support from "./pages/Support";
+import Bets from "./pages/Bets";
+import Referral from "./pages/Referral";
 
 function RootRoute() {
   const token = localStorage.getItem("token");
@@ -47,15 +46,15 @@ function App() {
             <Route path="/lottery" element={<Lottery />} />
             <Route path="/lottery-game" element={<LotteryGame />} />
             <Route path="/lotterygame" element={<LotteryGame />} />
-            <Route path="/dice-3" element={<Dice3MinGame />} />
-            <Route path="/dice-5" element={<Dice5MinGame />} />
-            <Route path="/color-prediction" element={<ColorPrediction />} />
-            <Route path="/jackpot" element={<JackpotGame />} />
+            <Route path="/game/:slug" element={<GameDetail />} />
             <Route path="/my-games" element={<MyGames />} />
+            <Route path="/bets" element={<Bets />} />
             <Route path="/results" element={<Results />} />
             <Route path="/my-tickets" element={<History />} />
             <Route path="/history" element={<History />} />
             <Route path="/promotions" element={<Promotions />} />
+            <Route path="/offers" element={<Offers />} />
+            <Route path="/referrals" element={<Referral />} />
             <Route path="/language-settings" element={<LanguageSettings />} />
             <Route path="/language" element={<LanguageSettings />} />
             <Route path="/settings" element={<Settings />} />

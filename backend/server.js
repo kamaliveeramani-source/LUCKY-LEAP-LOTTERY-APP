@@ -6,6 +6,7 @@ const fs = require("fs");
 require("dotenv").config();
 
 const sequelize = require("./config/database");
+const { startGameRoundScheduler } = require("./services/gameRoundScheduler");
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -15,11 +16,27 @@ const lotteryRoutes = require("./routes/lotteryRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const referralRoutes = require("./routes/referralRoutes");
+const demoGameRoutes = require("./routes/demoGameRoutes");
+const adminDemoGameRoutes = require("./routes/adminDemoGameRoutes");
+const {
+  publicRoutes,
+  adminGameRoutes,
+  adminPromotionRoutes,
+  adminOfferRoutes,
+} = require("./routes/contentRoutes");
 
 // Models
-require("./models/User");
+const User = require("./models/User");
 require("./models/Lottery");
 require("./models/Ticket");
+require("./models/WinningResult");
+const LotteryEntryAmount = require("./models/LotteryEntryAmount");
+const Referral = require("./models/Referral");
+require("./models/Game");
+require("./models/Promotion");
+require("./models/Offer");
+require("./services/demoGameModels");
 
 const app = express();
 
@@ -37,6 +54,11 @@ const allowedOrigins = new Set(
     "http://localhost:5175",
     "http://localhost:5176",
     "http://localhost:5177",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175",
+    "http://127.0.0.1:5176",
+    "http://127.0.0.1:5177",
   ]
     .map((origin) => origin && origin.trim())
     .filter(Boolean)
@@ -64,10 +86,17 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/wallet", walletRoutes);
+app.use("/api/referral", referralRoutes);
 app.use("/api/lottery", lotteryRoutes);
 app.use("/api/ticket", ticketRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin", adminDemoGameRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api", demoGameRoutes);
+app.use("/api", publicRoutes);
+app.use("/api/admin/games", adminGameRoutes);
+app.use("/api/admin/promotions", adminPromotionRoutes);
+app.use("/api/admin/offers", adminOfferRoutes);
 
 // =====================================================
 // FRONTEND BUILD
@@ -176,6 +205,7 @@ app.use((err, req, res, next) => {
 // =====================================================
 
 let server;
+let stopGameRoundScheduler;
 let isShuttingDown = false;
 let isStarting = false;
 
@@ -231,6 +261,7 @@ const shutdown = (signal, exitCode = 0) => {
   isShuttingDown = true;
 
   console.log(`\n${signal} received. Shutting down gracefully...`);
+  if (stopGameRoundScheduler) stopGameRoundScheduler();
 
   const finish = () => {
     if (signal === "SIGUSR2") {
@@ -302,21 +333,23 @@ const startServer = async () => {
 
     console.log("✅ PostgreSQL Connected");
 
+    await Promise.all([
+      User.sync({ alter: true }),
+      LotteryEntryAmount.sync({ alter: true }),
+      Referral.sync({ alter: true }),
+    ]);
+
     // =================================================
     // SYNC DATABASE MODELS
     // This adds missing columns such as "username"
     // =================================================
-
-    await sequelize.sync({
-      alter: true,
-    });
-
-    console.log("✅ Database schema synced");
+      console.log("✅ Database schema ready; run npm run migrate for additive migrations");
 
     // Start server
     const port = Number(process.env.PORT) || 5000;
 
     server = await listenWithRetry(port);
+    stopGameRoundScheduler = startGameRoundScheduler();
 
   } catch (err) {
     if (err.code === "EADDRINUSE") {

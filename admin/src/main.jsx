@@ -4,6 +4,8 @@ import { BrowserRouter, Link, Navigate, NavLink, Outlet, Route, Routes, useNavig
 import axios from "axios";
 import thumbiLogo from "../../frontend/src/assets/thumbi-logo.png";
 import "./styles.css";
+import ContentManager from "./ContentManager";
+import WinnerSelection from "./WinnerSelection";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
 const apiBaseUrl = configuredApiUrl.replace(/\/$/, "").endsWith("/api")
@@ -19,6 +21,10 @@ API.interceptors.request.use((config) => {
 const navItems = [
   ["Dashboard", "/dashboard", "▦"],
   ["Lotteries", "/lotteries", "◉"],
+  ["Lottery amounts", "/lottery-entry-amounts", "₹"],
+  ["Games", "/games", "◆"],
+  ["Promotions", "/promotions", "✦"],
+  ["Offers", "/offers", "◇"],
   ["Tickets", "/tickets", "▤"],
   ["Users", "/users", "♙"],
   ["Winners", "/winners", "★"],
@@ -92,6 +98,117 @@ function Dashboard() {
 const initialLottery = { lotteryName: "", drawDate: "", drawTime: "", ticketPrice: "", firstPrize: "", secondPrize: "", thirdPrize: "", totalTickets: "" };
 function LotteryForm({ value, onChange, onCancel, onSubmit, busy, edit }) { return <form className="form-grid" onSubmit={onSubmit}><label className="span-2">Lottery name<input required value={value.lotteryName} onChange={(e) => onChange({ ...value, lotteryName: e.target.value })} placeholder="Enter lottery name" /></label><label>Draw date<input required type="date" value={value.drawDate} onChange={(e) => onChange({ ...value, drawDate: e.target.value })} /></label><label>Draw time<input required type="time" value={value.drawTime} onChange={(e) => onChange({ ...value, drawTime: e.target.value })} /></label><label>Ticket price<input required min="0" step="0.01" type="number" value={value.ticketPrice} onChange={(e) => onChange({ ...value, ticketPrice: e.target.value })} /></label><label>Total tickets<input min="0" type="number" value={value.totalTickets} onChange={(e) => onChange({ ...value, totalTickets: e.target.value })} /></label><div className="form-divider span-2">Prize details</div><label>First prize<input required min="0" step="0.01" type="number" value={value.firstPrize} onChange={(e) => onChange({ ...value, firstPrize: e.target.value })} /></label><label>Second prize<input min="0" step="0.01" type="number" value={value.secondPrize} onChange={(e) => onChange({ ...value, secondPrize: e.target.value })} /></label><label>Third prize<input min="0" step="0.01" type="number" value={value.thirdPrize} onChange={(e) => onChange({ ...value, thirdPrize: e.target.value })} /></label><div className="form-actions span-2"><button type="button" className="secondary-button" onClick={onCancel}>Cancel</button><button className="primary-button" disabled={busy}>{busy ? "Saving..." : edit ? "Save changes" : "Add lottery"}</button></div></form>; }
 function lotteryFormFrom(item) { const date = item.drawDate ? new Date(item.drawDate) : null; return { lotteryName: item.lotteryName || "", drawDate: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : "", drawTime: date ? `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}` : "", ticketPrice: item.ticketPrice || "", firstPrize: item.firstPrize || "", secondPrize: item.secondPrize || "", thirdPrize: item.thirdPrize || "", totalTickets: item.totalTickets || "" }; }
+function LotteryEntryAmounts() {
+  const emptyForm = { singleDigitAmount: "", doubleDigitAmount: "", tripleDigitAmount: "" };
+  const [saved, setSaved] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  async function load() {
+    try {
+      setLoading(true);
+      setError("");
+      const data = getData(await API.get("/admin/lottery-entry-amounts"));
+      setSaved(data);
+      setForm({
+        singleDigitAmount: data.singleDigitAmount,
+        doubleDigitAmount: data.doubleDigitAmount,
+        tripleDigitAmount: data.tripleDigitAmount,
+      });
+    } catch (e) {
+      setError(e.response?.data?.message || e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  function validate(value, label) {
+    if (value === "" || value === null || value === undefined) return `${label} is required`;
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return `${label} must be a valid number`;
+    if (amount < 0) return `${label} cannot be negative`;
+    if (amount <= 0) return `${label} must be greater than 0`;
+    return "";
+  }
+
+  async function save(event) {
+    event.preventDefault();
+    const message = validate(form.singleDigitAmount, "Single Digit") || validate(form.doubleDigitAmount, "Double Digit") || validate(form.tripleDigitAmount, "Triple Digit");
+    if (message) {
+      setNotice("");
+      setError(message);
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const response = await API.put("/admin/lottery-entry-amounts", {
+        singleDigitAmount: Number(form.singleDigitAmount),
+        doubleDigitAmount: Number(form.doubleDigitAmount),
+        tripleDigitAmount: Number(form.tripleDigitAmount),
+      });
+      const data = response.data?.data || {};
+      setSaved(data);
+      setForm({
+        singleDigitAmount: data.singleDigitAmount,
+        doubleDigitAmount: data.doubleDigitAmount,
+        tripleDigitAmount: data.tripleDigitAmount,
+      });
+      setNotice("Lottery entry amounts saved.");
+    } catch (e) {
+      setError(e.response?.data?.message || "Unable to save lottery entry amounts.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const fields = [
+    ["singleDigitAmount", "Single Digit"],
+    ["doubleDigitAmount", "Double Digit"],
+    ["tripleDigitAmount", "Triple Digit"],
+  ];
+
+  return (
+    <>
+      <PageHeader eyebrow="Lottery" title="Lottery Entry Amounts" description="Configure the base demo-credit amount for Single, Double, and Triple Digit entries. These values appear on the lottery page and cannot be edited by players." />
+      {notice && <div className="toast">{notice}</div>}
+      {loading ? <Loading /> : error && !saved ? <ErrorState message={error} retry={load} /> : (
+        <section className="panel lottery-amount-panel">
+          {error && <div className="error-box">{error}</div>}
+          <form className="lottery-amount-grid" onSubmit={save}>
+            {fields.map(([key, label]) => (
+              <article className="lottery-amount-card" key={key}>
+                <span className="eyebrow">{label}</span>
+                <label>
+                  Base demo credits
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    required
+                    value={form[key]}
+                    onChange={(event) => setForm({ ...form, [key]: event.target.value })}
+                  />
+                </label>
+                <small>Current saved value: {saved ? `${Number(saved[key]).toLocaleString("en-IN", { maximumFractionDigits: 2 })} demo credits` : "Not saved yet"}</small>
+              </article>
+            ))}
+            <div className="form-actions span-2 lottery-amount-actions">
+              <button type="button" className="secondary-button" onClick={load}>Reset</button>
+              <button className="primary-button" disabled={busy}>{busy ? "Saving..." : "Save"}</button>
+            </div>
+          </form>
+        </section>
+      )}
+    </>
+  );
+}
+
 function Lotteries() { const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [modal, setModal] = useState(null); const [form, setForm] = useState(initialLottery); const [busy, setBusy] = useState(false); const [notice, setNotice] = useState(""); async function load() { try { setLoading(true); setError(""); setItems(getData(await API.get("/admin/lotteries"))); } catch (e) { setError(e.response?.data?.message || e.message); } finally { setLoading(false); } } useEffect(() => { load(); }, []); function openAdd() { setForm(initialLottery); setModal("add"); } function openEdit(item) { setForm(lotteryFormFrom(item)); setModal(item); } async function save(e) { e.preventDefault(); setBusy(true); try { const payload = { ...form, drawDate: `${form.drawDate}T${form.drawTime}:00`, ticketPrice: Number(form.ticketPrice), firstPrize: Number(form.firstPrize), secondPrize: Number(form.secondPrize || 0), thirdPrize: Number(form.thirdPrize || 0), totalTickets: Number(form.totalTickets || 0) }; if (modal === "add") await API.post("/admin/lotteries", payload); else await API.put(`/admin/lotteries/${modal.id}`, payload); setModal(null); setNotice("Lottery saved successfully."); await load(); } catch (e) { setNotice(e.response?.data?.message || "Unable to save lottery."); } finally { setBusy(false); } } async function toggle(item) { try { await API.patch(`/admin/lotteries/${item.id}/status`, { isActive: !item.isActive }); setNotice("Lottery status updated."); await load(); } catch (e) { setNotice(e.response?.data?.message || "Unable to update status."); } } return <><PageHeader eyebrow="Catalog" title="Lotteries" description="Manage draw schedules, prizes, pricing, and availability." action={<button className="primary-button" onClick={openAdd}>＋ Add lottery</button>} />{notice && <div className="toast">{notice}</div>}{loading ? <Loading /> : error ? <ErrorState message={error} retry={load} /> : <section className="panel"><div className="table-wrap"><table><thead><tr><th>ID</th><th>Lottery</th><th>Draw</th><th>Ticket price</th><th>Prizes</th><th>Status</th><th>Actions</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td className="mono">#{item.id}</td><td><strong>{item.lotteryName}</strong><small>{item.totalTickets ? `${item.totalTickets.toLocaleString()} tickets` : "-"}</small></td><td><strong>{dateText(item.drawDate)}</strong><small>{timeText(item.drawDate)}</small></td><td>{money(item.ticketPrice)}</td><td><small>1st {money(item.firstPrize)}</small><small>2nd {money(item.secondPrize)} · 3rd {money(item.thirdPrize)}</small></td><td><StatusBadge active={item.isActive !== false} /></td><td><div className="row-actions"><button className="icon-button" onClick={() => openEdit(item)}>Edit</button><button className="text-button" onClick={() => toggle(item)}>{item.isActive === false ? "Enable" : "Disable"}</button></div></td></tr>)}</tbody></table></div>{items.length === 0 && <Empty text="No lotteries available." />}</section>}{modal && <div className="modal-backdrop"><section className="modal"><div className="modal-head"><div><span className="eyebrow">{modal === "add" ? "New draw" : `Lottery #${modal.id}`}</span><h2>{modal === "add" ? "Add lottery" : "Edit lottery"}</h2></div><button className="close-button" onClick={() => setModal(null)}>×</button></div><LotteryForm value={form} onChange={setForm} onCancel={() => setModal(null)} onSubmit={save} busy={busy} edit={modal !== "add"} /></section></div>}</>; }
 
 function Tickets() { const [items, setItems] = useState([]); const [lotteries, setLotteries] = useState([]); const [filters, setFilters] = useState({ lotteryId: "", date: "", userId: "", ticketId: "", status: "" }); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [page, setPage] = useState(1); async function load() { try { setLoading(true); const query = Object.entries(filters).filter(([, value]) => value).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&"); const [tickets, lotteryList] = await Promise.all([API.get(`/admin/tickets${query ? `?${query}` : ""}`), API.get("/admin/lotteries")]); setItems(getData(tickets)); setLotteries(getData(lotteryList)); } catch (e) { setError(e.response?.data?.message || e.message); } finally { setLoading(false); } } useEffect(() => { load(); }, [filters]); const pageItems = items.slice((page - 1) * 10, page * 10); return <><PageHeader eyebrow="Operations" title="Tickets" description="Search and inspect every ticket recorded by the platform." action={<button className="secondary-button" onClick={load}>↻ Refresh</button>} /><section className="filter-bar"><input placeholder="Ticket ID" value={filters.ticketId} onChange={(e) => { setPage(1); setFilters({ ...filters, ticketId: e.target.value }); }} /><select value={filters.lotteryId} onChange={(e) => { setPage(1); setFilters({ ...filters, lotteryId: e.target.value }); }}><option value="">All lotteries</option>{lotteries.map((item) => <option key={item.id} value={item.id}>{item.lotteryName}</option>)}</select><input type="date" value={filters.date} onChange={(e) => setFilters({ ...filters, date: e.target.value })} /><input placeholder="User ID" value={filters.userId} onChange={(e) => setFilters({ ...filters, userId: e.target.value })} /><select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}><option value="">All statuses</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option></select><button className="secondary-button" onClick={() => setFilters({ lotteryId: "", date: "", userId: "", ticketId: "", status: "" })}>Clear</button></section>{loading ? <Loading /> : error ? <ErrorState message={error} retry={load} /> : <section className="panel"><div className="panel-meta">{items.length} ticket{items.length === 1 ? "" : "s"} found</div><div className="table-wrap"><table><thead><tr><th>Ticket</th><th>User</th><th>Lottery</th><th>Bet</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>{pageItems.map((ticket) => <tr key={ticket.id}><td className="mono">{ticket.ticketNumber}</td><td><strong>{ticket.User?.fullName || `User #${ticket.UserId}`}</strong><small>{ticket.User?.username || ticket.User?.mobile || "-"}</small></td><td>{ticket.Lottery?.lotteryName || `Lottery #${ticket.LotteryId}`}</td><td><strong>{ticket.betType}</strong><small>Number {ticket.selectedNumber}</small></td><td>{money(ticket.amount)}</td><td><StatusBadge active={ticket.status === "WON"} label={ticket.status} /></td><td>{dateText(ticket.createdAt)} {ticket.Lottery?.drawDate ? `· Draw ${dateText(ticket.Lottery.drawDate)} ${timeText(ticket.Lottery.drawDate)}` : ""}</td></tr>)}</tbody></table></div>{pageItems.length === 0 && <Empty text="No tickets match these filters." />}{items.length > 10 && <Pagination page={page} setPage={setPage} total={items.length} />}</section>}</>; }
@@ -108,7 +225,8 @@ function Reports() { const [dashboard, setDashboard] = useState(null); const [ti
 function NotificationCenter() { const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); async function load() { setLoading(true); try { setItems(getData(await API.get("/admin/notifications"))); } finally { setLoading(false); } } useEffect(() => { load(); const timer = setInterval(load, 30000); return () => clearInterval(timer); }, []); async function mark(id) { await API.patch(`/admin/notifications/${id}/read`); await load(); } async function markAll() { await API.patch("/admin/notifications/read-all"); await load(); } return <><PageHeader eyebrow="Updates" title="Notifications" description="Real operational events from the platform." action={<button className="secondary-button" onClick={markAll}>Mark all read</button>} />{loading ? <Loading /> : <section className="panel notification-list">{items.length ? items.map((item) => <article className={`notification-item ${item.read ? "read" : "unread"}`} key={item.id}><span className="notification-icon">✦</span><div><strong>{item.title}</strong><p>{item.message}</p><small>{dateText(item.createdAt)} {timeText(item.createdAt)}</small></div>{!item.read && <button className="text-button" onClick={() => mark(item.id)}>Mark read</button>}</article>) : <Empty text="No notifications recorded." />}</section>}</>; }
 function Activity() { const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); async function load() { setLoading(true); try { setItems(getData(await API.get("/admin/activity"))); } finally { setLoading(false); } } useEffect(() => { load(); const timer = setInterval(load, 30000); return () => clearInterval(timer); }, []); return <><PageHeader eyebrow="Audit" title="Activity" description="Traceable admin and platform activity." action={<button className="secondary-button" onClick={load}>↻ Refresh</button>} />{loading ? <Loading /> : <section className="panel activity-timeline full-timeline">{items.length ? items.map((item) => <div key={item.id}><i /> <span><strong>{item.title}</strong>{item.message}<small>{item.action} · {dateText(item.createdAt)} {timeText(item.createdAt)}</small></span></div>) : <Empty text="No activity recorded." />}</section>}</>; }
 
-function App() { return <BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<ProtectedRoute><Shell /></ProtectedRoute>}><Route path="/" element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<Dashboard />} /><Route path="/lotteries" element={<Lotteries />} /><Route path="/tickets" element={<Tickets />} /><Route path="/users" element={<Users />} /><Route path="/winners" element={<Winners />} /><Route path="/transactions" element={<Transactions />} /><Route path="/reports" element={<Reports />} /><Route path="/notifications" element={<NotificationCenter />} /><Route path="/activity" element={<Activity />} /><Route path="*" element={<Navigate to="/dashboard" replace />} /></Route></Routes></BrowserRouter>; }
+function App() { return <BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<ProtectedRoute><Shell /></ProtectedRoute>}><Route path="/" element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<Dashboard />} /><Route path="/lotteries" element={<Lotteries />} />
+        <Route path="/lottery-entry-amounts" element={<LotteryEntryAmounts />} /><Route path="/games" element={<ContentManager kind="games" />} /><Route path="/promotions" element={<ContentManager kind="promotions" />} /><Route path="/offers" element={<ContentManager kind="offers" />} /><Route path="/tickets" element={<Tickets />} /><Route path="/users" element={<Users />} /><Route path="/winners" element={<WinnerSelection />} /><Route path="/transactions" element={<Transactions />} /><Route path="/reports" element={<Reports />} /><Route path="/notifications" element={<NotificationCenter />} /><Route path="/activity" element={<Activity />} /><Route path="*" element={<Navigate to="/dashboard" replace />} /></Route></Routes></BrowserRouter>; }
 
 const root = window.__lotteryAdminRoot || createRoot(document.getElementById("root"));
 window.__lotteryAdminRoot = root;

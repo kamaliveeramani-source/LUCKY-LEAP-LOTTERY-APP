@@ -5,17 +5,28 @@ import API from "../services/api";
 function Search() {
   const [query, setQuery] = useState("");
   const [lotteries, setLotteries] = useState([]);
+  const [content, setContent] = useState({ games: [], promotions: [], offers: [] });
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLotteries = async () => {
       try {
-        const res = await API.get("/lottery/all");
-        const apiLotteries = Array.isArray(res.data?.data) ? res.data.data : [];
-        setLotteries(apiLotteries);
+        const [lotteryResponse, gamesResponse, promotionsResponse, offersResponse] = await Promise.all([
+          API.get("/lottery/all"),
+          API.get("/games"),
+          API.get("/promotions"),
+          API.get("/offers"),
+        ]);
+        setLotteries(Array.isArray(lotteryResponse.data?.data) ? lotteryResponse.data.data : []);
+        setContent({
+          games: gamesResponse.data?.data || [],
+          promotions: promotionsResponse.data?.data || [],
+          offers: offersResponse.data?.data || [],
+        });
       } catch (err) {
         console.error("Failed to load search lottery list", err);
         setLotteries([]);
+        setContent({ games: [], promotions: [], offers: [] });
       }
     };
 
@@ -36,14 +47,18 @@ function Search() {
         route: `/lottery?lotteryId=${lottery.id}`,
       }));
 
-    const promoResults = [
-      { label: "Mega Draw Bonus", type: "Promotion", route: "/promotions" },
-      { label: "Daily Spin", type: "Promotion", route: "/promotions" },
-      { label: "Bonus Voucher", type: "Promotion", route: "/promotions" },
-    ].filter((item) => item.label.toLowerCase().includes(normalized) || item.type.toLowerCase().includes(normalized));
+    const gameResults = content.games
+      .filter((game) => `${game.name} ${game.category} ${game.description}`.toLowerCase().includes(normalized))
+      .map((game) => ({ label: game.name, type: "Game", route: "/my-games" }));
+    const promoResults = content.promotions
+      .filter((promotion) => `${promotion.title} ${promotion.type} ${promotion.description}`.toLowerCase().includes(normalized))
+      .map((promotion) => ({ label: promotion.title, type: "Promotion", route: "/promotions" }));
+    const offerResults = content.offers
+      .filter((offer) => `${offer.title} ${offer.type} ${offer.description} ${offer.rewardText}`.toLowerCase().includes(normalized))
+      .map((offer) => ({ label: offer.title, type: "Offer", route: "/offers" }));
 
-    return [...lotteryResults, ...promoResults];
-  }, [lotteries, query]);
+    return [...lotteryResults, ...gameResults, ...promoResults, ...offerResults];
+  }, [content, lotteries, query]);
 
   return (
       <div className="page-content">

@@ -1,4 +1,6 @@
+import { useLocation } from "react-router-dom";
 import AppLogo from "./AppLogo";
+import { useWallet } from "../context/WalletContext";
 
 function IconMenu() {
   return (
@@ -25,14 +27,20 @@ function IconUser() {
 }
 
 function Header({ onMenuClick, onNotificationsClick, onSearchClick }) {
+  const location = useLocation();
+  const { balance } = useWallet();
+  const isBetsPage = location.pathname === "/bets";
+
   return (
-    <header className="fixed-app-header">
+    <header className={`fixed-app-header ${isBetsPage ? "fixed-app-header--bets" : ""}`}>
       <div className="header-left">
         <button type="button" className="icon-btn menu-toggle" onClick={onMenuClick} aria-label="Open menu">
           <IconMenu />
         </button>
         <AppLogo headerBrand className="header-logo" />
       </div>
+
+      {isBetsPage && <div className="header-bets-balance"><span>My Balance</span><strong>₹{Number(balance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong></div>}
 
       <div className="header-actions">
         <button type="button" className="icon-btn header-action-btn header-bell-btn" onClick={onNotificationsClick} aria-label="Notifications">

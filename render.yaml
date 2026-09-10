@@ -38,6 +38,12 @@ services:
         value: https://thumbi-lotteries-admin.onrender.com
       - key: ALLOWED_ORIGINS
         value: https://thumbi-lotteries-frontend.onrender.com,https://thumbi-lotteries-admin.onrender.com
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
 
   - type: static_site
     name: thumbi-lotteries-admin

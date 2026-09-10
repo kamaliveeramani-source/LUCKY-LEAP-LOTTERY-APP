@@ -1,7 +1,16 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import API from "../services/api";
 
 function Promotions() {
-  const navigate = useNavigate();
+  const [promotions, setPromotions] = useState([]);
+  const [state, setState] = useState("loading");
+
+  useEffect(() => {
+    API.get("/promotions").then((response) => {
+      setPromotions(response.data?.data || []);
+      setState("success");
+    }).catch(() => setState("error"));
+  }, []);
 
   return (
       <div className="page-content">
@@ -10,28 +19,9 @@ function Promotions() {
           <div className="section-note">Tap an offer to learn more and claim rewards.</div>
         </div>
 
-        <div className="lottery-section">
-          <div className="home-card-grid">
-            <div className="home-card" style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)" }}>
-              <div>
-                <div className="home-card-title">Referral Bonus</div>
-                <div className="home-card-subtitle">Invite friends and earn extra credits.</div>
-              </div>
-            </div>
-            <div className="home-card" style={{ background: "linear-gradient(135deg, #a78bfa 0%, #5b21b6 100%)" }}>
-              <div>
-                <div className="home-card-title">Daily Spin</div>
-                <div className="home-card-subtitle">Play every day to unlock free spins.</div>
-              </div>
-            </div>
-            <div className="home-card" style={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)" }}>
-              <div>
-                <div className="home-card-title">Mega Cashback</div>
-                <div className="home-card-subtitle">Get up to 15% cashback on selected bets.</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {state === "loading" && <div className="empty-state">Loading promotions...</div>}
+        {state === "error" && <div className="error-box">Unable to load promotions.</div>}
+        {state === "success" && <div className="lottery-section"><div className="home-card-grid">{promotions.map((promotion) => <article className="home-card" key={promotion.id} style={promotion.image ? { backgroundImage: `url(${promotion.image})`, backgroundSize: "cover" } : undefined}><div><div className="home-card-title">{promotion.title}</div><div className="home-card-subtitle">{promotion.description}</div></div></article>)}{promotions.length === 0 && <div className="empty-state">No promotions available right now.</div>}</div></div>}
       </div>
   );
 }

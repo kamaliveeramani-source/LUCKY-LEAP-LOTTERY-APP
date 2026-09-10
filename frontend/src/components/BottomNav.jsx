@@ -28,6 +28,15 @@ function NavIcon({ type }) {
       </svg>
     );
   }
+  if (type === "bets") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14v12H5zM8 4.5h8M8 10h8M8 14h5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  }
+  if (type === "tickets") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14v11H5zM8 9.5h8M8 13h5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  }
+  if (type === "profile") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M5.5 20c.7-3.2 3-5 6.5-5s5.8 1.8 6.5 5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>;
+  }
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="4.5" y="12" width="3.75" height="8" rx="1.1" fill="currentColor" />
@@ -39,9 +48,10 @@ function NavIcon({ type }) {
 
 const navItems = [
   { path: "/home", icon: "home", label: "Home" },
+  { path: "/bets", icon: "bets", label: "Bets" },
+  { path: "/my-tickets", icon: "tickets", label: "My Tickets" },
   { path: "/wallet", icon: "wallet", label: "Wallet" },
-  { path: "/wallet?mode=add", icon: "add", label: "Add Cash", isAddCash: true },
-  { path: "/results", icon: "results", label: "Results" },
+  { path: "/dashboard", icon: "profile", label: "Profile" },
 ];
 
 function BottomNav() {

@@ -4,12 +4,13 @@ const { Op } = require("sequelize");
 
 const User = require("../models/User");
 const { safeRecordActivity } = require("../services/operationalEvents");
+const { applyReferralToUserIfNeeded } = require("./referralController");
 
 // ================== SIGNUP ==================
 
 exports.signup = async (req, res) => {
   try {
-    const { fullName, age, gender, mobile, email, password } = req.body;
+    const { fullName, age, gender, mobile, email, password, referralCode } = req.body;
 
     if (!fullName || !age || !gender || !mobile || !email || !password) {
       return res.status(400).json({
@@ -58,6 +59,10 @@ exports.signup = async (req, res) => {
       await Wallet.create({
         UserId: user.id,
       });
+    }
+
+    if (referralCode) {
+      await applyReferralToUserIfNeeded(user, referralCode);
     }
 
     const token = jwt.sign(

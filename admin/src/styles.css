@@ -139,3 +139,27 @@ input:focus, select:focus { border-color: var(--purple); box-shadow: 0 0 0 3px r
 	.daily-grid { grid-template-columns: 1fr 1fr; }
 	.notification-item { flex-wrap: wrap; }
 }
+
+.winner-selection { max-width: 900px; }
+.winner-selection > label { display: grid; gap: 7px; max-width: 420px; color: var(--muted); font-weight: 600; }
+.draw-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+.draw-summary div { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--lavender); }
+.draw-summary span, .draw-summary strong { display: block; }
+.draw-summary span { color: var(--muted); font-size: 12px; }
+.draw-summary strong { margin-top: 6px; }
+.winner-table { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.winner-table-head, .winner-table-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; align-items: center; padding: 14px 16px; }
+.winner-table-head { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.winner-table-row { border-top: 1px solid var(--line); }
+.winner-table-row input { width: 100%; }
+.form-note { color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+@media (max-width: 720px) { .draw-summary { grid-template-columns: 1fr; } .winner-table-head, .winner-table-row { grid-template-columns: 1fr 1fr; } .winner-table-head span:last-child, .winner-table-row input:last-child { grid-column: 2; } }
+
+.lottery-amount-panel { padding: 24px; }
+.lottery-amount-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.lottery-amount-card { display: grid; gap: 10px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--lavender, #f7f5ff); }
+.lottery-amount-card label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.lottery-amount-card input { width: 100%; padding: 11px; }
+.lottery-amount-card small { color: var(--muted); font-size: 12px; }
+.lottery-amount-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+@media (max-width: 900px) { .lottery-amount-grid { grid-template-columns: 1fr; } }

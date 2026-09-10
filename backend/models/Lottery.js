@@ -34,6 +34,15 @@ const Lottery = sequelize.define("Lottery", {
       type: DataTypes.INTEGER,
       allowNull: true
     },
+    drawStatus: {
+      type: DataTypes.STRING(16),
+      allowNull: false,
+      defaultValue: "SCHEDULED",
+    },
+    declaredAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,

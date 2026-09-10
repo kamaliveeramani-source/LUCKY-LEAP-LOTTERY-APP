@@ -3,6 +3,8 @@ const bcrypt = require("bcryptjs");
 
 const requireAdmin = require("../middleware/requireAdmin");
 const admin = require("../controllers/adminController");
+const winningResults = require("../controllers/winningResultController");
+const lotteryEntryAmounts = require("../controllers/lotteryEntryAmountController");
 
 const Notification = require("../models/Notification");
 const ActivityLog = require("../models/ActivityLog");
@@ -130,6 +132,8 @@ router.patch(
   "/lotteries/:id/status",
   admin.updateLotteryStatus
 );
+router.get("/lottery-entry-amounts", lotteryEntryAmounts.getLotteryEntryAmounts);
+router.put("/lottery-entry-amounts", lotteryEntryAmounts.updateLotteryEntryAmounts);
 
 // Tickets
 router.get("/tickets", admin.listTickets);
@@ -145,8 +149,12 @@ router.get("/winners", admin.listWinners);
 // Draw lottery
 router.post(
   "/lotteries/:id/draw",
-  admin.drawLottery
+  winningResults.declareWinningResults
 );
+router.get("/lotteries/:id/winning-results", winningResults.getWinningResults);
+router.put("/lotteries/:id/winning-results", winningResults.saveWinningResults);
+router.post("/lotteries/:id/winning-results", winningResults.declareWinningResults);
+router.post("/lotteries/:id/declare-winner", winningResults.declareWinningResults);
 
 // Transactions
 router.get(

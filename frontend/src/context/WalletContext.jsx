@@ -12,6 +12,7 @@ const EMPTY_WALLET = {
   totalDeposit: 0,
   totalWithdraw: 0,
   totalWinning: 0,
+  demoBalance: 0,
 };
 
 export function WalletProvider({ children }) {
@@ -30,12 +31,12 @@ export function WalletProvider({ children }) {
     setLoading(true);
     setError("");
     try {
-      const res = await API.get("/wallet/balance", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [res, demoRes] = await Promise.all([
+        API.get("/wallet/balance", { headers: { Authorization: `Bearer ${token}` } }),
+        API.get("/games/demo-wallet", { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+      ]);
 
       const data = res.data || {};
-      // API returns fields like wallet, bonus, winning, todaysEarnings, todaysBets, totalDeposit, totalWithdraw, totalWinning
       const next = {
         wallet: Number(data.wallet || 0),
         bonus: Number(data.bonus || 0),
@@ -45,6 +46,7 @@ export function WalletProvider({ children }) {
         totalDeposit: Number(data.totalDeposit || 0),
         totalWithdraw: Number(data.totalWithdraw || 0),
         totalWinning: Number(data.totalWinning || 0),
+        demoBalance: Number(demoRes?.data?.data?.balance || 0),
       };
 
       setWallet(next);
@@ -115,7 +117,7 @@ export function WalletProvider({ children }) {
   };
 
   return (
-    <WalletContext.Provider value={{ wallet, balance: wallet.wallet, loading, error, authReady, refreshWallet, deposit, withdraw }}>
+    <WalletContext.Provider value={{ wallet, balance: wallet.wallet, demoBalance: wallet.demoBalance, loading, error, authReady, refreshWallet, deposit, withdraw }}>
       {children}
     </WalletContext.Provider>
   );

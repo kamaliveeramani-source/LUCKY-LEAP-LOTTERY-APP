@@ -9,7 +9,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://lucky-leap-lottery-app.onrender.com/api
+        value: https://lucky-leap-lottery-app-grjh.onrender.com
     routes:
       - type: rewrite
         source: /*
@@ -33,11 +33,11 @@ services:
       - key: ADMIN_PASSWORD
         sync: false
       - key: FRONTEND_URL
-        value: https://thumbi-lotteries-frontend.onrender.com
+        value: https://thumbi-lotteries-frontend-rhav.onrender.com
       - key: ADMIN_URL
         value: https://thumbi-lotteries-admin.onrender.com
       - key: ALLOWED_ORIGINS
-        value: https://thumbi-lotteries-frontend.onrender.com,https://thumbi-lotteries-admin.onrender.com
+        value: https://thumbi-lotteries-frontend-rhav.onrender.com,https://thumbi-lotteries-admin.onrender.com
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
@@ -52,7 +52,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://lucky-leap-lottery-app.onrender.com/api
+        value: https://lucky-leap-lottery-app-grjh.onrender.com
     routes:
       - type: rewrite
         source: /*

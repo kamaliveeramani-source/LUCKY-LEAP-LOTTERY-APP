@@ -168,7 +168,9 @@ function Home() {
     }) || null;
   };
 
-  const featuredLottery = findLottery(1) || lotteries[0] || null;
+  const featuredLottery =
+    findLottery("Kerala Lottery") || findLottery(1) || lotteries[0] || null;
+  const featuredLotteryName = featuredLottery?.lotteryName || "Kerala Lottery";
 
   const navigateToLotteryGame = (value) => {
     const lottery = findLottery(value);
@@ -212,11 +214,11 @@ function Home() {
       >
         <div className="live-draw-left">
           <div className="live-draw-emblem">
-            <img src={keralaEmblem} alt={featuredLottery?.lotteryName || "Lottery"} />
+            <img src={keralaEmblem} alt={featuredLotteryName} />
           </div>
 
           <div className="live-draw-info">
-            <h3>{featuredLottery?.lotteryName || "Lottery"}</h3>
+            <h3>{featuredLotteryName}</h3>
             <p>Today, 3:00 PM</p>
             <span className="live-pill">LIVE DRAW</span>
           </div>

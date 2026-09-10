@@ -25,6 +25,7 @@ const migrations = [
 
 async function migrate() {
   await sequelize.authenticate();
+  await sequelize.sync();
   const queryInterface = sequelize.getQueryInterface();
   const tables = await queryInterface.showAllTables();
   if (!tables.some((table) => String(table).toLowerCase() === "schema_migrations")) {

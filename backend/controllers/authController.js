@@ -10,7 +10,15 @@ const { applyReferralToUserIfNeeded } = require("./referralController");
 
 exports.signup = async (req, res) => {
   try {
-    const { fullName, age, gender, mobile, email, password, referralCode } = req.body;
+    const {
+      fullName,
+      age,
+      gender,
+      mobile,
+      email,
+      password,
+      referralCode,
+    } = req.body;
 
     if (!fullName || !age || !gender || !mobile || !email || !password) {
       return res.status(400).json({
@@ -116,7 +124,8 @@ exports.login = async (req, res) => {
 
     let whereCondition;
 
-    // ADMIN LOGIN
+    // ================== ADMIN LOGIN ==================
+
     if (username && username.trim()) {
       whereCondition = {
         username: username.trim(),
@@ -124,14 +133,16 @@ exports.login = async (req, res) => {
       };
     }
 
-    // NORMAL USER LOGIN
+    // ================== NORMAL USER LOGIN ==================
+
     else if (mobile && mobile.trim()) {
       whereCondition = {
         mobile: mobile.trim(),
       };
     }
 
-    // NO LOGIN IDENTIFIER
+    // ================== NO LOGIN IDENTIFIER ==================
+
     else {
       return res.status(400).json({
         success: false,
@@ -139,23 +150,77 @@ exports.login = async (req, res) => {
       });
     }
 
+    console.log("[LOGIN DEBUG] Searching user:", {
+      username: username?.trim() || null,
+      mobile: mobile?.trim() || null,
+      loginType:
+        username && username.trim()
+          ? "ADMIN"
+          : mobile && mobile.trim()
+          ? "USER"
+          : "UNKNOWN",
+    });
+
+    // ================== FIND USER ==================
+
     const user = await User.scope("withPassword").findOne({
       where: whereCondition,
     });
 
+    // IMPORTANT:
+    // Never log password or password hash.
+
+    console.log("[LOGIN DEBUG] User lookup:", {
+      foundUser: !!user,
+      userId: user?.id || null,
+      role: user?.role || null,
+      mobile: user?.mobile || null,
+      username: user?.username || null,
+      hasPasswordHash: !!user?.password,
+    });
+
+    // ================== USER NOT FOUND ==================
+
     if (!user) {
+      console.warn("[LOGIN DEBUG] User not found:", {
+        whereCondition,
+      });
+
       return res.status(401).json({
         success: false,
         message: "Invalid username or password",
       });
     }
 
+    // ================== PASSWORD CHECK ==================
+
     const isMatch = await bcrypt.compare(password, user.password);
 
+    console.log("[LOGIN DEBUG] Password check:", {
+      userId: user.id,
+      passwordMatched: isMatch,
+    });
+
     if (!isMatch) {
+      console.warn("[LOGIN DEBUG] Password mismatch:", {
+        userId: user.id,
+        role: user.role,
+      });
+
       return res.status(401).json({
         success: false,
         message: "Invalid username or password",
+      });
+    }
+
+    // ================== JWT ==================
+
+    if (!process.env.JWT_SECRET) {
+      console.error("❌ JWT_SECRET is missing");
+
+      return res.status(500).json({
+        success: false,
+        message: "Server authentication configuration error",
       });
     }
 
@@ -171,6 +236,8 @@ exports.login = async (req, res) => {
       }
     );
 
+    // ================== ADMIN ACTIVITY ==================
+
     if (user.role === "ADMIN") {
       await safeRecordActivity({
         action: "ADMIN_LOGIN",
@@ -180,6 +247,14 @@ exports.login = async (req, res) => {
         eventKey: `admin-login:${user.id}:${Date.now()}`,
       });
     }
+
+    // ================== SUCCESS ==================
+
+    console.log("[LOGIN SUCCESS]", {
+      userId: user.id,
+      role: user.role,
+      mobile: user.mobile || null,
+    });
 
     return res.status(200).json({
       success: true,

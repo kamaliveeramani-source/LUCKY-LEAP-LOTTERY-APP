@@ -52,10 +52,7 @@ export function WalletProvider({ children }) {
       setWallet(next);
       return next;
     } catch (err) {
-      console.error("[WALLET] Failed to refresh wallet:", err.response?.status, err.response?.data?.message);
-      // Handle 401 Unauthorized
       if (err.response?.status === 401) {
-        console.warn("[WALLET] Token expired or invalid, clearing storage");
         clearAuthToken();
         setWallet(EMPTY_WALLET);
         setError("Session expired. Please log in again.");
@@ -69,13 +66,10 @@ export function WalletProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // Auto-refresh wallet on mount if token is present
     const token = getAuthToken();
     if (token) {
-      console.log("[WALLET] Token found, refreshing wallet on mount");
       refreshWallet();
     } else {
-      console.log("[WALLET] No token found on mount");
       setWallet(EMPTY_WALLET);
     }
     setAuthReady(true);

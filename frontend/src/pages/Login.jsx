@@ -36,19 +36,13 @@ function Login() {
     setSubmitting(true);
 
     try {
-      console.log("[LOGIN] Sending login request...");
-
       const response = await API.post("/auth/login", {
         mobile: mobile.trim(),
         password,
       });
 
-      console.log("[LOGIN] Full response:", response);
-      console.log("[LOGIN] Response data:", response.data);
-
       const responseData = response?.data;
 
-      // Support different possible backend response structures
       const token =
         responseData?.token ||
         responseData?.accessToken ||
@@ -56,14 +50,7 @@ function Login() {
         responseData?.data?.accessToken ||
         null;
 
-      console.log("[LOGIN] Token received:", !!token);
-
       if (!token || typeof token !== "string") {
-        console.error(
-          "[LOGIN] Token missing. Actual API response:",
-          responseData
-        );
-
         throw new Error("Login token was not received");
       }
 
@@ -83,16 +70,10 @@ function Login() {
           "Player"
       );
 
-      console.log("[LOGIN] Token saved successfully");
-
-      // Refresh wallet, but don't fail login if wallet refresh has an issue
       try {
         await refreshWallet();
       } catch (walletError) {
-        console.warn(
-          "[LOGIN] Wallet refresh failed, continuing login:",
-          walletError
-        );
+        // Non-blocking wallet refresh failure shouldn't prevent login.
       }
 
       notify("success", "Login Successful");

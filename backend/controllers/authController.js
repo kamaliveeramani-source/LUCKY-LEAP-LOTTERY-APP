@@ -73,6 +73,15 @@ exports.signup = async (req, res) => {
       await applyReferralToUserIfNeeded(user, referralCode);
     }
 
+    if (!process.env.JWT_SECRET) {
+      console.error("❌ JWT_SECRET is missing");
+
+      return res.status(500).json({
+        success: false,
+        message: "Server authentication configuration error",
+      });
+    }
+
     const token = jwt.sign(
       {
         userId: user.id,
@@ -167,9 +176,6 @@ exports.login = async (req, res) => {
       where: whereCondition,
     });
 
-    // IMPORTANT:
-    // Never log password or password hash.
-
     console.log("[LOGIN DEBUG] User lookup:", {
       foundUser: !!user,
       userId: user?.id || null,
@@ -248,7 +254,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // ================== SUCCESS ==================
+    // ================== LOGIN SUCCESS ==================
 
     console.log("[LOGIN SUCCESS]", {
       userId: user.id,

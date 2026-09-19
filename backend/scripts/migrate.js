@@ -12,6 +12,7 @@ require("../models/Offer");
 require("../models/WinningResult");
 require("../services/demoGameModels");
 require("../models/LotteryEntryAmount");
+require("../models/LotteryGameConfig");
 
 const migrations = [
   require("../migrations/001-create-demo-game-foundation"),
@@ -21,6 +22,10 @@ const migrations = [
   require("../migrations/005-normalize-phase1-games"),
   require("../migrations/006-add-demo-selection-pricing"),
   require("../migrations/007-add-lottery-entry-amounts"),
+  require("../migrations/008-add-lottery-game-configs"),
+  require("../migrations/009-add-real-game-ticket-fields"),
+  require("../migrations/010-allow-game-tickets-without-lottery"),
+  require("../migrations/011-drop-lottery-required-for-game-tickets"),
 ];
 
 async function migrate() {

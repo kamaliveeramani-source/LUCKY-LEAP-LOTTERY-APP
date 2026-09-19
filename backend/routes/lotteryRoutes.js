@@ -11,12 +11,14 @@ const {
   getLotteryEntryAmounts,
   placeLotteryEntries,
 } = require("../controllers/lotteryEntryAmountController");
+const lotteryGameConfigs = require("../controllers/lotteryGameConfigController");
 
 // Create Lottery
 router.post("/create", requireAdmin, createLottery);
 
 // Get All Lotteries
 router.get("/all", getLotteries);
+router.get("/games", lotteryGameConfigs.listPublic);
 router.get("/entry-amounts", getLotteryEntryAmounts);
 router.post("/entries", authMiddleware, placeLotteryEntries);
 

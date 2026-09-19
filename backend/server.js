@@ -39,6 +39,7 @@ const User = require("./models/User");
 require("./models/Lottery");
 require("./models/Ticket");
 require("./models/WinningResult");
+require("./models/LotteryGameConfig");
 
 const LotteryEntryAmount = require("./models/LotteryEntryAmount");
 const Referral = require("./models/Referral");

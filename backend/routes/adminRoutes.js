@@ -5,6 +5,7 @@ const requireAdmin = require("../middleware/requireAdmin");
 const admin = require("../controllers/adminController");
 const winningResults = require("../controllers/winningResultController");
 const lotteryEntryAmounts = require("../controllers/lotteryEntryAmountController");
+const lotteryGameConfigs = require("../controllers/lotteryGameConfigController");
 
 const Notification = require("../models/Notification");
 const ActivityLog = require("../models/ActivityLog");
@@ -134,6 +135,10 @@ router.patch(
 );
 router.get("/lottery-entry-amounts", lotteryEntryAmounts.getLotteryEntryAmounts);
 router.put("/lottery-entry-amounts", lotteryEntryAmounts.updateLotteryEntryAmounts);
+router.get("/lottery-games", lotteryGameConfigs.listAdmin);
+router.post("/lottery-games", lotteryGameConfigs.create);
+router.put("/lottery-games/:id", lotteryGameConfigs.update);
+router.patch("/lottery-games/:id/status", lotteryGameConfigs.updateStatus);
 
 // Tickets
 router.get("/tickets", admin.listTickets);

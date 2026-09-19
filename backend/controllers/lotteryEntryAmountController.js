@@ -2,7 +2,7 @@ const sequelize = require("../config/database");
 const Lottery = require("../models/Lottery");
 const Ticket = require("../models/Ticket");
 const User = require("../models/User");
-const DemoWallet = require("../models/DemoWallet");
+const Wallet = require("../models/Wallet");
 const LotteryEntryAmount = require("../models/LotteryEntryAmount");
 const { safeRecordActivity } = require("../services/operationalEvents");
 
@@ -129,24 +129,25 @@ exports.placeLotteryEntries = async (req, res) => {
     }
 
     transaction = await sequelize.transaction();
-    await DemoWallet.getOrCreateForUser(user.id, { transaction });
-    const wallet = await DemoWallet.findOne({
+    const wallet = await Wallet.findOne({
       where: { UserId: user.id },
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
-    const demoBalance = Number(wallet?.balance || 0);
-    if (!wallet || wallet.status !== "ACTIVE" || demoBalance < required) {
+    const balance = Number(wallet?.balance || 0);
+    if (!wallet || balance < required) {
       await transaction.rollback();
       return res.status(400).json({
         success: false,
-        message: "Insufficient demo credits",
-        balance: demoBalance,
+        message: "Insufficient wallet balance. Please add cash to continue.",
+        balance,
         required,
       });
     }
 
-    await DemoWallet.debit(user.id, required, { transaction });
+    wallet.balance = Number((balance - required).toFixed(2));
+    wallet.todaysBets = Number(wallet.todaysBets || 0) + normalized.length;
+    await wallet.save({ transaction });
     const tickets = [];
     for (const entry of normalized) {
       const ticket = await Ticket.create({
@@ -165,11 +166,11 @@ exports.placeLotteryEntries = async (req, res) => {
     await transaction.commit();
     transaction = null;
 
-    const updatedWallet = await DemoWallet.getOrCreateForUser(user.id);
+    const updatedWallet = await Wallet.findOne({ where: { UserId: user.id } });
     await safeRecordActivity({
       action: "TICKET_PURCHASED",
       title: "Lottery entries placed",
-      message: `${user.fullName} placed ${tickets.length} demo lottery ${tickets.length === 1 ? "entry" : "entries"}.`,
+      message: `${user.fullName} placed ${tickets.length} lottery ${tickets.length === 1 ? "entry" : "entries"}.`,
       UserId: user.id,
       LotteryId: lottery.id,
       TicketId: tickets[0]?.id,
@@ -181,18 +182,17 @@ exports.placeLotteryEntries = async (req, res) => {
       message: "Lottery entries placed successfully",
       data: {
         tickets,
-        requiredDemoCredits: required,
-        demoBalance: Number(updatedWallet.balance),
+        requiredWalletBalance: required,
+        walletBalance: Number(updatedWallet.balance),
       },
     });
   } catch (error) {
     if (transaction) {
       try { await transaction.rollback(); } catch (_) { /* ignore */ }
     }
-    const insufficient = /insufficient demo credit/i.test(error.message || "");
-    return res.status(insufficient ? 400 : 500).json({
+    return res.status(/insufficient wallet balance/i.test(error.message || "") ? 400 : 500).json({
       success: false,
-      message: insufficient ? "Insufficient demo credits" : error.message,
+      message: error.message,
     });
   }
 };

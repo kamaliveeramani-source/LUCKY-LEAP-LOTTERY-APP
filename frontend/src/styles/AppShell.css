@@ -77,6 +77,17 @@ body {
   border-radius: 0;
   box-shadow: none;
   overflow-x: hidden;
+  overflow-y: visible;
+}
+
+@media (min-width: 760px) {
+  .app-shell.mobile-route.bets-route {
+    max-width: var(--mobile-shell-max);
+  }
+
+  .app-shell.mobile-route.bets-route > .page-content {
+    max-width: var(--mobile-shell-max);
+  }
 }
 
 .app-shell.mobile-route > .page-content {
@@ -544,6 +555,392 @@ body {
   padding-right: 0;
   margin-bottom: 12px;
   box-sizing: border-box;
+}
+
+.app-shell.mobile-route .lottery-mobile-page {
+  padding-top: 18px;
+  padding-bottom: calc(var(--bottom-nav-height) + 26px);
+  background: linear-gradient(180deg, #faf9ff 0%, #f5f1ff 100%);
+}
+
+.app-shell.mobile-route .lottery-page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 14px;
+}
+
+.app-shell.mobile-route .lottery-page-heading h1 {
+  margin: 0;
+  color: #20245a;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.app-shell.mobile-route .lottery-page-heading p {
+  margin: 5px 0 0;
+  color: #59618d;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.app-shell.mobile-route .lottery-filter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-width: 92px;
+  padding: 12px 15px 12px 18px;
+  border: 1px solid rgba(104, 89, 188, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #20245a;
+  box-shadow: 0 7px 18px rgba(93, 73, 170, 0.08);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.app-shell.mobile-route .lottery-filter-chevron {
+  margin-top: -4px;
+  font-size: 1.35rem;
+  line-height: 0.7;
+}
+
+.app-shell.mobile-route .lottery-mobile-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 12px;
+}
+
+.app-shell.mobile-route .lottery-mobile-section-header--catalogue {
+  margin-top: 0;
+}
+
+.app-shell.mobile-route .lottery-mobile-section-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.app-shell.mobile-route .lottery-game-configs {
+  margin-bottom: 18px;
+}
+
+.app-shell.mobile-route .lottery-game-config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.app-shell.mobile-route .lottery-game-config-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(124, 58, 237, 0.14);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(91, 33, 182, 0.06);
+}
+
+.app-shell.mobile-route .lottery-game-config-card h3 {
+  margin: 0 0 10px;
+  color: #1f2937;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.app-shell.mobile-route .lottery-game-config-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 5px;
+  color: #667085;
+  font-size: 0.7rem;
+}
+
+.app-shell.mobile-route .lottery-game-config-row strong {
+  color: #5b21b6;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.app-shell.mobile-route .lottery-mobile-more-btn {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+  color: #1f2937;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.app-shell.mobile-route .lottery-mobile-more-btn span {
+  font-size: 1.1rem;
+}
+
+.app-shell.mobile-route .lottery-mobile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app-shell.mobile-route .home-screen .draws-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.app-shell.mobile-route .lottery-mobile-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 178px;
+  padding: 7px 5px 7px;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 10px 24px rgba(93, 73, 170, 0.11);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-shell.mobile-route .lottery-mobile-card:hover,
+.app-shell.mobile-route .lottery-mobile-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(15, 23, 42, 0.12);
+}
+
+.app-shell.mobile-route .lottery-mobile-card__media {
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62px;
+  margin: 7px auto 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 8px 20px rgba(82, 61, 155, 0.06);
+}
+
+.app-shell.mobile-route .lottery-mobile-card__media img {
+  display: block;
+  max-width: 78%;
+  max-height: 78%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  background: transparent;
+  filter: none;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #20245a;
+  padding: 0;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__content h3 {
+  width: 100%;
+  margin: 0;
+  color: #151b73;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__amount {
+  width: 100%;
+  margin-top: 3px;
+  color: #3824c7;
+  font-size: clamp(0.98rem, 4.7vw, 1.2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__label {
+  width: 100%;
+  margin-top: 2px;
+  color: #8555e9;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__meta {
+  width: 100%;
+  min-height: 40px;
+  margin-top: auto;
+  padding: 5px 4px;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #25288c;
+  text-align: left;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__meta svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__meta div {
+  min-width: 0;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__meta span,
+.app-shell.mobile-route .lottery-mobile-card__meta strong {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__meta span {
+  color: #687098;
+  font-size: 0.56rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__meta strong {
+  margin-top: 2px;
+  color: #20245a;
+  font-size: 0.56rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__status {
+  position: absolute;
+  top: 7px;
+  left: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #6943df;
+  font-size: 0.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__status--live {
+  color: #0eaa8b;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__status--upcoming .lottery-mobile-card__status-dot {
+  display: none;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__arrow {
+  position: absolute;
+  top: 6px;
+  right: 5px;
+  color: #171b86;
+}
+
+.app-shell.mobile-route .lottery-mobile-card__arrow svg {
+  width: 14px;
+  height: 14px;
+}
+
+.app-shell.mobile-route .lottery-card--cyan {
+  background: linear-gradient(145deg, #f0edff 0%, #ddd5ff 100%);
+}
+
+.app-shell.mobile-route .lottery-card--purple {
+  background: linear-gradient(145deg, #eff4ff 0%, #d6e4ff 100%);
+}
+
+.app-shell.mobile-route .lottery-card--orange {
+  background: linear-gradient(145deg, #fff1f5 0%, #ffd9e5 100%);
+}
+
+.app-shell.mobile-route .lottery-card--amber {
+  background: linear-gradient(145deg, #fff4f2 0%, #ffe0d7 100%);
+}
+
+.app-shell.mobile-route .lottery-card--sunset {
+  background: linear-gradient(145deg, #eef3ff 0%, #e2ddff 100%);
+}
+
+.app-shell.mobile-route .lottery-card--red {
+  background: linear-gradient(145deg, #fff0f2 0%, #ffdce8 100%);
+}
+
+.app-shell.mobile-route .lottery-card--brown {
+  background: linear-gradient(145deg, #f4f0ff 0%, #e6dcff 100%);
+}
+
+.app-shell.mobile-route .lottery-card--green {
+  background: linear-gradient(145deg, #eafcff 0%, #cceff3 100%);
+}
+
+.app-shell.mobile-route .lottery-card--blue {
+  background: linear-gradient(145deg, #edf2ff 0%, #d8e2ff 100%);
+}
+
+.app-shell.mobile-route .lottery-card--magenta {
+  background: linear-gradient(145deg, #fff0ff 0%, #f1d5ff 100%);
+}
+
+.app-shell.mobile-route .lottery-card--teal {
+  background: linear-gradient(145deg, #e8fbff 0%, #ceeff5 100%);
+}
+
+@media (max-width: 520px) {
+  .app-shell.mobile-route .lottery-mobile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 340px) {
+  .app-shell.mobile-route .lottery-mobile-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .app-shell.mobile-route .lottery-page-grid {

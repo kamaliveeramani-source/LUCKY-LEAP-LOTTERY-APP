@@ -41,7 +41,9 @@ DemoWallet.debit = async function debit(UserId, amount, options = {}) {
   return withTransaction(async (transaction) => {
     const wallet = await DemoWallet.findOne({ where: { UserId }, transaction, lock: transaction.LOCK.UPDATE });
     if (!wallet || wallet.status !== "ACTIVE") throw new Error("Demo wallet is not available");
-    if (Number(wallet.balance) < value) throw new Error("Insufficient demo credit balance");
+    if (Number(wallet.balance) < value) {
+      throw new Error(`Insufficient demo credits: available ${Number(wallet.balance)}, required ${value}`);
+    }
     wallet.balance = (Number(wallet.balance) - value).toFixed(2);
     await wallet.save({ transaction });
     return wallet;

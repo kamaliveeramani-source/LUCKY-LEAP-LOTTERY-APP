@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroArtwork from "../assets/hero-artwork.png";
 import keralaEmblem from "../assets/lotteries/kerala-emblem-white.png";
-import lotteryBowlWatermark from "../assets/thumbi-bowl.png";
 import API from "../services/api";
+import LotteryCard from "../components/LotteryCard";
 import "../styles/Home.css";
 
 const todaysDraws = [
@@ -67,23 +67,6 @@ function useCountdown(targetTime) {
   }, [targetTime]);
 
   return remaining;
-}
-
-function ClockIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ArrowRightIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
 }
 
 function QuickActionIcon({ type }) {
@@ -199,7 +182,6 @@ function Home() {
             Play Now <span aria-hidden="true">→</span>
           </button>
         </div>
-
         <div className="home-hero__art" aria-hidden="true">
           <img src={heroArtwork} alt="Thumbi lottery draw machine with gold coins" />
         </div>
@@ -254,25 +236,12 @@ function Home() {
           if (!lottery?.id) return null;
 
           return (
-          <div key={lottery.id} className={`draw-card draw-card--${draw.variant}`}>
-            <div className="draw-card__badge">{draw.drawPill}</div>
-
-            <h3>{draw.name}</h3>
-
-            <div className="draw-card__time">
-              <ClockIcon />
-              <span>{draw.time}</span>
-            </div>
-
-            <div className="draw-card__watermark" aria-hidden="true">
-              <img src={lotteryBowlWatermark} alt="" />
-            </div>
-
-            <button className="draw-card__button" type="button" onClick={() => navigateToLotteryGame(draw.name)}>
-              <span>Play Now</span>
-              <ArrowRightIcon />
-            </button>
-          </div>
+            <LotteryCard
+              key={lottery.id}
+              lottery={lottery}
+              variant={draw.variant}
+              onClick={() => navigateToLotteryGame(draw.name)}
+            />
           );
         })}
       </div>

@@ -1,3 +1,9 @@
+const path = require("path");
+const dotenv = require("dotenv");
+
+const envFilePath = path.resolve(__dirname, "../.env");
+dotenv.config({ path: envFilePath });
+
 const sequelize = require("../config/database");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
@@ -5,10 +11,19 @@ const bcrypt = require("bcryptjs");
 const normalizeRole = (role) => (String(role || "").toUpperCase() === "ADMIN" ? "ADMIN" : "USER");
 
 async function setupAdmin() {
+  const hasAdminUsername = Boolean(process.env.ADMIN_USERNAME?.trim());
+  const hasAdminPassword = Boolean(process.env.ADMIN_PASSWORD);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV || "undefined"}`);
+  console.log(`Resolved working directory: ${process.cwd()}`);
+  console.log(`Resolved env file path: ${envFilePath}`);
+  console.log(`ADMIN_USERNAME configured: ${hasAdminUsername}`);
+  console.log(`ADMIN_PASSWORD configured: ${hasAdminPassword}`);
+
   const username = String(process.env.ADMIN_USERNAME || "").trim();
   const password = process.env.ADMIN_PASSWORD;
   if (!username || !password) {
-    throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD are required.");
+    console.log("Admin setup skipped: ADMIN_USERNAME and ADMIN_PASSWORD are not configured.");
+    return;
   }
 
   const transaction = await sequelize.transaction();
@@ -44,14 +59,26 @@ async function setupAdmin() {
     }
 
     if (!admin) {
-      throw new Error("No admin account found; provide ADMIN_EMAIL/ADMIN_MOBILE or create the account before setup-admin.");
+      const timestamp = Date.now();
+      admin = await User.create({
+        fullName: "Administrator",
+        age: 18,
+        gender: "OTHER",
+        mobile: `admin${timestamp}`,
+        username,
+        email: `${username}${timestamp}@admin.local`,
+        password: await bcrypt.hash(password, 12),
+        wallet: 0,
+        role: "ADMIN",
+      }, { transaction });
+      console.log(`Admin account created for user ID ${admin.id}`);
+    } else {
+      admin.username = username;
+      admin.role = "ADMIN";
+      admin.password = await bcrypt.hash(password, 12);
+      await admin.save({ transaction });
+      console.log(`Admin account ensured for user ID ${admin.id}`);
     }
-
-    admin.username = username;
-    admin.role = "ADMIN";
-    admin.password = await bcrypt.hash(password, 12);
-    await admin.save({ transaction });
-    console.log(`Admin account ensured for user ID ${admin.id}`);
 
     await transaction.commit();
   } catch (error) {

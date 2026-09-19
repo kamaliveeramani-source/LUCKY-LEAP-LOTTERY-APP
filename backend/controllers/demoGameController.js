@@ -99,6 +99,9 @@ async function getHistory(req, res) {
 async function getDemoWallet(req, res) {
   try {
     const wallet = await DemoWallet.getOrCreateForUser(req.user.userId);
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[DEMO WALLET] balance read", { userId: req.user.userId, balance: Number(wallet.balance) });
+    }
     return res.json({ success: true, data: { balance: Number(wallet.balance), currency: wallet.currency, status: wallet.status } });
   } catch (error) { return responseError(res, error); }
 }
@@ -113,6 +116,9 @@ async function createSelection(req, res) {
     if (!Number.isFinite(stakeAmount) || stakeAmount <= 0) throw new Error("stakeAmount must be greater than zero");
     if (!DEMO_MULTIPLIERS.includes(multiplier)) throw new Error("multiplier is invalid");
     const amount = Number((stakeAmount * multiplier).toFixed(2));
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[DEMO SELECTION] request", { userId: req.user.userId, gameId, stakeAmount, multiplier, required: amount });
+    }
     const game = await GameDefinition.findOne({ where: { id: gameId, enabled: true }, transaction });
     if (!game) throw new Error("Game not found");
     const round = await GameRound.findOne({ where: { id: roundId, GameDefinitionId: gameId }, transaction, lock: transaction.LOCK.UPDATE });
@@ -139,14 +145,21 @@ async function createSelection(req, res) {
       if (!optionValues.includes(String(req.body.selectedValue))) throw new Error("Selected option is invalid");
       if (req.body.selectedColor && option.colour && String(req.body.selectedColor).toUpperCase() !== String(option.colour).toUpperCase()) throw new Error("Selected colour is invalid");
     }
-    const wallet = await DemoWallet.getOrCreateForUser(req.user.userId, { transaction });
-    await DemoWallet.debit(req.user.userId, amount, { transaction });
+    await DemoWallet.getOrCreateForUser(req.user.userId, { transaction });
+    const updatedWallet = await DemoWallet.debit(req.user.userId, amount, { transaction });
     const selection = await GameSelection.create({ UserId: req.user.userId, GameDefinitionId: gameId, GameRoundId: roundId, GameOptionId: optionId, selectedValue: req.body.selectedValue || option?.value || option?.key || null, stakeAmount, multiplier, demoAmount: amount, status: "PENDING" }, { transaction });
     await recordActivity({ action: "GAME_SELECTION_CREATED", title: "Demo game selection created", message: `User ${req.user.userId} selected an option for round ${round.roundCode}.`, UserId: req.user.userId, GameDefinitionId: gameId, GameRoundId: roundId, metadata: { demoAmount: amount } }, transaction);
     await transaction.commit();
-    return res.status(201).json({ success: true, data: { selection, demoBalance: Number(wallet.balance) - amount } });
+    const updatedDemoBalance = Number(updatedWallet.balance);
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[DEMO SELECTION] completed", { userId: req.user.userId, required: amount, demoBalance: updatedDemoBalance });
+    }
+    return res.status(201).json({ success: true, data: { selection, demoBalance: updatedDemoBalance } });
   } catch (error) {
     await transaction.rollback();
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[DEMO SELECTION] rejected", { userId: req.user?.userId || null, reason: error.message });
+    }
     return responseError(res, error);
   }
 }

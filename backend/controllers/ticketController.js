@@ -3,9 +3,109 @@ const { Op } = require("sequelize");
 const sequelize = require("../config/database");
 const Ticket = require("../models/Ticket");
 const Lottery = require("../models/Lottery");
+const GameDefinition = require("../models/GameDefinition");
+const GameRound = require("../models/GameRound");
+const GameOption = require("../models/GameOption");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
 const { safeRecordActivity } = require("../services/operationalEvents");
+
+const GAME_MULTIPLIERS = [1, 3, 9, 27, 81, 243, 729];
+
+async function buyGameTicket(req, res) {
+  let transaction;
+  const fail = (message, status = 400) => {
+    const error = new Error(message);
+    error.status = status;
+    throw error;
+  };
+
+  try {
+    const { gameId, roundId, selectedValue, GameOptionId, stakeAmount, multiplier = 1 } = req.body || {};
+    const parsedGameId = Number(gameId);
+    const parsedRoundId = Number(roundId);
+    const betAmount = Number(stakeAmount);
+    const parsedMultiplier = Number(multiplier);
+    const totalBet = Number((betAmount * parsedMultiplier).toFixed(2));
+
+    if (!Number.isInteger(parsedGameId) || parsedGameId <= 0 || !Number.isInteger(parsedRoundId) || parsedRoundId <= 0) {
+      return res.status(400).json({ success: false, message: "A valid game and round are required" });
+    }
+    if (selectedValue === undefined || selectedValue === null || String(selectedValue).trim() === "") {
+      return res.status(400).json({ success: false, message: "A selection is required" });
+    }
+    if (!Number.isFinite(betAmount) || betAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Bet amount must be greater than 0" });
+    }
+    if (!GAME_MULTIPLIERS.includes(parsedMultiplier)) {
+      return res.status(400).json({ success: false, message: "Multiplier is invalid" });
+    }
+
+    transaction = await sequelize.transaction();
+    const user = await User.findByPk(req.user.userId, { transaction });
+    if (!user) fail("User not found", 404);
+
+    const game = await GameDefinition.findOne({ where: { id: parsedGameId, enabled: true }, transaction });
+    if (!game) fail("Game not found", 404);
+
+    const round = await GameRound.findOne({
+      where: { id: parsedRoundId, GameDefinitionId: parsedGameId },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    const now = new Date();
+    if (!round || round.status !== "OPEN" || now < round.startTime || now >= round.endTime) {
+      fail("Round is closed for selections");
+    }
+
+    let option = null;
+    if (GameOptionId !== undefined && GameOptionId !== null) {
+      option = await GameOption.findOne({ where: { id: Number(GameOptionId), GameDefinitionId: parsedGameId, enabled: true }, transaction });
+      if (!option) fail("Selected option is invalid");
+    }
+
+    const existing = await Ticket.findOne({ where: { UserId: user.id, GameRoundId: parsedRoundId }, transaction, lock: transaction.LOCK.UPDATE });
+    if (existing) fail("A ticket already exists for this round");
+
+    const wallet = await Wallet.findOne({ where: { UserId: user.id }, transaction, lock: transaction.LOCK.UPDATE });
+    const currentBalance = Number(wallet?.balance || 0);
+    if (!wallet || currentBalance < totalBet) {
+      const error = new Error("Insufficient wallet balance. Please add cash to continue.");
+      error.status = 400;
+      error.balance = currentBalance;
+      error.required = totalBet;
+      throw error;
+    }
+
+    const newBalance = Number((currentBalance - totalBet).toFixed(2));
+    wallet.balance = newBalance;
+    wallet.todaysBets = Number(wallet.todaysBets || 0) + 1;
+    await wallet.save({ transaction });
+
+    const ticket = await Ticket.create({
+      ticketNumber: `GT${Date.now()}${Math.floor(100000 + Math.random() * 900000)}`,
+      betType: "GAME",
+      selectedNumber: String(selectedValue),
+      amount: totalBet,
+      stakeAmount: betAmount,
+      multiplier: parsedMultiplier,
+      winningAmount: 0,
+      status: "PENDING",
+      UserId: user.id,
+      GameDefinitionId: parsedGameId,
+      GameRoundId: parsedRoundId,
+    }, { transaction });
+
+    await transaction.commit();
+    transaction = null;
+    await safeRecordActivity({ action: "GAME_TICKET_PURCHASED", title: "Game ticket purchased", message: `${user.fullName} purchased game ticket ${ticket.ticketNumber}.`, UserId: user.id, eventKey: `game-ticket-purchased:${ticket.id}` });
+    return res.status(201).json({ success: true, message: "Bet placed successfully", wallet: newBalance, ticket });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    console.error("Game ticket purchase error:", error.message);
+    return res.status(error.status || 500).json({ success: false, message: error.message || "Unable to place bet", ...(error.balance !== undefined ? { balance: error.balance, required: error.required } : {}) });
+  }
+}
 
 // ======================================================
 // BUY TICKET
@@ -14,6 +114,7 @@ exports.buyTicket = async (req, res) => {
   let transaction;
 
   try {
+    if (req.body?.gameId !== undefined) return buyGameTicket(req, res);
     const {
       lotteryId,
       betType,
@@ -186,7 +287,7 @@ exports.buyTicket = async (req, res) => {
 
       return res.status(400).json({
         success: false,
-        message: "Insufficient Wallet Balance",
+        message: "Insufficient wallet balance. Please add cash to continue.",
         balance: currentBalance,
         required: betAmount,
       });
@@ -283,6 +384,12 @@ exports.getMyTickets = async (req, res) => {
       include: [
         {
           model: Lottery,
+        },
+        {
+          model: GameDefinition,
+        },
+        {
+          model: GameRound,
         },
       ],
       order: [["createdAt", "DESC"]],

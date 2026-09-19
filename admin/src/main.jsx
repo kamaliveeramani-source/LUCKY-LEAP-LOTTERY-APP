@@ -6,6 +6,7 @@ import thumbiLogo from "../../frontend/src/assets/thumbi-logo.png";
 import "./styles.css";
 import ContentManager from "./ContentManager";
 import WinnerSelection from "./WinnerSelection";
+import LotteryGameManager from "./LotteryGameManager";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
 const apiBaseUrl = configuredApiUrl.replace(/\/$/, "").endsWith("/api")
@@ -13,15 +14,30 @@ const apiBaseUrl = configuredApiUrl.replace(/\/$/, "").endsWith("/api")
   : `${configuredApiUrl.replace(/\/$/, "")}/api`;
 const API = axios.create({ baseURL: apiBaseUrl });
 API.interceptors.request.use((config) => {
+  if (config.url?.includes("/auth/login")) return config;
   const token = localStorage.getItem("adminToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && !error.config?.url?.includes("/auth/login")) {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminName");
+      if (window.location.pathname !== "/login" && window.location.pathname !== "/admin/login") {
+        window.location.assign("/admin/login");
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 const navItems = [
   ["Dashboard", "/dashboard", "▦"],
   ["Lotteries", "/lotteries", "◉"],
   ["Lottery amounts", "/lottery-entry-amounts", "₹"],
+  ["Lottery Betting", "/lottery-games", "◇"],
   ["Games", "/games", "◆"],
   ["Promotions", "/promotions", "✦"],
   ["Offers", "/offers", "◇"],
@@ -40,7 +56,7 @@ const timeText = (value) => value ? new Date(value).toLocaleTimeString([], { hou
 const getData = (response) => response.data?.data ?? [];
 
 function ProtectedRoute({ children }) {
-  return localStorage.getItem("adminToken") ? children : <Navigate to="/login" replace />;
+  return localStorage.getItem("adminToken") ? children : <Navigate to="/admin/login" replace />;
 }
 
 function Login() {
@@ -77,7 +93,7 @@ function NotificationBell() { const [unread, setUnread] = useState(0); useEffect
 function Shell() {
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
-  function logout() { localStorage.removeItem("adminToken"); localStorage.removeItem("adminName"); navigate("/login", { replace: true }); }
+  function logout() { localStorage.removeItem("adminToken"); localStorage.removeItem("adminName"); navigate("/admin/login", { replace: true }); }
   return <div className="admin-app"><aside className={mobileNav ? "sidebar open" : "sidebar"}><div className="sidebar-brand"><img className="brand-logo sidebar-logo" src={thumbiLogo} alt="Thumbi Lotteries logo" /><div><strong>Thumbi Lotteries</strong><span>Admin</span></div></div><nav>{navItems.map(([label, path, icon]) => <NavLink key={path} to={path} onClick={() => setMobileNav(false)} className={({ isActive }) => isActive ? "active" : ""}><i>{icon}</i>{label}</NavLink>)}</nav><div className="sidebar-foot"><span className="status-dot" />Live API connected</div></aside><div className="main-area"><header className="topbar"><button className="menu-button" onClick={() => setMobileNav(!mobileNav)} aria-label="Open navigation">☰</button><div><span className="eyebrow">Thumbi Lotteries</span><strong>Administration</strong></div><div className="topbar-user"><NotificationBell /><span className="avatar">A</span><span className="user-name">Admin</span><button className="ghost-button" onClick={logout}>Log out</button></div></header><main className="content"><Outlet /></main></div></div>;
 }
 
@@ -225,8 +241,8 @@ function Reports() { const [dashboard, setDashboard] = useState(null); const [ti
 function NotificationCenter() { const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); async function load() { setLoading(true); try { setItems(getData(await API.get("/admin/notifications"))); } finally { setLoading(false); } } useEffect(() => { load(); const timer = setInterval(load, 30000); return () => clearInterval(timer); }, []); async function mark(id) { await API.patch(`/admin/notifications/${id}/read`); await load(); } async function markAll() { await API.patch("/admin/notifications/read-all"); await load(); } return <><PageHeader eyebrow="Updates" title="Notifications" description="Real operational events from the platform." action={<button className="secondary-button" onClick={markAll}>Mark all read</button>} />{loading ? <Loading /> : <section className="panel notification-list">{items.length ? items.map((item) => <article className={`notification-item ${item.read ? "read" : "unread"}`} key={item.id}><span className="notification-icon">✦</span><div><strong>{item.title}</strong><p>{item.message}</p><small>{dateText(item.createdAt)} {timeText(item.createdAt)}</small></div>{!item.read && <button className="text-button" onClick={() => mark(item.id)}>Mark read</button>}</article>) : <Empty text="No notifications recorded." />}</section>}</>; }
 function Activity() { const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); async function load() { setLoading(true); try { setItems(getData(await API.get("/admin/activity"))); } finally { setLoading(false); } } useEffect(() => { load(); const timer = setInterval(load, 30000); return () => clearInterval(timer); }, []); return <><PageHeader eyebrow="Audit" title="Activity" description="Traceable admin and platform activity." action={<button className="secondary-button" onClick={load}>↻ Refresh</button>} />{loading ? <Loading /> : <section className="panel activity-timeline full-timeline">{items.length ? items.map((item) => <div key={item.id}><i /> <span><strong>{item.title}</strong>{item.message}<small>{item.action} · {dateText(item.createdAt)} {timeText(item.createdAt)}</small></span></div>) : <Empty text="No activity recorded." />}</section>}</>; }
 
-function App() { return <BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<ProtectedRoute><Shell /></ProtectedRoute>}><Route path="/" element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<Dashboard />} /><Route path="/lotteries" element={<Lotteries />} />
-        <Route path="/lottery-entry-amounts" element={<LotteryEntryAmounts />} /><Route path="/games" element={<ContentManager kind="games" />} /><Route path="/promotions" element={<ContentManager kind="promotions" />} /><Route path="/offers" element={<ContentManager kind="offers" />} /><Route path="/tickets" element={<Tickets />} /><Route path="/users" element={<Users />} /><Route path="/winners" element={<WinnerSelection />} /><Route path="/transactions" element={<Transactions />} /><Route path="/reports" element={<Reports />} /><Route path="/notifications" element={<NotificationCenter />} /><Route path="/activity" element={<Activity />} /><Route path="*" element={<Navigate to="/dashboard" replace />} /></Route></Routes></BrowserRouter>; }
+function App() { return <BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route path="/admin/login" element={<Login />} /><Route path="/admin" element={<Navigate to="/admin/login" replace />} /><Route element={<ProtectedRoute><Shell /></ProtectedRoute>}><Route path="/" element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<Dashboard />} /><Route path="/lotteries" element={<Lotteries />} />
+        <Route path="/lottery-entry-amounts" element={<LotteryEntryAmounts />} /><Route path="/lottery-games" element={<LotteryGameManager />} /><Route path="/games" element={<ContentManager kind="games" />} /><Route path="/promotions" element={<ContentManager kind="promotions" />} /><Route path="/offers" element={<ContentManager kind="offers" />} /><Route path="/tickets" element={<Tickets />} /><Route path="/users" element={<Users />} /><Route path="/winners" element={<WinnerSelection />} /><Route path="/transactions" element={<Transactions />} /><Route path="/reports" element={<Reports />} /><Route path="/notifications" element={<NotificationCenter />} /><Route path="/activity" element={<Activity />} /><Route path="*" element={<Navigate to="/dashboard" replace />} /></Route></Routes></BrowserRouter>; }
 
 const root = window.__lotteryAdminRoot || createRoot(document.getElementById("root"));
 window.__lotteryAdminRoot = root;

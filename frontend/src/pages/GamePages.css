@@ -270,7 +270,7 @@
 .game-total-row strong { color: var(--experience-accent); font-size: 1.05rem; }
 .game-submit-button { width: 100%; min-height: 46px; border: 0; border-radius: 11px; background: var(--experience-accent); color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
 .game-submit-button:disabled { cursor: not-allowed; opacity: .45; }
-.game-demo-note { margin: 10px 0 0; color: var(--text-secondary); font-size: .7rem; text-align: center; }
+.game-wallet-note { margin: 10px 0 0; color: var(--text-secondary); font-size: .7rem; text-align: center; }
 .game-feedback { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; font-size: .78rem; }
 .game-feedback.success { color: #147a42; background: #eaf8ef; }.game-feedback.error { color: #a51d35; background: #fff0f2; }
 .game-history-card { overflow: hidden; }.game-history-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--game-border); }

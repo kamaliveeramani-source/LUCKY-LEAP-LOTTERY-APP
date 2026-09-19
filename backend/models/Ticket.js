@@ -4,6 +4,8 @@ const sequelize = require("../config/database");
 
 const User = require("./User");
 const Lottery = require("./Lottery");
+const GameDefinition = require("./GameDefinition");
+const GameRound = require("./GameRound");
 
 const Ticket = sequelize.define(
   "Ticket",
@@ -72,6 +74,28 @@ const Ticket = sequelize.define(
         key: "id",
       },
     },
+
+    GameDefinitionId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "game_definitions", key: "id" },
+    },
+
+    GameRoundId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "game_rounds", key: "id" },
+    },
+
+    stakeAmount: {
+      type: DataTypes.DECIMAL(14, 2),
+      allowNull: true,
+    },
+
+    multiplier: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
   },
   {
     tableName: "Tickets",
@@ -96,5 +120,8 @@ Lottery.hasMany(Ticket, {
 Ticket.belongsTo(Lottery, {
   foreignKey: "LotteryId",
 });
+
+Ticket.belongsTo(GameDefinition, { foreignKey: "GameDefinitionId" });
+Ticket.belongsTo(GameRound, { foreignKey: "GameRoundId" });
 
 module.exports = Ticket;

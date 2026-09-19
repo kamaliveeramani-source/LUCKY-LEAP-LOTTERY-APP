@@ -137,7 +137,7 @@ exports.login = async (req, res) => {
 
     if (username && username.trim()) {
       whereCondition = {
-        username: username.trim(),
+        username: { [Op.iLike]: username.trim() },
         role: "ADMIN",
       };
     }

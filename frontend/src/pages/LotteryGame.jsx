@@ -6,6 +6,7 @@ import API, { getAuthToken } from "../services/api";
 import "./LotteryGame.css";
 
 const LETTER_COLORS = { A: "red", B: "orange", C: "blue" };
+const BETTING_SESSION_DURATION_SECONDS = 60 * 60;
 const groups = [
   { key: "single", title: "Single Digit", labels: ["A", "B", "C"], maxLength: 1, amountKey: "singleDigitAmount" },
   { key: "double", title: "Double Digit", labels: ["A+B", "A+C", "B+C"], maxLength: 2, amountKey: "doubleDigitAmount" },
@@ -54,7 +55,7 @@ function QuantityControl({ quantity, onChange }) {
 }
 
 function LotteryGame() {
-  const { demoBalance, refreshWallet } = useWallet();
+  const { balance, refreshWallet } = useWallet();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedLotteryId = searchParams.get("lotteryId");
@@ -66,6 +67,7 @@ function LotteryGame() {
   const [confirming, setConfirming] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [now, setNow] = useState(Date.now());
+  const [bettingSessionStartedAt, setBettingSessionStartedAt] = useState(Date.now());
   const [values, setValues] = useState({ single: {}, double: {}, triple: {} });
   const [quantities, setQuantities] = useState({ single: {}, double: {}, triple: {} });
   const [orders, setOrders] = useState([]);
@@ -74,6 +76,10 @@ function LotteryGame() {
   const [quickGuessOpen, setQuickGuessOpen] = useState("");
 
   useEffect(() => {
+    const sessionStartedAt = Date.now();
+    setBettingSessionStartedAt(sessionStartedAt);
+    setNow(sessionStartedAt);
+
     let mounted = true;
     async function loadLottery() {
       if (!selectedLotteryId) {
@@ -110,13 +116,13 @@ function LotteryGame() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const drawTime = selectedLottery?.drawDate ? new Date(selectedLottery.drawDate).getTime() : 0;
-  const secondsLeft = drawTime > now ? Math.ceil((drawTime - now) / 1000) : 0;
+  const elapsedSeconds = Math.max(0, Math.floor((now - bettingSessionStartedAt) / 1000));
+  const secondsLeft = Math.max(0, BETTING_SESSION_DURATION_SECONDS - elapsedSeconds);
   const drawLabel = selectedLottery?.drawDate ? new Date(selectedLottery.drawDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Next draw";
   const totalAmount = orders.reduce((sum, order) => sum + order.amount, 0);
   const totalEntries = orders.reduce((sum, order) => sum + order.quantity, 0);
-  const progress = drawTime > now ? Math.min(100, Math.max(0, ((drawTime - now) / (60 * 60 * 1000)) * 100)) : 0;
-  const availableCredits = Number(demoBalance || 0);
+  const progress = Math.min(100, Math.max(0, (secondsLeft / BETTING_SESSION_DURATION_SECONDS) * 100));
+  const availableBalance = Number(balance || 0);
 
   function unitAmount(group) {
     return Number(entryAmounts?.[group.amountKey] || 0);
@@ -177,8 +183,8 @@ function LotteryGame() {
       notify("warning", "Add at least one lottery entry first.");
       return;
     }
-    if (totalAmount > availableCredits) {
-      notify("error", "Insufficient credits");
+    if (totalAmount > availableBalance) {
+      notify("error", "Insufficient wallet balance. Please add cash to continue.");
       return;
     }
     setConfirming(true);
@@ -193,7 +199,7 @@ function LotteryGame() {
       }, { headers: { Authorization: `Bearer ${token}` } });
       const updated = await refreshWallet();
       setOrders([]);
-      notify("success", `Entries confirmed. Balance: ${formatCredits(updated?.demoBalance ?? availableCredits - totalAmount)}`);
+      notify("success", `Entries confirmed. Balance: ${formatCredits(updated?.wallet ?? availableBalance - totalAmount)}`);
     } catch (error) {
       notify("error", error.response?.data?.message || "Unable to place lottery entries.");
     } finally {
@@ -208,8 +214,8 @@ function LotteryGame() {
           <button type="button" className="lottery-mobile-back" aria-label="Back" onClick={() => navigate(-1)}>←</button>
           <div className="lottery-mobile-title">{selectedLottery?.lotteryName || "Kerala Lottery"}</div>
           <div className="lottery-mobile-balance">
-            <span className="lottery-balance-label">Credits</span>
-            <span className="lottery-balance-value">{formatCredits(availableCredits)}</span>
+            <span className="lottery-balance-label">Wallet</span>
+            <span className="lottery-balance-value">₹{formatCredits(availableBalance)}</span>
             <span className="lottery-wallet-icon">▰</span>
           </div>
         </div>

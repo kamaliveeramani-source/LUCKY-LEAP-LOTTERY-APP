@@ -58,11 +58,16 @@ function BottomNav() {
   const location = useLocation();
 
   const isActive = (item) => {
+    const isHomeRoute = ["/home", "/lottery", "/lottery-game", "/lotterygame"].includes(location.pathname);
+
+    if (item.path === "/home") {
+      return isHomeRoute;
+    }
     if (item.isAddCash) {
       return location.pathname === "/wallet" && location.search.includes("mode=add");
     }
     if (item.path === "/wallet") {
-      return location.pathname === "/wallet" && !location.search.includes("mode=add");
+      return location.pathname === "/wallet";
     }
     return location.pathname === item.path;
   };
@@ -77,6 +82,7 @@ function BottomNav() {
             className={`bottom-nav-link ${item.isAddCash ? "bottom-nav-link--add" : ""} ${
               isActive(item) ? "active" : ""
             }`}
+            aria-current={isActive(item) ? "page" : undefined}
           >
             <span className="bottom-nav-icon" aria-hidden="true">
               <NavIcon type={item.icon} />

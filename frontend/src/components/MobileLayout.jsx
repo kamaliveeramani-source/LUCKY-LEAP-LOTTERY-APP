@@ -9,7 +9,13 @@ function MobileLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const pageClass = pathname === "/notifications" ? "notifications-page" : "";
+  const pageClass = pathname === "/notifications"
+    ? "notifications-page"
+    : pathname === "/bets"
+    ? "bets-route"
+    : pathname === "/lottery"
+    ? "lottery-route"
+    : "";
 
   return (
     <div className={`app-shell home-page mobile-route ${pageClass}`}>

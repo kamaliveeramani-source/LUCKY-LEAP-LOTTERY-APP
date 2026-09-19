@@ -1,32 +1,26 @@
-import LotteryCard from "../components/LotteryCard";
-import LotteryListState from "../components/LotteryListState";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useNotification } from "../context/NotificationContext";
 import API, { getAuthToken } from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 import { useWallet } from "../context/WalletContext";
+import LotteryCard from "../components/LotteryCard";
+import LotteryListState from "../components/LotteryListState";
 
-function formatShortDate(dateString) {
-  if (!dateString) return "TBD";
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
+function formatPrize(value) {
+  const safeValue = Number(value ?? 0);
+  if (!Number.isFinite(safeValue)) return "0";
+  return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(safeValue);
 }
 
-function formatTime(dateString) {
-  if (!dateString) return "TBD";
-  return new Date(dateString).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatCurrency(value) {
+  return `₹${formatPrize(value)}`;
 }
 
 function Lottery() {
   const location = useLocation();
   const navigate = useNavigate();
   const [lotteries, setLotteries] = useState([]);
+  const [gameConfigs, setGameConfigs] = useState([]);
   const [lotteryStatus, setLotteryStatus] = useState("loading");
   const { refreshWallet } = useWallet();
   const { notify } = useNotification();
@@ -36,6 +30,7 @@ function Lottery() {
   useEffect(() => {
     refreshWallet();
     getLotteries();
+    getGameConfigs();
   }, []);
 
   const getLotteries = async () => {
@@ -53,9 +48,19 @@ function Lottery() {
       setLotteries(apiLotteries);
       setLotteryStatus("success");
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setLotteries([]);
       setLotteryStatus("error");
+    }
+  };
+
+  const getGameConfigs = async () => {
+    try {
+      const res = await API.get("/lottery/games");
+      setGameConfigs(Array.isArray(res.data?.data) ? res.data.data : []);
+    } catch (err) {
+      console.error(err);
+      setGameConfigs([]);
     }
   };
 
@@ -83,28 +88,54 @@ function Lottery() {
     }
   }, [selectedLotteryId, navigate]);
 
-  const displayedLotteries = lotteries;
+  const visibleLotteries = lotteries;
 
   return (
-    <div className="page-content">
-      <div className="text-center page-intro">
-        <div className="badge-pill">Lottery</div>
-        <h2 className="page-title">State Lotteries</h2>
-        <p className="text-muted" style={{ margin: 0 }}>Browse draws and place your bets.</p>
-      </div>
+    <div className="page-content lottery-mobile-page">
+      <header className="lottery-page-heading">
+        <div>
+          <h1>State Lottery</h1>
+          <p>Choose your favourite lottery and win big!</p>
+        </div>
+        <button type="button" className="lottery-filter-button" aria-label="Filter lotteries">
+          <span>All</span>
+          <span className="lottery-filter-chevron" aria-hidden="true">⌄</span>
+        </button>
+      </header>
+
       <LotteryListState status={lotteryStatus} onRetry={getLotteries} pageGrid>
-        <div className="lottery-card-grid-premium lottery-page-grid">
-          {displayedLotteries.map((lottery, index) => (
-            <LotteryCard
-              key={lottery.id}
-              lottery={lottery}
-              variantIndex={index}
-              onClick={() => navigate(`/lotterygame?lotteryId=${lottery.id}`)}
-              actionLabel="Play Now"
-            />
-          ))}
+        <div className="lottery-mobile-grid">
+          {visibleLotteries.map((lottery, index) => {
+            return (
+              <LotteryCard
+                key={lottery.id ?? `lottery-${index}`}
+                lottery={lottery}
+                variantIndex={index}
+                onClick={() => navigate(`/lotterygame?lotteryId=${lottery.id}`)}
+              />
+            );
+          })}
         </div>
       </LotteryListState>
+
+      {gameConfigs.length > 0 && (
+        <section className="lottery-game-configs" aria-labelledby="kerala-game-configs-title">
+          <div className="lottery-mobile-section-header">
+            <h2 id="kerala-game-configs-title">Kerala Lottery Games</h2>
+          </div>
+          <div className="lottery-game-config-grid">
+            {gameConfigs.map((game) => (
+              <article className="lottery-game-config-card" key={game.id}>
+                <h3>{game.name}</h3>
+                <div className="lottery-game-config-row"><span>Ticket Price</span><strong>{formatCurrency(game.ticketPrice)}</strong></div>
+                <div className="lottery-game-config-row"><span>Winning</span><strong>{formatCurrency(game.mainWinning)}</strong></div>
+                {game.bcWinning !== null && game.bcWinning !== undefined && <div className="lottery-game-config-row"><span>BC</span><strong>{formatCurrency(game.bcWinning)}</strong></div>}
+                {game.cWinning !== null && game.cWinning !== undefined && <div className="lottery-game-config-row"><span>C</span><strong>{formatCurrency(game.cWinning)}</strong></div>}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,33 +1,92 @@
-import nagalandMorning from "../assets/lotteries/nagaland-morning.png";
-import sthreeSakthi from "../assets/lotteries/sthree-sakthi.png";
-import nagalandDay from "../assets/lotteries/nagaland-day.png";
-import nagalandEvening from "../assets/lotteries/nagaland-evening.png";
-import karunyaPlus from "../assets/lotteries/karunya-plus.png";
-import suvarnaKeralam from "../assets/lotteries/suvarna-keralam.png";
-import karunya from "../assets/lotteries/karunya.png";
-import samrudhi from "../assets/lotteries/samrudhi.png";
-import bhagyathara from "../assets/lotteries/bhagyathara.png";
-import winWin from "../assets/lotteries/win-win.png";
-import keralaEmblem from "../assets/lotteries/kerala-emblem.png";
+import nagalandMorning from "../assets/lotteries/nagaland-morning-transparent.png";
+import sthreeSakthi from "../assets/lotteries/sthree-sakthi-transparent.png";
+import nagalandDay from "../assets/lotteries/nagaland-day-transparent.png";
+import nagalandEvening from "../assets/lotteries/nagaland-evening-transparent.png";
+import karunyaPlus from "../assets/lotteries/karunya-plus-transparent.png";
+import suvarnaKeralam from "../assets/lotteries/suvarna-keralam-transparent.png";
+import karunya from "../assets/lotteries/karunya-transparent.png";
+import samrudhi from "../assets/lotteries/samrudhi-transparent.png";
+import bhagyathara from "../assets/lotteries/bhagyathara-transparent.png";
+import winWin from "../assets/lotteries/win-win-transparent.png";
+import keralaEmblem from "../assets/lotteries/kerala-emblem-transparent.png";
 import defaultLotteryImage from "../assets/lotteries/lottery.png";
 
 const lotteryImages = {
   "KERALA LOTTERY": keralaEmblem,
   "KERALA STATE LOTTERY": keralaEmblem,
+  "AKSHAYA": winWin,
+  "AKSHAYA LOTTERY": winWin,
   "NAGALAND MORNING": nagalandMorning,
   "STHREE SAKTHI": sthreeSakthi,
   "NAGALAND DAY": nagalandDay,
   "NAGALAND EVENING": nagalandEvening,
   "KARUNYA PLUS": karunyaPlus,
   "SUVARNA KERALAM": suvarnaKeralam,
+  "SUVARNA KERALA": suvarnaKeralam,
   KARUNYA: karunya,
   SAMRUDHI: samrudhi,
   BHAGYATHARA: bhagyathara,
   "WIN WIN": winWin,
   "WIN-WIN": winWin,
+  "KERALA EMBLEM": keralaEmblem,
 };
 
 const CARD_VARIANTS = ["purple", "orange", "blue"];
+
+function formatPrize(value) {
+  const safeValue = Number(value ?? 0);
+  if (!Number.isFinite(safeValue)) return "0";
+  return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(safeValue);
+}
+
+function formatOrdinal(day) {
+  const remainder = day % 10;
+  const teen = day % 100;
+  if (teen >= 11 && teen <= 13) return "th";
+  if (remainder === 1) return "st";
+  if (remainder === 2) return "nd";
+  if (remainder === 3) return "rd";
+  return "th";
+}
+
+function formatDrawLabel(drawDate) {
+  if (!drawDate) return "TBD";
+
+  const parsed = new Date(drawDate);
+  if (Number.isNaN(parsed.getTime())) return String(drawDate);
+
+  const month = parsed.toLocaleDateString("en-US", { month: "short" });
+  const day = parsed.getDate();
+  const time = parsed.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  return `${month} ${day}${formatOrdinal(day)} ${time}`;
+}
+
+function getCardTone(name = "") {
+  const normalized = String(name).trim().toLowerCase();
+  if (normalized.includes("quick state 1.5") || normalized.includes("win win")) return "cyan";
+  if (normalized.includes("quick state 3") || normalized.includes("akshaya")) return "purple";
+  if (normalized.includes("quick state 5") || normalized.includes("karunya plus")) return "orange";
+  if (normalized.includes("nagaland morning")) return "amber";
+  if (normalized.includes("nagaland day")) return "sunset";
+  if (normalized.includes("nagaland evening")) return "red";
+  if (normalized.includes("shree") || normalized.includes("sakthi")) return "brown";
+  if (normalized.includes("dhanalekshmi") || normalized.includes("dhanalaxmi")) return "green";
+  if (normalized.includes("suvarna") || normalized.includes("keralam")) return "blue";
+  if (normalized.includes("karunya")) return "magenta";
+  if (normalized.includes("samrudhi")) return "teal";
+  if (normalized.includes("kerala")) return "cyan";
+  return "blue";
+}
+
+function getLotteryStatus(lottery) {
+  const status = String(lottery?.drawStatus || lottery?.status || "").trim().toUpperCase();
+  return ["LIVE", "OPEN", "RUNNING", "ACTIVE"].includes(status) ? "Live" : "Upcoming";
+}
 
 function parseDrawDate(value) {
   if (!value) return null;
@@ -102,81 +161,72 @@ export function getLotteryImageByName(name) {
 
 function ClockIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M12 7.5v5l3 1.8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }
 
-function ArrowRightIcon() {
+function CalendarIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="5.5" width="16" height="14" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M8 3.5v4M16 3.5v4M4 9.5h16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
-}
-
-function formatDrawPill(timeLabel) {
-  if (timeLabel) return `Draw ${timeLabel}`;
-  return "Draw Soon";
-}
-
-function formatCardTime(timeLabel, dateLabel) {
-  if (timeLabel) return timeLabel;
-  if (dateLabel) return dateLabel;
-  return "TBA";
 }
 
 function LotteryCard({
   lottery,
   onClick,
-  actionLabel = "Play Now",
-  onActionClick,
   variantIndex = 0,
   variant,
 }) {
   const name = (lottery.lotteryName || lottery.name || "Lottery").toString();
   const imageSrc = getLotteryImage(name, lottery);
-  const { dateLabel, timeLabel } = resolveDrawLabels(lottery);
   const cardVariant = variant || CARD_VARIANTS[variantIndex % CARD_VARIANTS.length];
-  const drawPill = lottery.drawPill || formatDrawPill(timeLabel);
-  const displayTime = formatCardTime(timeLabel, dateLabel);
-
-  const handleCtaClick = (e) => {
-    e.stopPropagation();
-    if (onActionClick) {
-      onActionClick(e);
-    } else if (onClick) {
-      onClick(e);
-    }
-  };
+  const drawDate = lottery.drawDate || lottery.date || null;
+  const status = getLotteryStatus(lottery);
+  const prize = lottery.firstPrize ?? lottery.firstPrizeAmount ?? lottery.prize ?? 0;
 
   return (
     <article
-      className={`draw-card draw-card--${cardVariant}`}
+      className={`lottery-card lottery-mobile-card lottery-card--${getCardTone(name)} lottery-card--${cardVariant}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onClick?.(e)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick?.(event);
+        }
+      }}
     >
-      <div className="draw-card__badge">{drawPill}</div>
+      <div className={`lottery-mobile-card__status lottery-mobile-card__status--${status.toLowerCase()}`}>
+        <span className="lottery-mobile-card__status-dot" aria-hidden="true" />
+        {status}
+      </div>
+      <span className="lottery-mobile-card__arrow" aria-hidden="true">›</span>
 
-      <h3>{name}</h3>
-
-      <div className="draw-card__time">
-        <ClockIcon />
-        <span>{displayTime}</span>
+      <div className="lottery-mobile-card__media">
+        <img src={imageSrc} alt={name} loading="lazy" />
       </div>
 
-      <div className="draw-card__watermark" aria-hidden="true">
-        <img src={imageSrc} alt="" loading="lazy" />
-      </div>
+      <div className="lottery-mobile-card__content">
+        <h3>{name}</h3>
+        <div className="lottery-mobile-card__amount">₹{formatPrize(prize)}</div>
+        <div className="lottery-mobile-card__label">JACKPOT</div>
 
-      <button type="button" className="draw-card__button" onClick={handleCtaClick}>
-        <span>{actionLabel}</span>
-        <ArrowRightIcon />
-      </button>
+        <div className="lottery-mobile-card__meta">
+          <CalendarIcon />
+          <div>
+            <span>Next Draw</span>
+            <strong>{formatDrawLabel(drawDate)}</strong>
+          </div>
+          <ClockIcon />
+        </div>
+      </div>
     </article>
   );
 }

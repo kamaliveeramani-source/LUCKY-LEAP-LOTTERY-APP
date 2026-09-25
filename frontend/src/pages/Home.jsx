@@ -135,16 +135,15 @@ function Home() {
     loadLotteries();
   }, []);
 
-  const todaysLotteries = useMemo(() => {
-    const todayKey = getIstDateKey(new Date());
-
-    return lotteries
+  const scheduledLotteries = useMemo(() => {
+    return [...lotteries]
       .filter((lottery) => {
         const drawTime = Date.parse(lottery?.drawDate);
-        return Number.isFinite(drawTime) && getIstDateKey(new Date(drawTime)) === todayKey;
+        return Number.isFinite(drawTime);
       })
-      .sort((left, right) => Date.parse(left.drawDate) - Date.parse(right.drawDate))
-      .slice(0, 3);
+      .sort((left, right) => {
+        return Date.parse(left.drawDate) - Date.parse(right.drawDate);
+      });
   }, [lotteries]);
 
   const findLottery = (value) => {
@@ -241,14 +240,14 @@ function Home() {
       </div>
 
       <div className="todays-draws-header">
-        <h2>Today&apos;s Draws</h2>
+        <h2>All Lottery Draws</h2>
         <button type="button" onClick={() => navigate("/lottery")}>
           View All
         </button>
       </div>
 
       <div className="draws-grid lottery-mobile-grid todays-draws-grid">
-        {todaysLotteries.map((lottery, index) => (
+        {scheduledLotteries.map((lottery, index) => (
           <LotteryCard
             key={lottery.id ?? `home-lottery-${index}`}
             lottery={lottery}

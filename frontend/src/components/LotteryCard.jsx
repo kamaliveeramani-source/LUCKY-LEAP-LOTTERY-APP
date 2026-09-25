@@ -165,9 +165,7 @@ function parseDrawDate(value) {
 
   const date = new Date(value);
 
-  return Number.isNaN(date.getTime())
-    ? null
-    : date;
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function formatNextDraw(lottery) {
@@ -198,10 +196,7 @@ function formatNextDraw(lottery) {
     const hour = read("hour").padStart(2, "0");
     const minute = read("minute").padStart(2, "0");
 
-    if (
-      !month ||
-      !Number.isFinite(day)
-    ) {
+    if (!month || !Number.isFinite(day)) {
       return parsedDrawDate.toLocaleString(
         "en-IN",
         {
@@ -228,6 +223,38 @@ function formatNextDraw(lottery) {
       .filter(Boolean)
       .join(" ") || "TBD"
   );
+}
+
+/**
+ * Gets the first prize amount from lottery data.
+ *
+ * Supported backend field names:
+ * - firstPrize
+ * - firstPrizeAmount
+ * - first_prize
+ * - first_prize_amount
+ * - jackpot
+ * - prize
+ */
+function getFirstPrizeAmount(lottery) {
+  const possiblePrizes = [
+    lottery?.firstPrize,
+    lottery?.firstPrizeAmount,
+    lottery?.first_prize,
+    lottery?.first_prize_amount,
+    lottery?.jackpot,
+    lottery?.prize,
+  ];
+
+  const validPrize = possiblePrizes.find(
+    (value) =>
+      value !== null &&
+      value !== undefined &&
+      value !== "" &&
+      Number.isFinite(Number(value))
+  );
+
+  return validPrize ?? 0;
 }
 
 function getLotteryInitials(name) {
@@ -299,24 +326,6 @@ function resolveTheme(
   };
 }
 
-function getTicketPrice(lottery) {
-  const possiblePrices = [
-    lottery?.ticketPrice,
-    lottery?.ticket_price,
-    lottery?.price,
-  ];
-
-  const validPrice = possiblePrices.find(
-    (value) =>
-      value !== null &&
-      value !== undefined &&
-      value !== "" &&
-      Number.isFinite(Number(value))
-  );
-
-  return validPrice ?? 0;
-}
-
 function LotteryCard({
   lottery,
   onClick,
@@ -348,9 +357,8 @@ function LotteryCard({
     variantIndex
   );
 
-  const ticketPrice = getTicketPrice(
-    lottery
-  );
+  const firstPrizeAmount =
+    getFirstPrizeAmount(lottery);
 
   const nextDrawLabel = formatNextDraw(
     lottery
@@ -397,10 +405,16 @@ function LotteryCard({
         <h3>{name}</h3>
 
         <div className="lottery-mobile-card__amount">
-          ₹{formatAmount(ticketPrice)}
+          ₹{formatAmount(firstPrizeAmount)}
         </div>
 
         <div className="lottery-mobile-card__draw">
+          <span>First Prize</span>
+
+          <strong>
+            ₹{formatAmount(firstPrizeAmount)}
+          </strong>
+
           <span>Next Draw</span>
 
           <strong>

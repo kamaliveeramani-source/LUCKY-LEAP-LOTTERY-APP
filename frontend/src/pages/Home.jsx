@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroArtwork from "../assets/hero-artwork.png";
@@ -9,29 +10,23 @@ import "../styles/Home.css";
 const quickActions = [
   { id: "home", label: "Home", icon: "home", path: "/home" },
   { id: "wallet", label: "Wallet", icon: "wallet", path: "/wallet" },
-  { id: "add-cash", label: "Add Cash", icon: "add", path: "/wallet?mode=add" },
+  {
+    id: "add-cash",
+    label: "Add Cash",
+    icon: "add",
+    path: "/wallet?mode=add",
+  },
   { id: "results", label: "Results", icon: "results", path: "/results" },
 ];
 
 const IST_TIME_ZONE = "Asia/Kolkata";
 
-function getIstDateKey(value) {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: IST_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const read = (type) => parts.find((part) => part.type === type)?.value || "";
-  return `${read("year")}-${read("month")}-${read("day")}`;
-}
-
 function formatFeaturedDraw(value) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Next draw";
+
+  if (Number.isNaN(date.getTime())) {
+    return "Next draw";
+  }
 
   return new Intl.DateTimeFormat("en-IN", {
     timeZone: IST_TIME_ZONE,
@@ -50,19 +45,27 @@ function padTime(value) {
 function getNextDrawTarget(hour = 15, minute = 0) {
   const now = new Date();
   const target = new Date();
+
   target.setHours(hour, minute, 0, 0);
+
   if (target.getTime() <= now.getTime()) {
     target.setDate(target.getDate() + 1);
   }
+
   return target.getTime();
 }
 
 function useCountdown(targetTime) {
-  const [remaining, setRemaining] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  const [remaining, setRemaining] = useState({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
     const tick = () => {
       const diff = Math.max(0, targetTime - Date.now());
+
       setRemaining({
         hours: Math.floor(diff / 3600000),
         minutes: Math.floor((diff % 3600000) / 60000),
@@ -71,7 +74,9 @@ function useCountdown(targetTime) {
     };
 
     tick();
+
     const timer = window.setInterval(tick, 1000);
+
     return () => window.clearInterval(timer);
   }, [targetTime]);
 
@@ -89,6 +94,7 @@ function QuickActionIcon({ type }) {
       </svg>
     );
   }
+
   if (type === "wallet") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -99,33 +105,66 @@ function QuickActionIcon({ type }) {
       </svg>
     );
   }
+
   if (type === "add") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M10 4h4v7h7v4h-7v7h-4v-7H3v-4h7V4Z" fill="currentColor" />
+        <path
+          d="M10 4h4v7h7v4h-7v7h-4v-7H3v-4h7V4Z"
+          fill="currentColor"
+        />
       </svg>
     );
   }
+
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="4.5" y="12" width="3.75" height="8" rx="1.1" fill="currentColor" />
-      <rect x="10.125" y="8" width="3.75" height="12" rx="1.1" fill="currentColor" />
-      <rect x="15.75" y="4.5" width="3.75" height="15.5" rx="1.1" fill="currentColor" />
+      <rect
+        x="4.5"
+        y="12"
+        width="3.75"
+        height="8"
+        rx="1.1"
+        fill="currentColor"
+      />
+      <rect
+        x="10.125"
+        y="8"
+        width="3.75"
+        height="12"
+        rx="1.1"
+        fill="currentColor"
+      />
+      <rect
+        x="15.75"
+        y="4.5"
+        width="3.75"
+        height="15.5"
+        rx="1.1"
+        fill="currentColor"
+      />
     </svg>
   );
 }
 
 function Home() {
   const navigate = useNavigate();
+
   const drawTarget = useMemo(() => getNextDrawTarget(15, 0), []);
   const countdown = useCountdown(drawTarget);
+
   const [lotteries, setLotteries] = useState([]);
 
   useEffect(() => {
     const loadLotteries = async () => {
       try {
         const response = await API.get("/lottery/all");
-        setLotteries(Array.isArray(response.data?.data) ? response.data.data : []);
+
+        const lotteryData = Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
+
+        setLotteries(lotteryData);
       } catch (error) {
         console.error("Failed to load Home lotteries", error);
         setLotteries([]);
@@ -135,15 +174,28 @@ function Home() {
     loadLotteries();
   }, []);
 
-  const scheduledLotteries = useMemo(() => {
+  /*
+   * Home page must show exactly three lottery cards.
+   *
+   * We do not filter by today's date here because the backend
+   * draw dates may be stored in different timezone formats.
+   * All valid draws are sorted by draw time, then first three
+   * are displayed on the Home page.
+   */
+  const todaysLotteries = useMemo(() => {
     return [...lotteries]
       .filter((lottery) => {
         const drawTime = Date.parse(lottery?.drawDate);
+
         return Number.isFinite(drawTime);
       })
       .sort((left, right) => {
-        return Date.parse(left.drawDate) - Date.parse(right.drawDate);
-      });
+        return (
+          Date.parse(left.drawDate) -
+          Date.parse(right.drawDate)
+        );
+      })
+      .slice(0, 3);
   }, [lotteries]);
 
   const findLottery = (value) => {
@@ -158,22 +210,38 @@ function Home() {
     const lookup = String(value).trim();
     const numericValue = Number(lookup);
 
-    return lotteries.find((lottery) => {
-      const candidateNames = [lottery?.lotteryName, lottery?.name]
-        .filter(Boolean)
-        .map((name) => String(name).trim().toLowerCase());
+    return (
+      lotteries.find((lottery) => {
+        const candidateNames = [
+          lottery?.lotteryName,
+          lottery?.name,
+        ]
+          .filter(Boolean)
+          .map((name) => String(name).trim().toLowerCase());
 
-      if (!Number.isNaN(numericValue) && Number(lottery?.id) === numericValue) {
-        return true;
-      }
+        if (
+          !Number.isNaN(numericValue) &&
+          Number(lottery?.id) === numericValue
+        ) {
+          return true;
+        }
 
-      return candidateNames.includes(lookup.toLowerCase());
-    }) || null;
+        return candidateNames.includes(lookup.toLowerCase());
+      }) || null
+    );
   };
 
   const featuredLottery =
-    findLottery("Kerala Lottery") || findLottery(1) || lotteries[0] || null;
-  const featuredLotteryName = featuredLottery?.lotteryName || featuredLottery?.name || "Featured Lottery";
+    findLottery("Kerala Lottery") ||
+    findLottery(1) ||
+    lotteries[0] ||
+    null;
+
+  const featuredLotteryName =
+    featuredLottery?.lotteryName ||
+    featuredLottery?.name ||
+    "Featured Lottery";
+
   const featuredDrawLabel = featuredLottery?.drawDate
     ? formatFeaturedDraw(featuredLottery.drawDate)
     : "Next draw";
@@ -193,26 +261,44 @@ function Home() {
             <br />
             Win Big!
           </h1>
+
           <p>Play more, win more</p>
-          <button type="button" className="hero-play-btn" onClick={() => navigate("/lottery")}>
+
+          <button
+            type="button"
+            className="hero-play-btn"
+            onClick={() => navigate("/lottery")}
+          >
             Play Now <span aria-hidden="true">→</span>
           </button>
         </div>
+
         <div className="home-hero__art" aria-hidden="true">
-          <img src={heroArtwork} alt="Lucky Horse lottery draw machine with gold coins" />
+          <img
+            src={heroArtwork}
+            alt="Lucky Horse lottery draw machine with gold coins"
+          />
         </div>
       </section>
 
       <div
         className="live-draw-card"
         onClick={handleFeaturedLotteryClick}
-        onKeyDown={(e) => e.key === "Enter" && handleFeaturedLotteryClick()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleFeaturedLotteryClick();
+          }
+        }}
         role="button"
         tabIndex={0}
       >
         <div className="live-draw-left">
           <div className="live-draw-emblem">
-            <img src={keralaEmblem} alt={featuredLotteryName} />
+            <img
+              src={keralaEmblem}
+              alt={featuredLotteryName}
+            />
           </div>
 
           <div className="live-draw-info">
@@ -222,7 +308,10 @@ function Home() {
           </div>
         </div>
 
-        <div className="live-draw-timer" aria-label="Countdown to draw">
+        <div
+          className="live-draw-timer"
+          aria-label="Countdown to draw"
+        >
           <div className="timer-values">
             <span>{padTime(countdown.hours)}</span>
             <span>:</span>
@@ -240,19 +329,27 @@ function Home() {
       </div>
 
       <div className="todays-draws-header">
-        <h2>All Lottery Draws</h2>
-        <button type="button" onClick={() => navigate("/lottery")}>
+        <h2>Today&apos;s Draws</h2>
+
+        <button
+          type="button"
+          onClick={() => navigate("/lottery")}
+        >
           View All
         </button>
       </div>
 
       <div className="draws-grid lottery-mobile-grid todays-draws-grid">
-        {scheduledLotteries.map((lottery, index) => (
+        {todaysLotteries.map((lottery, index) => (
           <LotteryCard
             key={lottery.id ?? `home-lottery-${index}`}
             lottery={lottery}
             variantIndex={index}
-            onClick={() => lottery?.id && navigate(`/lotterygame?lotteryId=${lottery.id}`)}
+            onClick={() => {
+              if (lottery?.id) {
+                navigate(`/lotterygame?lotteryId=${lottery.id}`);
+              }
+            }}
           />
         ))}
       </div>
@@ -262,13 +359,24 @@ function Home() {
           <button
             key={action.id}
             type="button"
-            className={`home-quick-action ${action.id === "home" ? "is-active" : ""}`}
+            className={`home-quick-action ${
+              action.id === "home" ? "is-active" : ""
+            }`}
             onClick={() => navigate(action.path)}
           >
-            <span className={`home-quick-action-icon ${action.id === "add-cash" ? "home-quick-action-icon--add" : ""}`}>
+            <span
+              className={`home-quick-action-icon ${
+                action.id === "add-cash"
+                  ? "home-quick-action-icon--add"
+                  : ""
+              }`}
+            >
               <QuickActionIcon type={action.icon} />
             </span>
-            <span className="home-quick-action-label">{action.label}</span>
+
+            <span className="home-quick-action-label">
+              {action.label}
+            </span>
           </button>
         ))}
       </section>
@@ -278,7 +386,12 @@ function Home() {
         onClick={() => navigate("/about")}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === "Enter" && navigate("/about")}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            navigate("/about");
+          }
+        }}
       >
         <div className="home-trust-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
@@ -286,6 +399,7 @@ function Home() {
               d="M12 2.35 4.75 5.55v5.95c0 4.55 3.05 8.45 7.25 10.05 4.2-1.6 7.25-5.5 7.25-10.05V5.55L12 2.35Z"
               fill="currentColor"
             />
+
             <path
               d="m9.6 12.15 1.85 1.85 4.15-4.2"
               fill="none"
@@ -296,13 +410,25 @@ function Home() {
             />
           </svg>
         </div>
+
         <div className="home-trust-copy">
           <strong>Play Safe. Play Legal.</strong>
           <span>100% Secure &amp; Trusted</span>
         </div>
-        <span className="home-trust-arrow" aria-hidden="true">
+
+        <span
+          className="home-trust-arrow"
+          aria-hidden="true"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M9.5 7.5 15 12l-5.5 4.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M9.5 7.5 15 12l-5.5 4.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </span>
       </section>

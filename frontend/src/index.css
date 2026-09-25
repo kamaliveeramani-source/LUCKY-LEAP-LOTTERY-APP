@@ -27,7 +27,7 @@ html {
   --shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
   --card-shadow: 0 24px 45px rgba(15, 23, 42, 0.08);
   --code-bg: #f8fafc;
-  --app-font: "Inter", sans-serif;
+  --app-font: "Poppins", "Inter", -apple-system, sans-serif;
   --font: var(--app-font);
   --heading: var(--app-font);
   --app-max-width: 430px;
@@ -35,6 +35,31 @@ html {
   --transition: 250ms ease;
   --input-bg: rgba(15, 23, 42, 0.05);
   --input-border: rgba(15, 23, 42, 0.12);
+
+  /* Centralized typography tokens (single source of truth — do not declare font-family/weights ad hoc). */
+  --font-family-primary: var(--app-font);
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  --text-page-title: 700 clamp(1.4rem, 5vw, 1.9rem) / 1.15 var(--font-family-primary);
+  --text-section-title: 700 clamp(1.05rem, 4vw, 1.25rem) / 1.2 var(--font-family-primary);
+  --text-card-title: 700 0.95rem / 1.2 var(--font-family-primary);
+  --text-lottery-name: 800 0.85rem / 1.15 var(--font-family-primary);
+  --text-jackpot-amount: 800 clamp(1rem, 4.7vw, 1.25rem) / 1.15 var(--font-family-primary);
+  --text-winning-amount: 800 0.95rem / 1.1 var(--font-family-primary);
+  --text-entry-amount: 600 0.8rem / 1.1 var(--font-family-primary);
+  --text-body: 400 0.9rem / 1.5 var(--font-family-primary);
+  --text-small-label: 700 0.62rem / 1.2 var(--font-family-primary);
+  --text-button: 700 0.85rem / 1 var(--font-family-primary);
+  --text-nav-label: 500 0.68rem / 1.1 var(--font-family-primary);
+  --text-tab: 600 0.8rem / 1.2 var(--font-family-primary);
+  --text-input: 500 0.9rem / 1.3 var(--font-family-primary);
+  --text-notification: 500 0.82rem / 1.4 var(--font-family-primary);
+  --text-countdown: 800 1.1rem / 1 var(--font-family-primary);
+
   color-scheme: light;
   color: var(--text);
   background: var(--bg);
@@ -222,6 +247,36 @@ body.theme-dark .fixed-app-header {
 
 .header-action-btn:hover {
   background: rgba(15, 23, 42, 0.08);
+}
+
+.header-actions--guest {
+  gap: 8px;
+}
+
+.header-auth-btn {
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.header-auth-btn--ghost {
+  background: transparent;
+  border-color: rgba(15, 23, 42, 0.18);
+  color: var(--text);
+}
+
+.header-auth-btn--solid {
+  background: var(--accent, #f7931e);
+  color: #fff;
+}
+
+body.theme-dark .header-auth-btn--ghost {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text);
 }
 
 .notification-card {

@@ -1,17 +1,45 @@
 import { useEffect, useState } from "react";
-import { getNotifications, markAllRead } from "../services/notificationService";
+import API, { getAuthToken } from "../services/api";
 
 function Notifications() {
   const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setNotifications(getNotifications());
-    markAllRead();
+    loadNotifications();
   }, []);
+
+  const loadNotifications = async () => {
+    if (!getAuthToken()) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await API.get("/notifications");
+      setNotifications(Array.isArray(response.data?.data) ? response.data.data : []);
+      await API.patch("/notifications/read-all");
+    } catch (error) {
+      console.error("Failed to load notifications", error);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
       <div className="page-content notifications-page-content">
-        {notifications.length === 0 ? (
+        {loading ? (
+          <div className="notification-card empty-card">
+            <div className="notification-content">
+              <div className="notification-info">
+                <div className="notification-title">Loading notifications...</div>
+              </div>
+            </div>
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="notification-card empty-card">
             <div className="notification-content">
               <div className="notification-info">
@@ -31,7 +59,7 @@ function Notifications() {
                 </div>
                 <div className="notification-meta">
                   <div className={`notification-dot ${notification.read ? "read" : "unread"}`} />
-                  <span className="notification-time">{new Date(notification.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="notification-time">{new Date(notification.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
               </div>
             </div>
@@ -42,3 +70,4 @@ function Notifications() {
 }
 
 export default Notifications;
+

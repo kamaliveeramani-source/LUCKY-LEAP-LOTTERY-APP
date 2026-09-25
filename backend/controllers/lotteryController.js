@@ -5,6 +5,7 @@ const User = require("../models/User");
 const Wallet = require("../models/Wallet");
 const WinningResult = require("../models/WinningResult");
 const { safeRecordActivity } = require("../services/operationalEvents");
+const { withComputedStatus, withComputedStatusList } = require("../utils/drawStatus");
 
 // ==========================================
 // CREATE LOTTERY
@@ -84,7 +85,7 @@ exports.getLotteries = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: lotteries,
+      data: withComputedStatusList(lotteries),
     });
   } catch (error) {
     console.error("Get Lotteries Error:", error);
@@ -133,7 +134,7 @@ exports.getLotteryById = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: lottery,
+      data: withComputedStatus(lottery),
     });
   } catch (error) {
     console.error("Get Lottery By Id Error:", error);

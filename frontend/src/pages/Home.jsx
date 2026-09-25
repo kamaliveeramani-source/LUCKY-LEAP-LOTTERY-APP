@@ -6,33 +6,42 @@ import API from "../services/api";
 import LotteryCard from "../components/LotteryCard";
 import "../styles/Home.css";
 
-const todaysDraws = [
-  {
-    name: "Win Win",
-    time: "1:00 PM",
-    drawPill: "Draw 2:00 PM",
-    variant: "purple",
-  },
-  {
-    name: "Akshaya",
-    time: "6:00 PM",
-    drawPill: "Draw 6:00 PM",
-    variant: "orange",
-  },
-  {
-    name: "Karunya Plus",
-    time: "8:00 PM",
-    drawPill: "Draw 8:00 PM",
-    variant: "blue",
-  },
-];
-
 const quickActions = [
   { id: "home", label: "Home", icon: "home", path: "/home" },
   { id: "wallet", label: "Wallet", icon: "wallet", path: "/wallet" },
   { id: "add-cash", label: "Add Cash", icon: "add", path: "/wallet?mode=add" },
   { id: "results", label: "Results", icon: "results", path: "/results" },
 ];
+
+const IST_TIME_ZONE = "Asia/Kolkata";
+
+function getIstDateKey(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: IST_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const read = (type) => parts.find((part) => part.type === type)?.value || "";
+  return `${read("year")}-${read("month")}-${read("day")}`;
+}
+
+function formatFeaturedDraw(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Next draw";
+
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: IST_TIME_ZONE,
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}
 
 function padTime(value) {
   return String(value).padStart(2, "0");
@@ -126,6 +135,18 @@ function Home() {
     loadLotteries();
   }, []);
 
+  const todaysLotteries = useMemo(() => {
+    const todayKey = getIstDateKey(new Date());
+
+    return lotteries
+      .filter((lottery) => {
+        const drawTime = Date.parse(lottery?.drawDate);
+        return Number.isFinite(drawTime) && getIstDateKey(new Date(drawTime)) === todayKey;
+      })
+      .sort((left, right) => Date.parse(left.drawDate) - Date.parse(right.drawDate))
+      .slice(0, 3);
+  }, [lotteries]);
+
   const findLottery = (value) => {
     if (!Array.isArray(lotteries) || lotteries.length === 0) {
       return null;
@@ -153,14 +174,10 @@ function Home() {
 
   const featuredLottery =
     findLottery("Kerala Lottery") || findLottery(1) || lotteries[0] || null;
-  const featuredLotteryName = featuredLottery?.lotteryName || "Kerala Lottery";
-
-  const navigateToLotteryGame = (value) => {
-    const lottery = findLottery(value);
-    if (lottery?.id) {
-      navigate(`/lotterygame?lotteryId=${lottery.id}`);
-    }
-  };
+  const featuredLotteryName = featuredLottery?.lotteryName || featuredLottery?.name || "Featured Lottery";
+  const featuredDrawLabel = featuredLottery?.drawDate
+    ? formatFeaturedDraw(featuredLottery.drawDate)
+    : "Next draw";
 
   const handleFeaturedLotteryClick = () => {
     if (featuredLottery?.id) {
@@ -183,7 +200,7 @@ function Home() {
           </button>
         </div>
         <div className="home-hero__art" aria-hidden="true">
-          <img src={heroArtwork} alt="Thumbi lottery draw machine with gold coins" />
+          <img src={heroArtwork} alt="Lucky Horse lottery draw machine with gold coins" />
         </div>
       </section>
 
@@ -201,7 +218,7 @@ function Home() {
 
           <div className="live-draw-info">
             <h3>{featuredLotteryName}</h3>
-            <p>Today, 3:00 PM</p>
+            <p>{featuredDrawLabel}</p>
             <span className="live-pill">LIVE DRAW</span>
           </div>
         </div>
@@ -230,20 +247,15 @@ function Home() {
         </button>
       </div>
 
-      <div className="draws-grid">
-        {todaysDraws.map((draw) => {
-          const lottery = findLottery(draw.name);
-          if (!lottery?.id) return null;
-
-          return (
-            <LotteryCard
-              key={lottery.id}
-              lottery={lottery}
-              variant={draw.variant}
-              onClick={() => navigateToLotteryGame(draw.name)}
-            />
-          );
-        })}
+      <div className="draws-grid lottery-mobile-grid todays-draws-grid">
+        {todaysLotteries.map((lottery, index) => (
+          <LotteryCard
+            key={lottery.id ?? `home-lottery-${index}`}
+            lottery={lottery}
+            variantIndex={index}
+            onClick={() => lottery?.id && navigate(`/lotterygame?lotteryId=${lottery.id}`)}
+          />
+        ))}
       </div>
 
       <section className="home-quick-actions">

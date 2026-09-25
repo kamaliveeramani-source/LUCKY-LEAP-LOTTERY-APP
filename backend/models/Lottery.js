@@ -43,6 +43,10 @@ const Lottery = sequelize.define("Lottery", {
       type: DataTypes.DATE,
       allowNull: true,
     },
+    declaredByUserId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,

@@ -1,6 +1,7 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppLogo from "./AppLogo";
 import { useWallet } from "../context/WalletContext";
+import { getAuthToken, clearAuthToken } from "../services/api";
 
 function IconMenu() {
   return (
@@ -26,10 +27,26 @@ function IconUser() {
   );
 }
 
+function IconLogout() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h12" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function Header({ onMenuClick, onNotificationsClick, onSearchClick }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { balance } = useWallet();
   const isBetsPage = location.pathname === "/bets";
+  const isHomeRoute = location.pathname === "/" || location.pathname === "/home";
+  const isAuthed = !!getAuthToken();
+
+  const handleLogout = () => {
+    clearAuthToken();
+    navigate("/", { replace: true });
+  };
 
   return (
     <header className={`fixed-app-header ${isBetsPage ? "fixed-app-header--bets" : ""}`}>
@@ -42,14 +59,27 @@ function Header({ onMenuClick, onNotificationsClick, onSearchClick }) {
 
       {isBetsPage && <div className="header-bets-balance"><span>My Balance</span><strong>₹{Number(balance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong></div>}
 
-      <div className="header-actions">
-        <button type="button" className="icon-btn header-action-btn header-bell-btn" onClick={onNotificationsClick} aria-label="Notifications">
-          <IconBell />
-        </button>
-        <button type="button" className="icon-btn header-action-btn header-profile-btn" onClick={onSearchClick} aria-label="Profile">
-          <IconUser />
-        </button>
-      </div>
+      {isHomeRoute && !isAuthed ? (
+        <div className="header-actions header-actions--guest">
+          <button type="button" className="header-auth-btn header-auth-btn--ghost" onClick={() => navigate("/login")}>
+            Login
+          </button>
+        </div>
+      ) : (
+        <div className="header-actions">
+          <button type="button" className="icon-btn header-action-btn header-bell-btn" onClick={onNotificationsClick} aria-label="Notifications">
+            <IconBell />
+          </button>
+          <button type="button" className="icon-btn header-action-btn header-profile-btn" onClick={onSearchClick} aria-label="Profile">
+            <IconUser />
+          </button>
+          {isHomeRoute && isAuthed && (
+            <button type="button" className="icon-btn header-action-btn header-logout-btn" onClick={handleLogout} aria-label="Logout">
+              <IconLogout />
+            </button>
+          )}
+        </div>
+      )}
     </header>
   );
 }

@@ -292,17 +292,23 @@
   font-family: inherit;
 }
 
-/* ── Today's Draws grid (3-up, reference layout) ── */
+/* ── Today's Draws grid ── */
 .home-screen .draws-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   width: 100%;
   max-width: 100%;
   margin: 0 0 12px;
   padding: 0;
   overflow: visible;
   box-sizing: border-box;
+}
+
+@media (min-width: 400px) {
+  .home-screen .draws-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .home-screen .draws-grid > .draw-card {

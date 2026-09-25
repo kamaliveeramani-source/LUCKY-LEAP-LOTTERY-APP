@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { useWallet } from "../context/WalletContext";
 import { useNotification } from "../context/NotificationContext";
@@ -7,6 +7,10 @@ import AppLogo from "../components/AppLogo";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from?.pathname
+    ? `${location.state.from.pathname}${location.state.from.search || ""}`
+    : "/dashboard";
 
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
@@ -78,7 +82,7 @@ function Login() {
 
       notify("success", "Login Successful");
 
-      navigate("/dashboard", { replace: true });
+      navigate(redirectTo, { replace: true });
 
     } catch (err) {
       console.error("[LOGIN] Login error:", err);
@@ -104,7 +108,7 @@ function Login() {
           <h1 className="auth-title">Sign In</h1>
 
           <p className="auth-subtitle">
-            Welcome back! Sign in to your Thumbi Lotteries account.
+            Welcome back! Sign in to your Lucky Horse Lotteries account.
           </p>
         </div>
 
@@ -179,7 +183,7 @@ function Login() {
         </form>
 
         <div className="auth-footer">
-          New to Thumbi Lotteries?{" "}
+          New to Lucky Horse Lotteries?{" "}
           <Link to="/register" className="auth-link">
             Create Account
           </Link>

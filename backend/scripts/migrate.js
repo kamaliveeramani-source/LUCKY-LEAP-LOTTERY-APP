@@ -26,6 +26,10 @@ const migrations = [
   require("../migrations/009-add-real-game-ticket-fields"),
   require("../migrations/010-allow-game-tickets-without-lottery"),
   require("../migrations/011-drop-lottery-required-for-game-tickets"),
+  require("../migrations/012-add-lottery-declared-by"),
+  require("../migrations/013-add-lottery-winning-amounts"),
+  require("../migrations/014-align-upcoming-draw-times"),
+  require("../migrations/015-repair-future-lottery-status"),
 ];
 
 async function migrate() {

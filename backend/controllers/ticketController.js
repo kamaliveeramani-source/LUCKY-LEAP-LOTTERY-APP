@@ -3,6 +3,7 @@ const { Op } = require("sequelize");
 const sequelize = require("../config/database");
 const Ticket = require("../models/Ticket");
 const Lottery = require("../models/Lottery");
+const WinningResult = require("../models/WinningResult");
 const GameDefinition = require("../models/GameDefinition");
 const GameRound = require("../models/GameRound");
 const GameOption = require("../models/GameOption");
@@ -384,6 +385,7 @@ exports.getMyTickets = async (req, res) => {
       include: [
         {
           model: Lottery,
+          include: [{ model: WinningResult, as: "winningResults", required: false, where: { status: "DECLARED" } }],
         },
         {
           model: GameDefinition,

@@ -26,7 +26,7 @@ API.interceptors.response.use(
       localStorage.removeItem("adminToken");
       localStorage.removeItem("adminName");
       if (window.location.pathname !== "/login" && window.location.pathname !== "/admin/login") {
-        window.location.assign("/admin/login");
+        window.location.assign("/login");
       }
     }
     return Promise.reject(error);
@@ -51,17 +51,33 @@ const navItems = [
 ];
 
 const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
-const dateText = (value) => value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }) : "-";
-const timeText = (value) => value ? new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
+const IST_FORMAT = { timeZone: "Asia/Kolkata" };
+const dateText = (value) => value ? new Date(value).toLocaleDateString("en-IN", { ...IST_FORMAT, day: "2-digit", month: "short", year: "numeric" }) : "-";
+const timeText = (value) => value ? new Date(value).toLocaleTimeString("en-IN", { ...IST_FORMAT, hour: "2-digit", minute: "2-digit", hour12: true }) : "-";
+const istInputParts = (value) => new Intl.DateTimeFormat("en-CA", { ...IST_FORMAT, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(value)).reduce((parts, item) => ({ ...parts, [item.type]: item.value }), {});
+const istInputDate = (value) => { const parts = istInputParts(value); return `${parts.year}-${parts.month}-${parts.day}`; };
+const istInputTime = (value) => { const parts = istInputParts(value); return `${parts.hour}:${parts.minute}`; };
 const getData = (response) => response.data?.data ?? [];
+const DRAW_STATUS_LABELS = { UPCOMING: "Upcoming", READY_FOR_RESULT: "Ready for Result", COMPLETED: "Completed" };
+const DRAW_STATUS_BADGE_CLASS = { UPCOMING: "upcoming", READY_FOR_RESULT: "ready", COMPLETED: "success" };
+function formatCountdown(drawDate) {
+  const diffMs = new Date(drawDate).getTime() - Date.now();
+  if (!Number.isFinite(diffMs) || diffMs <= 0) return "Draw time has passed";
+  const minutes = Math.round(diffMs / 60000);
+  if (minutes < 60) return `Draw in ${minutes} minute${minutes === 1 ? "" : "s"}`;
+  const hours = Math.floor(minutes / 60);
+  const remMinutes = minutes % 60;
+  return `Draw in ${hours}h ${remMinutes}m`;
+}
 
 function ProtectedRoute({ children }) {
-  return localStorage.getItem("adminToken") ? children : <Navigate to="/admin/login" replace />;
+  return localStorage.getItem("adminToken") ? children : <Navigate to="/login" replace />;
 }
 
 function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: "admin", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -85,7 +101,7 @@ function Login() {
     }
   }
 
-  return <main className="auth-screen"><section className="auth-panel"><img className="brand-logo auth-logo" src={thumbiLogo} alt="Thumbi Lotteries logo" /><h1>Thumbi Lotteries</h1><p>Manage draws, players, tickets, and payouts in one place.</p><form onSubmit={submit}><label>Username<input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} /></label><label>Password<input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>{error && <div className="error-box">{error}</div>}<button className="primary-button wide" disabled={busy}>{busy ? "Logging in..." : "Login"}</button></form><small>Administrator access is verified securely.</small></section></main>;
+  return <main className="auth-screen"><section className="auth-panel"><img className="brand-logo auth-logo" src={thumbiLogo} alt="Lucky Horse Lotteries logo" /><h1>Lucky Horse Lotteries</h1><p>Manage draws, players, tickets, and payouts in one place.</p><form onSubmit={submit}><label>Username or email<input required autoFocus value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} /></label><label>Password<div className="password-field"><input required type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /><button type="button" className="password-toggle" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div></label>{error && <div className="error-box">{error}</div>}<button className="primary-button wide" disabled={busy}>{busy ? "Logging in..." : "Login"}</button></form><small>Administrator access is verified securely.</small></section></main>;
 }
 
 function NotificationBell() { const [unread, setUnread] = useState(0); useEffect(() => { async function load() { try { setUnread(getData(await API.get("/admin/notifications")).filter((item) => !item.read).length); } catch { setUnread(0); } } load(); const timer = setInterval(load, 30000); return () => clearInterval(timer); }, []); return <Link className="header-bell" to="/notifications" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>♢{unread > 0 && <b className="notification-count">{unread > 99 ? "99+" : unread}</b>}</Link>; }
@@ -93,8 +109,8 @@ function NotificationBell() { const [unread, setUnread] = useState(0); useEffect
 function Shell() {
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
-  function logout() { localStorage.removeItem("adminToken"); localStorage.removeItem("adminName"); navigate("/admin/login", { replace: true }); }
-  return <div className="admin-app"><aside className={mobileNav ? "sidebar open" : "sidebar"}><div className="sidebar-brand"><img className="brand-logo sidebar-logo" src={thumbiLogo} alt="Thumbi Lotteries logo" /><div><strong>Thumbi Lotteries</strong><span>Admin</span></div></div><nav>{navItems.map(([label, path, icon]) => <NavLink key={path} to={path} onClick={() => setMobileNav(false)} className={({ isActive }) => isActive ? "active" : ""}><i>{icon}</i>{label}</NavLink>)}</nav><div className="sidebar-foot"><span className="status-dot" />Live API connected</div></aside><div className="main-area"><header className="topbar"><button className="menu-button" onClick={() => setMobileNav(!mobileNav)} aria-label="Open navigation">☰</button><div><span className="eyebrow">Thumbi Lotteries</span><strong>Administration</strong></div><div className="topbar-user"><NotificationBell /><span className="avatar">A</span><span className="user-name">Admin</span><button className="ghost-button" onClick={logout}>Log out</button></div></header><main className="content"><Outlet /></main></div></div>;
+  function logout() { localStorage.removeItem("adminToken"); localStorage.removeItem("adminName"); navigate("/login", { replace: true }); }
+  return <div className="admin-app"><aside className={mobileNav ? "sidebar open" : "sidebar"}><div className="sidebar-brand"><img className="brand-logo sidebar-logo" src={thumbiLogo} alt="Lucky Horse Lotteries logo" /><div><strong>Lucky Horse Lotteries</strong><span>Admin</span></div></div><nav>{navItems.map(([label, path, icon]) => <NavLink key={path} to={path} onClick={() => setMobileNav(false)} className={({ isActive }) => isActive ? "active" : ""}><i>{icon}</i>{label}</NavLink>)}</nav><div className="sidebar-foot"><span className="status-dot" />Live API connected</div></aside><div className="main-area"><header className="topbar"><button className="menu-button" onClick={() => setMobileNav(!mobileNav)} aria-label="Open navigation">☰</button><div><span className="eyebrow">Lucky Horse Lotteries</span><strong>Administration</strong></div><div className="topbar-user"><NotificationBell /><span className="avatar">A</span><span className="user-name">Admin</span><button className="ghost-button" onClick={logout}>Log out</button></div></header><main className="content"><Outlet /></main></div></div>;
 }
 
 function PageHeader({ eyebrow, title, description, action }) { return <div className="page-header"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1>{description && <p>{description}</p>}</div>{action}</div>; }
@@ -105,17 +121,19 @@ function StatusBadge({ active = true, label }) { return <span className={`status
 
 function Dashboard() {
   const [state, setState] = useState({ loading: true, error: "", data: null });
+  const [, setTick] = useState(0);
   async function load() { try { setState({ loading: true, error: "", data: null }); setState({ loading: false, error: "", data: getData(await API.get("/admin/dashboard")) }); } catch (e) { setState({ loading: false, error: e.response?.data?.message || e.message, data: null }); } }
   useEffect(() => { load(); }, []);
+  useEffect(() => { const timer = setInterval(() => setTick((value) => value + 1), 30000); return () => clearInterval(timer); }, []);
   const cards = state.data ? [["Total users", state.data.totalUsers, "Registered accounts", "blue"], ["Total lotteries", state.data.totalLotteries, "Available draws", "purple"], ["Today's bets", state.data.todaysBets, "Tickets created today", "amber"], ["Today's betting amount", money(state.data.todaysBettingAmount), "Ticket value today", "green"], ["Total winners", state.data.totalWinners, "Winning tickets", "rose"], ["Total winning amount", money(state.data.totalWinningAmount), "Paid and recorded", "teal"], ["Total deposits", money(state.data.totalDeposits), "Wallet deposits", "indigo"], ["Total withdrawals", money(state.data.totalWithdrawals), "Wallet withdrawals", "orange"]] : [];
-  return <><PageHeader eyebrow="Overview" title="Dashboard" description="A live summary of activity across the lottery platform." action={<button className="secondary-button" onClick={load}>↻ Refresh</button>} />{state.loading ? <Loading /> : state.error ? <ErrorState message={state.error} retry={load} /> : <><div className="metric-grid">{cards.map(([label, value, hint, color]) => <article className={`metric-card ${color}`} key={label}><div className="metric-icon">✦</div><span>{label}</span><strong>{value}</strong><small>{hint}</small></article>)}</div><section className="panel daily-updates"><div className="panel-title"><div><span className="eyebrow">Today</span><h2>Daily updates</h2></div><Link className="text-button" to="/activity">View activity →</Link></div><div className="daily-grid"><strong>{state.data.activeLotteries} <small>active lotteries</small></strong><strong>{state.data.dailyActivity?.newUsers || 0} <small>new users</small></strong><strong>{state.data.dailyActivity?.tickets || 0} <small>tickets today</small></strong><strong>{state.data.dailyActivity?.winners || 0} <small>winners today</small></strong></div>{state.data.recentActivity?.length ? <div className="activity-timeline">{state.data.recentActivity.slice(0, 6).map((item) => <div key={item.id}><i /> <span><strong>{item.title}</strong>{item.message}<small>{dateText(item.createdAt)} {timeText(item.createdAt)}</small></span></div>)}</div> : <Empty text="No activity recorded yet." />}</section></>}<section className="panel dashboard-note"><div className="panel-title"><div><span className="eyebrow">Quick access</span><h2>Keep the operation moving</h2></div></div><div className="quick-links">{[["Review lotteries", "/lotteries", "Manage schedules and status"], ["Inspect tickets", "/tickets", "Search recent purchases"], ["Review winners", "/winners", "Draw pending lotteries"]].map(([title, path, text]) => <Link to={path} className="quick-link" key={path}><strong>{title}</strong><span>{text}</span><b>→</b></Link>)}</div></section></>;
+  return <><PageHeader eyebrow="Overview" title="Dashboard" description="A live summary of activity across the lottery platform." action={<button className="secondary-button" onClick={load}>↻ Refresh</button>} />{state.loading ? <Loading /> : state.error ? <ErrorState message={state.error} retry={load} /> : <><div className="metric-grid">{cards.map(([label, value, hint, color]) => <article className={`metric-card ${color}`} key={label}><div className="metric-icon">✦</div><span>{label}</span><strong>{value}</strong><small>{hint}</small></article>)}</div><section className="panel daily-updates"><div className="panel-title"><div><span className="eyebrow">Today</span><h2>Daily updates</h2></div><Link className="text-button" to="/activity">View activity →</Link></div><div className="daily-grid"><strong>{state.data.activeLotteries} <small>active lotteries</small></strong><strong>{state.data.dailyActivity?.newUsers || 0} <small>new users</small></strong><strong>{state.data.dailyActivity?.tickets || 0} <small>tickets today</small></strong><strong>{state.data.dailyActivity?.winners || 0} <small>winners today</small></strong></div>{state.data.recentActivity?.length ? <div className="activity-timeline">{state.data.recentActivity.slice(0, 6).map((item) => <div key={item.id}><i /> <span><strong>{item.title}</strong>{item.message}<small>{dateText(item.createdAt)} {timeText(item.createdAt)}</small></span></div>)}</div> : <Empty text="No activity recorded yet." />}</section></>}<section className="panel next-draw-panel"><div className="panel-title"><div><span className="eyebrow">Upcoming</span><h2>Next Draw</h2></div>{state.data?.nextDraw && <span className={`status-badge ${DRAW_STATUS_BADGE_CLASS[state.data.nextDraw.drawStatus] || "upcoming"}`}><span />{DRAW_STATUS_LABELS[state.data.nextDraw.drawStatus] || state.data.nextDraw.drawStatus}</span>}</div>{state.data?.nextDraw ? <div className="daily-grid"><strong>{state.data.nextDraw.lotteryName}<small>Lottery</small></strong><strong>{dateText(state.data.nextDraw.drawDate)}<small>Draw date</small></strong><strong>{timeText(state.data.nextDraw.drawDate)}<small>Draw time</small></strong><strong>{state.data.nextDraw.drawStatus === "COMPLETED" ? "Result declared" : state.data.nextDraw.drawStatus === "READY_FOR_RESULT" ? "Waiting for result" : formatCountdown(state.data.nextDraw.drawDate)}<small>Status</small></strong></div> : <Empty text="No upcoming draws scheduled." />}</section><section className="panel dashboard-note"><div className="panel-title"><div><span className="eyebrow">Quick access</span><h2>Keep the operation moving</h2></div></div><div className="quick-links">{[["Review lotteries", "/lotteries", "Manage schedules and status"], ["Inspect tickets", "/tickets", "Search recent purchases"], ["Review winners", "/winners", "Draw pending lotteries"]].map(([title, path, text]) => <Link to={path} className="quick-link" key={path}><strong>{title}</strong><span>{text}</span><b>→</b></Link>)}</div></section></>;
 }
 
 const initialLottery = { lotteryName: "", drawDate: "", drawTime: "", ticketPrice: "", firstPrize: "", secondPrize: "", thirdPrize: "", totalTickets: "" };
 function LotteryForm({ value, onChange, onCancel, onSubmit, busy, edit }) { return <form className="form-grid" onSubmit={onSubmit}><label className="span-2">Lottery name<input required value={value.lotteryName} onChange={(e) => onChange({ ...value, lotteryName: e.target.value })} placeholder="Enter lottery name" /></label><label>Draw date<input required type="date" value={value.drawDate} onChange={(e) => onChange({ ...value, drawDate: e.target.value })} /></label><label>Draw time<input required type="time" value={value.drawTime} onChange={(e) => onChange({ ...value, drawTime: e.target.value })} /></label><label>Ticket price<input required min="0" step="0.01" type="number" value={value.ticketPrice} onChange={(e) => onChange({ ...value, ticketPrice: e.target.value })} /></label><label>Total tickets<input min="0" type="number" value={value.totalTickets} onChange={(e) => onChange({ ...value, totalTickets: e.target.value })} /></label><div className="form-divider span-2">Prize details</div><label>First prize<input required min="0" step="0.01" type="number" value={value.firstPrize} onChange={(e) => onChange({ ...value, firstPrize: e.target.value })} /></label><label>Second prize<input min="0" step="0.01" type="number" value={value.secondPrize} onChange={(e) => onChange({ ...value, secondPrize: e.target.value })} /></label><label>Third prize<input min="0" step="0.01" type="number" value={value.thirdPrize} onChange={(e) => onChange({ ...value, thirdPrize: e.target.value })} /></label><div className="form-actions span-2"><button type="button" className="secondary-button" onClick={onCancel}>Cancel</button><button className="primary-button" disabled={busy}>{busy ? "Saving..." : edit ? "Save changes" : "Add lottery"}</button></div></form>; }
-function lotteryFormFrom(item) { const date = item.drawDate ? new Date(item.drawDate) : null; return { lotteryName: item.lotteryName || "", drawDate: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : "", drawTime: date ? `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}` : "", ticketPrice: item.ticketPrice || "", firstPrize: item.firstPrize || "", secondPrize: item.secondPrize || "", thirdPrize: item.thirdPrize || "", totalTickets: item.totalTickets || "" }; }
+function lotteryFormFrom(item) { const date = item.drawDate ? new Date(item.drawDate) : null; return { lotteryName: item.lotteryName || "", drawDate: date ? istInputDate(date) : "", drawTime: date ? istInputTime(date) : "", ticketPrice: item.ticketPrice || "", firstPrize: item.firstPrize || "", secondPrize: item.secondPrize || "", thirdPrize: item.thirdPrize || "", totalTickets: item.totalTickets || "" }; }
 function LotteryEntryAmounts() {
-  const emptyForm = { singleDigitAmount: "", doubleDigitAmount: "", tripleDigitAmount: "" };
+  const emptyForm = { singleDigitAmount: "", doubleDigitAmount: "", tripleDigitAmount: "", singleDigitWinningAmount: "", doubleDigitWinningAmount: "", tripleDigitWinningAmount: "" };
   const [saved, setSaved] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
@@ -133,6 +151,9 @@ function LotteryEntryAmounts() {
         singleDigitAmount: data.singleDigitAmount,
         doubleDigitAmount: data.doubleDigitAmount,
         tripleDigitAmount: data.tripleDigitAmount,
+        singleDigitWinningAmount: data.singleDigitWinningAmount,
+        doubleDigitWinningAmount: data.doubleDigitWinningAmount,
+        tripleDigitWinningAmount: data.tripleDigitWinningAmount,
       });
     } catch (e) {
       setError(e.response?.data?.message || e.message);
@@ -154,7 +175,8 @@ function LotteryEntryAmounts() {
 
   async function save(event) {
     event.preventDefault();
-    const message = validate(form.singleDigitAmount, "Single Digit") || validate(form.doubleDigitAmount, "Double Digit") || validate(form.tripleDigitAmount, "Triple Digit");
+    const message = validate(form.singleDigitAmount, "Single Digit entry amount") || validate(form.doubleDigitAmount, "Double Digit entry amount") || validate(form.tripleDigitAmount, "Triple Digit entry amount")
+      || validate(form.singleDigitWinningAmount, "Single Digit winning amount") || validate(form.doubleDigitWinningAmount, "Double Digit winning amount") || validate(form.tripleDigitWinningAmount, "Triple Digit winning amount");
     if (message) {
       setNotice("");
       setError(message);
@@ -167,6 +189,9 @@ function LotteryEntryAmounts() {
         singleDigitAmount: Number(form.singleDigitAmount),
         doubleDigitAmount: Number(form.doubleDigitAmount),
         tripleDigitAmount: Number(form.tripleDigitAmount),
+        singleDigitWinningAmount: Number(form.singleDigitWinningAmount),
+        doubleDigitWinningAmount: Number(form.doubleDigitWinningAmount),
+        tripleDigitWinningAmount: Number(form.tripleDigitWinningAmount),
       });
       const data = response.data?.data || {};
       setSaved(data);
@@ -174,6 +199,9 @@ function LotteryEntryAmounts() {
         singleDigitAmount: data.singleDigitAmount,
         doubleDigitAmount: data.doubleDigitAmount,
         tripleDigitAmount: data.tripleDigitAmount,
+        singleDigitWinningAmount: data.singleDigitWinningAmount,
+        doubleDigitWinningAmount: data.doubleDigitWinningAmount,
+        tripleDigitWinningAmount: data.tripleDigitWinningAmount,
       });
       setNotice("Lottery entry amounts saved.");
     } catch (e) {
@@ -187,6 +215,12 @@ function LotteryEntryAmounts() {
     ["singleDigitAmount", "Single Digit"],
     ["doubleDigitAmount", "Double Digit"],
     ["tripleDigitAmount", "Triple Digit"],
+  ];
+
+  const winningFields = [
+    ["singleDigitWinningAmount", "Single Digit"],
+    ["doubleDigitWinningAmount", "Double Digit"],
+    ["tripleDigitWinningAmount", "Triple Digit"],
   ];
 
   return (
@@ -212,6 +246,24 @@ function LotteryEntryAmounts() {
                   />
                 </label>
                 <small>Current saved value: {saved ? `${Number(saved[key]).toLocaleString("en-IN", { maximumFractionDigits: 2 })} demo credits` : "Not saved yet"}</small>
+              </article>
+            ))}
+            <div className="form-divider span-2">Winning / Prize Amounts (paid to a winning ticket — separate from the entry amount above)</div>
+            {winningFields.map(([key, label]) => (
+              <article className="lottery-amount-card" key={key}>
+                <span className="eyebrow">{label}</span>
+                <label>
+                  Winning amount (₹)
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    required
+                    value={form[key]}
+                    onChange={(event) => setForm({ ...form, [key]: event.target.value })}
+                  />
+                </label>
+                <small>Current saved value: {saved ? money(saved[key]) : "Not saved yet"}</small>
               </article>
             ))}
             <div className="form-actions span-2 lottery-amount-actions">
@@ -241,7 +293,7 @@ function Reports() { const [dashboard, setDashboard] = useState(null); const [ti
 function NotificationCenter() { const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); async function load() { setLoading(true); try { setItems(getData(await API.get("/admin/notifications"))); } finally { setLoading(false); } } useEffect(() => { load(); const timer = setInterval(load, 30000); return () => clearInterval(timer); }, []); async function mark(id) { await API.patch(`/admin/notifications/${id}/read`); await load(); } async function markAll() { await API.patch("/admin/notifications/read-all"); await load(); } return <><PageHeader eyebrow="Updates" title="Notifications" description="Real operational events from the platform." action={<button className="secondary-button" onClick={markAll}>Mark all read</button>} />{loading ? <Loading /> : <section className="panel notification-list">{items.length ? items.map((item) => <article className={`notification-item ${item.read ? "read" : "unread"}`} key={item.id}><span className="notification-icon">✦</span><div><strong>{item.title}</strong><p>{item.message}</p><small>{dateText(item.createdAt)} {timeText(item.createdAt)}</small></div>{!item.read && <button className="text-button" onClick={() => mark(item.id)}>Mark read</button>}</article>) : <Empty text="No notifications recorded." />}</section>}</>; }
 function Activity() { const [items, setItems] = useState([]); const [loading, setLoading] = useState(true); async function load() { setLoading(true); try { setItems(getData(await API.get("/admin/activity"))); } finally { setLoading(false); } } useEffect(() => { load(); const timer = setInterval(load, 30000); return () => clearInterval(timer); }, []); return <><PageHeader eyebrow="Audit" title="Activity" description="Traceable admin and platform activity." action={<button className="secondary-button" onClick={load}>↻ Refresh</button>} />{loading ? <Loading /> : <section className="panel activity-timeline full-timeline">{items.length ? items.map((item) => <div key={item.id}><i /> <span><strong>{item.title}</strong>{item.message}<small>{item.action} · {dateText(item.createdAt)} {timeText(item.createdAt)}</small></span></div>) : <Empty text="No activity recorded." />}</section>}</>; }
 
-function App() { return <BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route path="/admin/login" element={<Login />} /><Route path="/admin" element={<Navigate to="/admin/login" replace />} /><Route element={<ProtectedRoute><Shell /></ProtectedRoute>}><Route path="/" element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<Dashboard />} /><Route path="/lotteries" element={<Lotteries />} />
+function App() { return <BrowserRouter><Routes><Route path="/" element={<Navigate to="/login" replace />} /><Route path="/login" element={<Login />} /><Route path="/admin/login" element={<Login />} /><Route path="/admin" element={<Navigate to="/admin/login" replace />} /><Route element={<ProtectedRoute><Shell /></ProtectedRoute>}><Route path="/dashboard" element={<Dashboard />} /><Route path="/lotteries" element={<Lotteries />} />
         <Route path="/lottery-entry-amounts" element={<LotteryEntryAmounts />} /><Route path="/lottery-games" element={<LotteryGameManager />} /><Route path="/games" element={<ContentManager kind="games" />} /><Route path="/promotions" element={<ContentManager kind="promotions" />} /><Route path="/offers" element={<ContentManager kind="offers" />} /><Route path="/tickets" element={<Tickets />} /><Route path="/users" element={<Users />} /><Route path="/winners" element={<WinnerSelection />} /><Route path="/transactions" element={<Transactions />} /><Route path="/reports" element={<Reports />} /><Route path="/notifications" element={<NotificationCenter />} /><Route path="/activity" element={<Activity />} /><Route path="*" element={<Navigate to="/dashboard" replace />} /></Route></Routes></BrowserRouter>; }
 
 const root = window.__lotteryAdminRoot || createRoot(document.getElementById("root"));

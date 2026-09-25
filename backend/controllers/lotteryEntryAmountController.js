@@ -44,10 +44,13 @@ exports.getLotteryEntryAmounts = async (req, res) => {
 
 exports.updateLotteryEntryAmounts = async (req, res) => {
   try {
-    const single = parseAmount(req.body?.singleDigitAmount, "Single Digit amount");
-    const double = parseAmount(req.body?.doubleDigitAmount, "Double Digit amount");
-    const triple = parseAmount(req.body?.tripleDigitAmount, "Triple Digit amount");
-    const firstError = single.error || double.error || triple.error;
+    const single = parseAmount(req.body?.singleDigitAmount, "Single Digit entry amount");
+    const double = parseAmount(req.body?.doubleDigitAmount, "Double Digit entry amount");
+    const triple = parseAmount(req.body?.tripleDigitAmount, "Triple Digit entry amount");
+    const singleWinning = parseAmount(req.body?.singleDigitWinningAmount, "Single Digit winning amount");
+    const doubleWinning = parseAmount(req.body?.doubleDigitWinningAmount, "Double Digit winning amount");
+    const tripleWinning = parseAmount(req.body?.tripleDigitWinningAmount, "Triple Digit winning amount");
+    const firstError = single.error || double.error || triple.error || singleWinning.error || doubleWinning.error || tripleWinning.error;
     if (firstError) {
       return res.status(400).json({ success: false, message: firstError });
     }
@@ -57,6 +60,9 @@ exports.updateLotteryEntryAmounts = async (req, res) => {
       singleDigitAmount: single.amount,
       doubleDigitAmount: double.amount,
       tripleDigitAmount: triple.amount,
+      singleDigitWinningAmount: singleWinning.amount,
+      doubleDigitWinningAmount: doubleWinning.amount,
+      tripleDigitWinningAmount: tripleWinning.amount,
     });
 
     return res.json({

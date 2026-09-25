@@ -212,9 +212,7 @@ function Dashboard() {
               key={lottery.id}
               lottery={lottery}
               variantIndex={index}
-              actionLabel="Buy Ticket"
               onClick={() => navigate(`/lotterygame?lotteryId=${lottery.id}`)}
-              onActionClick={() => navigate(`/lotterygame?lotteryId=${lottery.id}`)}
             />
           ))}
         </div>

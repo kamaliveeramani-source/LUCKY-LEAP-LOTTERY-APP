@@ -9,9 +9,9 @@ function About() {
           <div className="badge-pill" style={{ background: "linear-gradient(90deg, #6d28d9, #7c3aed)", color: "#fff" }}>
             About Us
           </div>
-          <h2 style={{ margin: "16px 0 10px" }}>Thumbi Lotteries</h2>
+          <h2 style={{ margin: "16px 0 10px" }}>Lucky Horse Lotteries</h2>
           <p className="text-muted">
-            Thumbi Lotteries is your fast, festive lottery play experience. Buy tickets, track draws, and manage wallet balances in one polished mobile-style app.
+            Lucky Horse Lotteries is your fast, festive lottery play experience. Buy tickets, track draws, and manage wallet balances in one polished mobile-style app.
           </p>
         </div>
 

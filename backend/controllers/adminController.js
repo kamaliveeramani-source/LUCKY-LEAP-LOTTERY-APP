@@ -8,6 +8,7 @@ const Wallet = require("../models/Wallet");
 const { drawWinner } = require("./lotteryController");
 const { safeRecordActivity } = require("../services/operationalEvents");
 const ActivityLog = require("../models/ActivityLog");
+const { withComputedStatus, withComputedStatusList, computeDrawStatus, parseISTDateTime, startOfDayIST } = require("../utils/drawStatus");
 
 // User columns that actually exist in your application.
 // IMPORTANT: username has been removed.
@@ -73,20 +74,8 @@ function lotteryPayload(body, partial = false) {
   }
 
   if (fields.drawTime && fields.drawDate) {
-    const drawDate = new Date(fields.drawDate);
-
-    const [hours, minutes] = String(fields.drawTime)
-      .split(":")
-      .map(Number);
-
-    if (
-      !Number.isNaN(drawDate.getTime()) &&
-      Number.isInteger(hours) &&
-      Number.isInteger(minutes)
-    ) {
-      drawDate.setHours(hours, minutes, 0, 0);
-      fields.drawDate = drawDate;
-    }
+    const drawDate = parseISTDateTime(fields.drawDate, fields.drawTime);
+    if (drawDate) fields.drawDate = drawDate;
 
     delete fields.drawTime;
   }
@@ -128,6 +117,7 @@ exports.getDashboard = async (req, res) => {
       wallets,
       todayActivity,
       recentActivity,
+      nextDrawCandidates,
     ] = await Promise.all([
       User.count(),
 
@@ -176,7 +166,20 @@ exports.getDashboard = async (req, res) => {
         ],
         limit: 12,
       }),
+
+      Lottery.findAll({
+        where: {
+          isActive: true,
+          // Never resurface a draw from a past calendar day (IST) as "next draw".
+          drawDate: { [Op.gte]: startOfDayIST() },
+        },
+        order: [["drawDate", "ASC"]],
+        limit: 20,
+      }),
     ]);
+
+    // Resolve using computed status, not the raw column, so a stale drawStatus can never hide/expose the wrong draw.
+    const nextDrawLottery = nextDrawCandidates.find((item) => computeDrawStatus(item) !== "COMPLETED") || null;
 
     const sum = (rows, field) =>
       rows.reduce(
@@ -196,6 +199,8 @@ exports.getDashboard = async (req, res) => {
         activeLotteries,
 
         recentActivity,
+
+        nextDraw: nextDrawLottery ? withComputedStatus(nextDrawLottery) : null,
 
         dailyActivity: {
           newUsers: todayActivity.filter(
@@ -260,7 +265,7 @@ exports.listLotteries = async (req, res) => {
 
     return res.json({
       success: true,
-      data: lotteries,
+      data: withComputedStatusList(lotteries),
     });
   } catch (error) {
     return res.status(500).json({
@@ -336,7 +341,7 @@ exports.getLottery = async (req, res) => {
 
     return res.json({
       success: true,
-      data: lottery,
+      data: withComputedStatus(lottery),
     });
   } catch (error) {
     return res.status(500).json({

@@ -94,13 +94,10 @@ function Lottery() {
     <div className="page-content lottery-mobile-page">
       <header className="lottery-page-heading">
         <div>
+          <p className="lottery-page-kicker">Lucky Horse Lotteries</p>
           <h1>State Lottery</h1>
-          <p>Choose your favourite lottery and win big!</p>
+          <p>Choose a draw and play with live jackpot and next-draw details.</p>
         </div>
-        <button type="button" className="lottery-filter-button" aria-label="Filter lotteries">
-          <span>All</span>
-          <span className="lottery-filter-chevron" aria-hidden="true">⌄</span>
-        </button>
       </header>
 
       <LotteryListState status={lotteryStatus} onRetry={getLotteries} pageGrid>

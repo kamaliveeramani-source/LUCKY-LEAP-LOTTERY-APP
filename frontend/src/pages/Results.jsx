@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
-import { getLotteryImageByName } from "../components/LotteryCard";
+import { resolveLotteryImage } from "../components/LotteryCard";
 
 const CARD_VARIANTS = ["purple", "orange", "blue"];
 
@@ -24,7 +24,7 @@ function formatIndianCurrency(amount) {
 
 function ResultCard({ lottery, variantIndex = 0 }) {
   const variant = CARD_VARIANTS[variantIndex % CARD_VARIANTS.length];
-  const imageSrc = getLotteryImageByName(lottery.lotteryName || lottery.name || "");
+  const imageSrc = resolveLotteryImage(lottery);
   const results = lottery.winningResults || [];
 
   return (
@@ -45,9 +45,11 @@ function ResultCard({ lottery, variantIndex = 0 }) {
         )) : <div className="result-card__detail"><span className="result-card__label">Winning Results</span><span className="result-card__value">Not declared yet</span></div>}
       </div>
 
-      <div className="result-card__watermark" aria-hidden="true">
-        <img src={imageSrc} alt="" loading="lazy" />
-      </div>
+      {imageSrc ? (
+        <div className="result-card__watermark" aria-hidden="true">
+          <img src={imageSrc} alt="" loading="lazy" />
+        </div>
+      ) : null}
     </article>
   );
 }

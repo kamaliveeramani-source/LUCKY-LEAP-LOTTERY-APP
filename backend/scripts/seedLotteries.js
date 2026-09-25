@@ -119,12 +119,11 @@ async function ensureAllLotteries() {
       existingByName.set(normalizedName, lottery);
     }
     
-    // Draw times: 3 draws today, 3 draws tomorrow
-    // 2:30 PM, 3:00 PM, 3:30 PM (on different day)
+    // Draw times: 01:00 PM, 06:00 PM, 06:30 PM.
     const drawTimes = [
-      { hours: 14, minutes: 30 },  // 2:30 PM
-      { hours: 15, minutes: 0 },   // 3:00 PM
-      { hours: 15, minutes: 30 },  // 3:30 PM
+      { hours: 13, minutes: 0 },
+      { hours: 18, minutes: 0 },
+      { hours: 18, minutes: 30 },
     ];
 
     for (let i = 0; i < REQUIRED_LOTTERIES.length; i++) {

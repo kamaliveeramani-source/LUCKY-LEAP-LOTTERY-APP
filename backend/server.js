@@ -7,6 +7,7 @@ require("dotenv").config();
 
 const sequelize = require("./config/database");
 const { startGameRoundScheduler } = require("./services/gameRoundScheduler");
+const { startDrawReminderScheduler } = require("./services/drawReminderScheduler");
 
 // =====================================================
 // ROUTES
@@ -303,6 +304,7 @@ app.use((err, req, res, next) => {
 
 let server;
 let stopGameRoundScheduler;
+let stopDrawReminderScheduler;
 
 let isShuttingDown = false;
 let isStarting = false;
@@ -381,6 +383,17 @@ const shutdown = (
     } catch (err) {
       console.error(
         "❌ Error stopping scheduler:",
+        err
+      );
+    }
+  }
+
+  if (stopDrawReminderScheduler) {
+    try {
+      stopDrawReminderScheduler();
+    } catch (err) {
+      console.error(
+        "❌ Error stopping draw reminder scheduler:",
         err
       );
     }
@@ -523,6 +536,12 @@ const startServer = async () => {
 
     console.log(
       "✅ Game round scheduler started"
+    );
+
+    stopDrawReminderScheduler = startDrawReminderScheduler();
+
+    console.log(
+      "✅ Draw reminder scheduler started"
     );
   } catch (err) {
     if (err.code === "EADDRINUSE") {

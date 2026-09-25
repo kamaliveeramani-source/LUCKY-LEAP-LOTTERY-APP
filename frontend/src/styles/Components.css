@@ -1242,8 +1242,8 @@ body.theme-dark .wallet-mode-tabs {
   .lottery-card-grid-premium:not(.lottery-page-grid),
   .lottery-grid-skeleton:not(.lottery-page-grid) {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
     overflow: visible;
     scroll-snap-type: none;
     width: 100%;
@@ -1309,5 +1309,13 @@ body.theme-dark .wallet-mode-tabs {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+  }
+}
+
+@media (min-width: 400px) and (max-width: 768px) {
+  .lottery-card-grid-premium:not(.lottery-page-grid),
+  .lottery-grid-skeleton:not(.lottery-page-grid),
+  .lottery-page-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

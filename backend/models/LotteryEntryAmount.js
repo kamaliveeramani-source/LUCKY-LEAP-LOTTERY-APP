@@ -5,6 +5,10 @@ const DEFAULTS = {
   singleDigitAmount: 10,
   doubleDigitAmount: 20,
   tripleDigitAmount: 30,
+  // Prize/winning amounts paid to a winning ticket — distinct from the entry (stake) amounts above.
+  singleDigitWinningAmount: 100,
+  doubleDigitWinningAmount: 500,
+  tripleDigitWinningAmount: 10000,
 };
 
 const LotteryEntryAmount = sequelize.define(
@@ -30,6 +34,21 @@ const LotteryEntryAmount = sequelize.define(
       allowNull: false,
       defaultValue: DEFAULTS.tripleDigitAmount,
     },
+    singleDigitWinningAmount: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: DEFAULTS.singleDigitWinningAmount,
+    },
+    doubleDigitWinningAmount: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: DEFAULTS.doubleDigitWinningAmount,
+    },
+    tripleDigitWinningAmount: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: DEFAULTS.tripleDigitWinningAmount,
+    },
   },
   {
     tableName: "lottery_entry_amounts",
@@ -42,6 +61,9 @@ function toPublic(record) {
     singleDigitAmount: Number(record?.singleDigitAmount ?? DEFAULTS.singleDigitAmount),
     doubleDigitAmount: Number(record?.doubleDigitAmount ?? DEFAULTS.doubleDigitAmount),
     tripleDigitAmount: Number(record?.tripleDigitAmount ?? DEFAULTS.tripleDigitAmount),
+    singleDigitWinningAmount: Number(record?.singleDigitWinningAmount ?? DEFAULTS.singleDigitWinningAmount),
+    doubleDigitWinningAmount: Number(record?.doubleDigitWinningAmount ?? DEFAULTS.doubleDigitWinningAmount),
+    tripleDigitWinningAmount: Number(record?.tripleDigitWinningAmount ?? DEFAULTS.tripleDigitWinningAmount),
   };
 }
 

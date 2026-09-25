@@ -10,10 +10,10 @@ const normalizePhone = (value) => {
 };
 
 const generateReferralCode = (user) => {
-  const nameSeed = (user.fullName || "THUMBI")
+  const nameSeed = (user.fullName || "LUCKYHORSE")
     .replace(/[^a-zA-Z]/g, "")
     .slice(0, 4)
-    .toUpperCase() || "THUM";
+    .toUpperCase() || "LUCK";
 
   return `${nameSeed}${String(user.id).padStart(5, "0")}`;
 };

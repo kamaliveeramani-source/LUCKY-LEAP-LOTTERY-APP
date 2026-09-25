@@ -89,7 +89,7 @@ function Referral() {
 
   const shareToWhatsapp = () => {
     if (!referralLink) return;
-    const text = encodeURIComponent(`Join me on Thumbi Lotteries using my referral code: ${referralCode || referralInfo?.referralCode}. ${referralLink}`);
+    const text = encodeURIComponent(`Join me on Lucky Horse Lotteries using my referral code: ${referralCode || referralInfo?.referralCode}. ${referralLink}`);
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   };
 

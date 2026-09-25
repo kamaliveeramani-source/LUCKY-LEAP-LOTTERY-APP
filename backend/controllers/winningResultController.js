@@ -6,6 +6,7 @@ const User = require("../models/User");
 const Wallet = require("../models/Wallet");
 const WinningResult = require("../models/WinningResult");
 const { safeRecordActivity } = require("../services/operationalEvents");
+const { computeDrawStatus, withComputedStatus } = require("../utils/drawStatus");
 
 const BET_TYPES = ["SINGLE", "DOUBLE", "TRIPLE"];
 const BET_LENGTHS = { SINGLE: 1, DOUBLE: 2, TRIPLE: 3 };
@@ -82,7 +83,7 @@ exports.getWinningResults = async (req, res) => {
       WinningResult.findAll({ where: { LotteryId: lottery.id }, order: [["id", "ASC"]] }),
       loadApplicableBetTypes(lottery.id),
     ]);
-    return res.json({ success: true, data: { lottery, results, betTypes } });
+    return res.json({ success: true, data: { lottery: withComputedStatus(lottery), results, betTypes } });
   } catch (error) {
     return res.status(error.status || 500).json({ success: false, message: error.message });
   }
@@ -93,8 +94,8 @@ exports.saveWinningResults = async (req, res) => {
   try {
     transaction = await sequelize.transaction();
     const lottery = await findLotteryOrThrow(req.params.id, { transaction, lock: transaction.LOCK.UPDATE });
-    if (new Date(lottery.drawDate).getTime() > Date.now()) throw httpError(400, "Winning result submission is locked until after draw time");
-    if (lottery.drawStatus === "COMPLETED") throw httpError(409, "This draw has already been settled");
+    if (computeDrawStatus(lottery) === "UPCOMING") throw httpError(400, "Winning result submission is locked until after draw time");
+    if (computeDrawStatus(lottery) === "COMPLETED") throw httpError(409, "This draw has already been settled");
     const results = normalizeResults(req.body?.winningResults || req.body?.results);
     await saveConfiguredResults(lottery, results, transaction);
     await transaction.commit();
@@ -110,8 +111,8 @@ exports.declareWinningResults = async (req, res) => {
   try {
     transaction = await sequelize.transaction();
     const lottery = await findLotteryOrThrow(req.params.id || req.body?.lotteryId, { transaction, lock: transaction.LOCK.UPDATE });
-    if (lottery.drawStatus === "COMPLETED") throw httpError(409, "This draw has already been settled");
-    if (new Date(lottery.drawDate).getTime() > Date.now()) throw httpError(400, "Winning result declaration is locked until after draw time");
+    if (computeDrawStatus(lottery) === "COMPLETED") throw httpError(409, "This draw has already been settled");
+    if (computeDrawStatus(lottery) === "UPCOMING") throw httpError(400, "Winning result declaration is locked until after draw time");
 
     const results = normalizeResults(req.body?.winningResults || req.body?.results);
     await saveConfiguredResults(lottery, results, transaction);
@@ -161,6 +162,7 @@ exports.declareWinningResults = async (req, res) => {
     lottery.winnerTicketId = firstWinningTicketId;
     lottery.drawStatus = "COMPLETED";
     lottery.declaredAt = new Date();
+    lottery.declaredByUserId = req.user?.userId || null;
     await lottery.save({ transaction });
     await transaction.commit();
     transaction = null;
@@ -179,7 +181,7 @@ exports.declareWinningResults = async (req, res) => {
         eventKey: `winner-result:${lottery.id}:${ticket.id}`,
       });
     }
-    return res.json({ success: true, message: "Winning results declared and tickets settled", data: { lottery, results, matchedTickets: tickets.filter((ticket) => ticket.status === "WON").length, totalPaid: [...payouts.values()].reduce((sum, value) => sum + value, 0) } });
+    return res.json({ success: true, message: "Winning results declared and tickets settled", data: { lottery: withComputedStatus(lottery), results, matchedTickets: tickets.filter((ticket) => ticket.status === "WON").length, totalPaid: [...payouts.values()].reduce((sum, value) => sum + value, 0) } });
   } catch (error) {
     if (transaction) await transaction.rollback().catch(() => {});
     return res.status(error.status || 500).json({ success: false, message: error.message });

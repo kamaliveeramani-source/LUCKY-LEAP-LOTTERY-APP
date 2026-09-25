@@ -12,7 +12,7 @@ function LotteryBall({ number, color = ballColors[number] }) {
 }
 
 function LotteryBanner() {
-  return <section className="bets-banner" aria-label="Lottery promotion"><div className="bets-confetti" aria-hidden="true">✦　·　✧　·　✦</div><div><span className="bets-banner-kicker">Thumbi special</span><h1>Play &amp; Win Big!</h1><p>Pick your number. Feel the thrill.</p></div><div className="bets-banner-balls" aria-hidden="true"><LotteryBall number={3} color="green" /><LotteryBall number={7} color="red" /><LotteryBall number={8} color="yellow" /><span className="bets-coins">₹　₹　₹</span></div></section>;
+  return <section className="bets-banner" aria-label="Lottery promotion"><div className="bets-confetti" aria-hidden="true">✦　·　✧　·　✦</div><div><span className="bets-banner-kicker">Lucky Horse special</span><h1>Play &amp; Win Big!</h1><p>Pick your number. Feel the thrill.</p></div><div className="bets-banner-balls" aria-hidden="true"><LotteryBall number={3} color="green" /><LotteryBall number={7} color="red" /><LotteryBall number={8} color="yellow" /><span className="bets-coins">₹　₹　₹</span></div></section>;
 }
 
 function BetAmountSelector({ selected, onChange }) {

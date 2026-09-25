@@ -1,5 +1,8 @@
+
 const { Op } = require("sequelize");
+
 const sequelize = require("../config/database");
+
 const Lottery = require("../models/Lottery");
 
 const REQUIRED_LOTTERIES = [
@@ -13,7 +16,11 @@ const REQUIRED_LOTTERIES = [
   "Bhagyathara",
   "Nagaland Day",
   "Nagaland Evening",
+  "Deer Lottery",
 ];
+
+const normalizeLotteryName = (name) =>
+  String(name || "").trim().toLowerCase();
 
 async function restoreAkshaya() {
   const transaction = await sequelize.transaction();
@@ -27,7 +34,9 @@ async function restoreAkshaya() {
     });
 
     if (akshayaRows.length > 1) {
-      throw new Error(`Found ${akshayaRows.length} Akshaya records; refusing to create or remove duplicates automatically.`);
+      throw new Error(
+        `Found ${akshayaRows.length} Akshaya records; refusing to create or remove duplicates automatically.`
+      );
     }
 
     if (akshayaRows.length === 1) {
@@ -43,7 +52,9 @@ async function restoreAkshaya() {
     });
 
     if (legacyRows.length > 1) {
-      throw new Error(`Found ${legacyRows.length} legacy Kerala Lottery records; refusing to choose a replacement automatically.`);
+      throw new Error(
+        `Found ${legacyRows.length} legacy Kerala Lottery records; refusing to choose a replacement automatically.`
+      );
     }
 
     if (legacyRows.length === 1) {
@@ -57,15 +68,18 @@ async function restoreAkshaya() {
     nextDraw.setUTCHours(15, 0, 0, 0);
     nextDraw.setUTCDate(nextDraw.getUTCDate() + 1);
 
-    const created = await Lottery.create({
-      lotteryName: "Akshaya",
-      ticketPrice: 100,
-      firstPrize: 700000,
-      secondPrize: 350000,
-      thirdPrize: 80000,
-      totalTickets: 5000,
-      drawDate: nextDraw,
-    }, { transaction });
+    const created = await Lottery.create(
+      {
+        lotteryName: "Akshaya",
+        ticketPrice: 100,
+        firstPrize: 700000,
+        secondPrize: 350000,
+        thirdPrize: 80000,
+        totalTickets: 5000,
+        drawDate: nextDraw,
+      },
+      { transaction }
+    );
 
     await transaction.commit();
     return created;
@@ -79,11 +93,25 @@ async function validateLotteries() {
   const lotteries = await Lottery.findAll({
     order: [["id", "ASC"]],
   });
+
   const names = lotteries.map((lottery) => lottery.lotteryName);
-  const missing = REQUIRED_LOTTERIES.filter((name) => !names.some((actual) => actual.toLowerCase() === name.toLowerCase()));
-  if (missing.length > 0) throw new Error(`Required lotteries are missing: ${missing.join(", ")}`);
+
+  const missing = REQUIRED_LOTTERIES.filter(
+    (name) =>
+      !names.some(
+        (actual) =>
+          normalizeLotteryName(actual) === normalizeLotteryName(name)
+      )
+  );
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Required lotteries are missing: ${missing.join(", ")}`
+    );
+  }
 
   const uniqueIds = new Set(lotteries.map((lottery) => lottery.id));
+
   if (uniqueIds.size !== lotteries.length) {
     throw new Error("Lottery IDs are not unique.");
   }
@@ -93,32 +121,52 @@ async function validateLotteries() {
 
 async function ensureAllLotteries() {
   const transaction = await sequelize.transaction();
-  
+
   try {
     const existing = await Lottery.findAll({
       transaction,
       lock: transaction.LOCK.UPDATE,
       order: [["id", "ASC"]],
     });
+
     const primaryLottery = existing.find((lottery) => lottery.id === 1);
 
-    if (primaryLottery && /^(kerala\s+bumper|kerala\s+lottery)$/i.test(primaryLottery.lotteryName)) {
+    if (
+      primaryLottery &&
+      /^(kerala\s+bumper|kerala\s+lottery)$/i.test(
+        primaryLottery.lotteryName
+      )
+    ) {
       primaryLottery.lotteryName = "Kerala Lottery";
       await primaryLottery.save({ transaction });
     }
 
-    const refreshed = await Lottery.findAll({ transaction, order: [["id", "ASC"]] });
-    const requiredNames = new Set(REQUIRED_LOTTERIES.map((name) => name.toLowerCase()));
+    const refreshed = await Lottery.findAll({
+      transaction,
+      order: [["id", "ASC"]],
+    });
+
+    const requiredNames = new Set(
+      REQUIRED_LOTTERIES.map(normalizeLotteryName)
+    );
+
     const existingByName = new Map();
 
     for (const lottery of refreshed) {
-      const normalizedName = lottery.lotteryName.toLowerCase();
-      if (requiredNames.has(normalizedName) && existingByName.has(normalizedName)) {
-        throw new Error(`Found duplicate lottery records for ${lottery.lotteryName}; refusing to remove records automatically.`);
+      const normalizedName = normalizeLotteryName(lottery.lotteryName);
+
+      if (
+        requiredNames.has(normalizedName) &&
+        existingByName.has(normalizedName)
+      ) {
+        throw new Error(
+          `Found duplicate lottery records for ${lottery.lotteryName}; refusing to remove records automatically.`
+        );
       }
+
       existingByName.set(normalizedName, lottery);
     }
-    
+
     // Draw times: 01:00 PM, 06:00 PM, 06:30 PM.
     const drawTimes = [
       { hours: 13, minutes: 0 },
@@ -128,12 +176,13 @@ async function ensureAllLotteries() {
 
     for (let i = 0; i < REQUIRED_LOTTERIES.length; i++) {
       const lotteryName = REQUIRED_LOTTERIES[i];
-      
-      if (existingByName.has(lotteryName.toLowerCase())) {
-        continue; // Already exists
+      const normalizedName = normalizeLotteryName(lotteryName);
+
+      if (existingByName.has(normalizedName)) {
+        continue;
       }
 
-      // Stagger lotteries across multiple days and times
+      // Stagger lotteries across multiple days and times.
       const dayOffset = Math.floor(i / drawTimes.length);
       const timeIndex = i % drawTimes.length;
       const drawTime = drawTimes[timeIndex];
@@ -142,19 +191,24 @@ async function ensureAllLotteries() {
       drawDate.setDate(drawDate.getDate() + dayOffset);
       drawDate.setHours(drawTime.hours, drawTime.minutes, 0, 0);
 
-      await Lottery.create({
-        lotteryName,
-        ticketPrice: 10.50,
-        firstPrize: 100,
-        secondPrize: 50,
-        thirdPrize: 20,
-        totalTickets: 1000,
-        drawDate,
-      }, { transaction });
+      await Lottery.create(
+        {
+          lotteryName,
+          ticketPrice: 10.5,
+          firstPrize: 100,
+          secondPrize: 50,
+          thirdPrize: 20,
+          totalTickets: 1000,
+          drawDate,
+        },
+        { transaction }
+      );
 
-      existingByName.set(lotteryName.toLowerCase(), true);
+      existingByName.set(normalizedName, true);
 
-      console.log(`✓ Created lottery: ${lotteryName} (Draw: ${drawDate.toLocaleString()})`);
+      console.log(
+        `✓ Created lottery: ${lotteryName} (Draw: ${drawDate.toLocaleString()})`
+      );
     }
 
     await transaction.commit();
@@ -168,17 +222,20 @@ async function ensureAllLotteries() {
 async function main() {
   await sequelize.authenticate();
 
-  // Ensure all required lotteries exist
+  // Ensure all required lotteries exist.
   await ensureAllLotteries();
-  
+
   const lotteries = await validateLotteries();
 
   console.log(`📋 Lottery database has ${lotteries.length} draws:`);
-  console.table(lotteries.map((lottery) => ({
-    id: lottery.id,
-    lotteryName: lottery.lotteryName,
-    drawDate: lottery.drawDate.toLocaleString(),
-  })));
+
+  console.table(
+    lotteries.map((lottery) => ({
+      id: lottery.id,
+      lotteryName: lottery.lotteryName,
+      drawDate: lottery.drawDate.toLocaleString(),
+    }))
+  );
 }
 
 main()

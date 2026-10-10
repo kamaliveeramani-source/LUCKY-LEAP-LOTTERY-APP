@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { getAuthToken } from "./services/api";
 import { WalletProvider } from "./context/WalletContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -38,17 +39,17 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/public" element={<MobileApp />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/lottery" element={<Lottery />} />
             <Route path="/results" element={<Results />} />
             <Route path="/language-settings" element={<LanguageSettings />} />
             <Route path="/language" element={<LanguageSettings />} />
             <Route path="/about" element={<About />} />
-            <Route path="/search" element={<Search />} />
             <Route path="/support" element={<Support />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/lottery" element={<Lottery />} />
+              <Route path="/search" element={<Search />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/lottery-game" element={<LotteryGame />} />
               <Route path="/lotterygame" element={<LotteryGame />} />
@@ -68,7 +69,11 @@ function App() {
           </Route>
 
           {/* Authentication */}
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/login"
+            element={getAuthToken() ? <Navigate to="/home" replace /> : <Login />}
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/register" element={<Register />} />
           <Route path="/signup" element={<Register />} />
 

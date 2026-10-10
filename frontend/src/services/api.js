@@ -25,6 +25,17 @@ export function getAuthToken() {
       return null;
     }
 
+    try {
+      const payload = JSON.parse(
+        atob(cleaned.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
+      );
+      if (payload.exp && payload.exp * 1000 <= Date.now()) {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+
     return cleaned;
   } catch (err) {
     return null;

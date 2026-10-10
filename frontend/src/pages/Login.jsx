@@ -10,7 +10,7 @@ function Login() {
   const location = useLocation();
   const redirectTo = location.state?.from?.pathname
     ? `${location.state.from.pathname}${location.state.from.search || ""}`
-    : "/dashboard";
+    : "/home";
 
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");

@@ -8,7 +8,12 @@ function formatDrawDate(dateString) {
   if (!dateString) return "TBA";
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return String(dateString);
-  return date.toLocaleDateString("en-US");
+  return date.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function formatIndianCurrency(amount) {
@@ -76,18 +81,27 @@ function Results() {
 
   useEffect(() => {
     loadResults();
+    const refreshSchedules = () => {
+      if (document.visibilityState === "visible") loadResults(true);
+    };
+    const refreshTimer = window.setInterval(refreshSchedules, 30000);
+    window.addEventListener("focus", refreshSchedules);
+    return () => {
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("focus", refreshSchedules);
+    };
   }, []);
 
-  const loadResults = async () => {
+  const loadResults = async (quiet = false) => {
     try {
-      setLoading(true);
+      if (!quiet) setLoading(true);
       const res = await API.get("/lottery/all");
       setLotteries(res.data.data || []);
     } catch (err) {
       console.log(err);
-      setLotteries([]);
+      if (!quiet) setLotteries([]);
     } finally {
-      setLoading(false);
+      if (!quiet) setLoading(false);
     }
   };
 

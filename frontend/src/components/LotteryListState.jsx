@@ -10,7 +10,7 @@ function LotterySkeletonCard() {
 }
 
 function LotteryListState({ status, onRetry, children, pageGrid = false }) {
-  const gridClass = pageGrid ? "lottery-mobile-grid" : "lottery-card-grid-premium";
+  const gridClass = pageGrid ? "lottery-mobile-grid lottery-page-grid" : "lottery-card-grid-premium";
 
   if (status === "loading") {
     return (

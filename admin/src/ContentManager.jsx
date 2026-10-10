@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import PageHeader from "./components/PageHeader";
 import "./ContentManager.css";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
@@ -123,7 +124,7 @@ export default function ContentManager({ kind }) {
   }
 
   return <>
-    <div className="page-header"><div><span className="eyebrow">Content management</span><h1>{config.title}</h1><p>Manage customer-facing {config.title.toLowerCase()} from the Admin Panel.</p></div><button className="primary-button" onClick={openCreate}>＋ Add {config.title.slice(0, -1)}</button></div>
+    <PageHeader eyebrow="Content management" title={config.title} description={`Manage customer-facing ${config.title.toLowerCase()} from the Admin Panel.`} action={<button className="primary-button" onClick={openCreate}>＋ Add {config.title.slice(0, -1)}</button>} />
     {state.notice && <div className="toast">{state.notice}</div>}
     {state.error && <div className="error-box">{state.error}</div>}
     <section className="content-toolbar"><input placeholder="Search..." value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /><select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}><option value="">All statuses</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select>{kind === "games" ? <input placeholder="Category" value={filters.category} onChange={(event) => setFilters({ ...filters, category: event.target.value })} /> : <input placeholder="Type" value={filters.type} onChange={(event) => setFilters({ ...filters, type: event.target.value })} />} {kind !== "games" && <input type="date" value={filters.date} onChange={(event) => setFilters({ ...filters, date: event.target.value })} />}<select value={filters.featured} onChange={(event) => setFilters({ ...filters, featured: event.target.value })}><option value="">All featured</option><option value="true">Featured</option><option value="false">Not featured</option></select></section>

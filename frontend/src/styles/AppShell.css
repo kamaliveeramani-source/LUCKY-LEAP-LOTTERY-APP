@@ -1324,3 +1324,19 @@ body {
     padding: var(--shell-pad-top) 12px var(--shell-pad-bottom);
   }
 }
+
+.lottery-mobile-card__background-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .22;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* Shared artwork positioning for lottery cards outside the catalog. */
+
+

@@ -1,25 +1,48 @@
 import { useEffect, useState } from "react";
 import API, { getAuthToken } from "../services/api";
 
+function formatDrawDateTime(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}
+
 function History() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadHistory();
+    const refreshTickets = () => {
+      if (document.visibilityState === "visible") loadHistory(true);
+    };
+    const refreshTimer = window.setInterval(refreshTickets, 30000);
+    window.addEventListener("focus", refreshTickets);
+    return () => {
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("focus", refreshTickets);
+    };
   }, []);
 
-  const loadHistory = async () => {
+  const loadHistory = async (quiet = false) => {
     const token = getAuthToken();
 
     if (!token) {
       setTickets([]);
-      setLoading(false);
+      if (!quiet) setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      if (!quiet) setLoading(true);
       const res = await API.get("/ticket/mytickets", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -28,9 +51,9 @@ function History() {
       setTickets(res.data.tickets || []);
     } catch (err) {
       console.log(err);
-      setTickets([]);
+      if (!quiet) setTickets([]);
     } finally {
-      setLoading(false);
+      if (!quiet) setLoading(false);
     }
   };
 
@@ -56,7 +79,7 @@ function History() {
                   <p className="text-muted" style={{ margin: "6px 0 10px" }}>{ticket.Lottery?.lotteryName || ticket.GameDefinition?.name || "Unknown ticket"}</p>
                   <p className="text-muted" style={{ margin: "0 0 10px", fontSize: "0.85rem" }}>
                     {ticket.betType} · Number {ticket.selectedNumber}
-                    {ticket.Lottery?.drawDate ? ` · Draw ${new Date(ticket.Lottery.drawDate).toLocaleString()}` : ""}
+                    {ticket.Lottery?.drawDate ? ` · Draw ${formatDrawDateTime(ticket.Lottery.drawDate)}` : ""}
                     {winningResult ? ` · Winning number ${winningResult.winningNumber}` : ""}
                   </p>
                   <div className="d-flex justify-content-between align-items-center" style={{ gap: "10px" }}>

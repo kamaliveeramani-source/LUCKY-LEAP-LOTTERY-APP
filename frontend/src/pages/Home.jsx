@@ -1,5 +1,4 @@
-
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroArtwork from "../assets/hero-artwork.png";
 import keralaEmblem from "../assets/lotteries/kerala-emblem-white.png";
@@ -42,19 +41,6 @@ function padTime(value) {
   return String(value).padStart(2, "0");
 }
 
-function getNextDrawTarget(hour = 15, minute = 0) {
-  const now = new Date();
-  const target = new Date();
-
-  target.setHours(hour, minute, 0, 0);
-
-  if (target.getTime() <= now.getTime()) {
-    target.setDate(target.getDate() + 1);
-  }
-
-  return target.getTime();
-}
-
 function useCountdown(targetTime) {
   const [remaining, setRemaining] = useState({
     hours: 0,
@@ -64,7 +50,10 @@ function useCountdown(targetTime) {
 
   useEffect(() => {
     const tick = () => {
-      const diff = Math.max(0, targetTime - Date.now());
+      const targetTimestamp = new Date(targetTime).getTime();
+      const diff = Number.isFinite(targetTimestamp)
+        ? Math.max(0, targetTimestamp - Date.now())
+        : 0;
 
       setRemaining({
         hours: Math.floor(diff / 3600000),
@@ -149,14 +138,14 @@ function QuickActionIcon({ type }) {
 
 function Home() {
   const navigate = useNavigate();
-
-  const drawTarget = useMemo(() => getNextDrawTarget(15, 0), []);
-  const countdown = useCountdown(drawTarget);
+  const carouselRef = useRef(null);
 
   const [lotteries, setLotteries] = useState([]);
+  const [cardsPerPage, setCardsPerPage] = useState(3);
+  const [activeCarouselPage, setActiveCarouselPage] = useState(0);
 
   useEffect(() => {
-    const loadLotteries = async () => {
+    const loadLotteries = async (quiet = false) => {
       try {
         const response = await API.get("/lottery/all");
 
@@ -167,36 +156,90 @@ function Home() {
         setLotteries(lotteryData);
       } catch (error) {
         console.error("Failed to load Home lotteries", error);
-        setLotteries([]);
+        if (!quiet) setLotteries([]);
       }
     };
 
     loadLotteries();
+    const refreshSchedules = () => {
+      if (document.visibilityState === "visible") loadLotteries(true);
+    };
+    const refreshTimer = window.setInterval(refreshSchedules, 30000);
+    window.addEventListener("focus", refreshSchedules);
+    return () => {
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("focus", refreshSchedules);
+    };
   }, []);
 
-  /*
-   * Home page must show exactly three lottery cards.
-   *
-   * We do not filter by today's date here because the backend
-   * draw dates may be stored in different timezone formats.
-   * All valid draws are sorted by draw time, then first three
-   * are displayed on the Home page.
-   */
+  useEffect(() => {
+    const nextDrawTime = lotteries
+      .map((lottery) => Date.parse(lottery?.drawDate))
+      .filter((timestamp) => Number.isFinite(timestamp) && timestamp > Date.now())
+      .sort((left, right) => left - right)[0];
+    if (!nextDrawTime) return undefined;
+
+    const delay = Math.min(nextDrawTime - Date.now() + 1000, 2147483647);
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await API.get("/lottery/all");
+        setLotteries(Array.isArray(response.data?.data) ? response.data.data : []);
+      } catch (error) {
+        console.error("Failed to refresh upcoming lotteries", error);
+      }
+    }, Math.max(1000, delay));
+
+    return () => window.clearTimeout(timer);
+  }, [lotteries]);
+
+  // Keep the Home carousel in the same upcoming-draw order as Lottery Draws.
   const todaysLotteries = useMemo(() => {
     return [...lotteries]
       .filter((lottery) => {
         const drawTime = Date.parse(lottery?.drawDate);
 
-        return Number.isFinite(drawTime);
+        return Number.isFinite(drawTime) && drawTime > Date.now();
       })
       .sort((left, right) => {
         return (
           Date.parse(left.drawDate) -
           Date.parse(right.drawDate)
         );
-      })
-      .slice(0, 3);
+      });
   }, [lotteries]);
+
+  const carouselPageCount = Math.max(
+    1,
+    Math.ceil(todaysLotteries.length / cardsPerPage)
+  );
+
+  useEffect(() => {
+    setActiveCarouselPage(0);
+    carouselRef.current?.scrollTo({ left: 0 });
+  }, [cardsPerPage]);
+
+  const updateActiveCarouselPage = () => {
+    const track = carouselRef.current;
+    const firstCard = track?.firstElementChild;
+    if (!track || !firstCard) return;
+
+    const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 0;
+    const cardStep = firstCard.getBoundingClientRect().width + gap;
+    const cardsScrolled = cardStep ? Math.round(track.scrollLeft / cardStep) : 0;
+    setActiveCarouselPage(
+      Math.min(carouselPageCount - 1, Math.floor(cardsScrolled / cardsPerPage))
+    );
+  };
+
+  const scrollToCarouselPage = (page) => {
+    const track = carouselRef.current;
+    const target = track?.children[page * cardsPerPage];
+    if (track && target) {
+      const left = target.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft;
+      track.scrollTo({ left, behavior: "smooth" });
+    }
+    setActiveCarouselPage(page);
+  };
 
   const findLottery = (value) => {
     if (!Array.isArray(lotteries) || lotteries.length === 0) {
@@ -236,6 +279,8 @@ function Home() {
     findLottery(1) ||
     lotteries[0] ||
     null;
+
+  const countdown = useCountdown(featuredLottery?.drawDate);
 
   const featuredLotteryName =
     featuredLottery?.lotteryName ||
@@ -328,31 +373,51 @@ function Home() {
         </div>
       </div>
 
-      <div className="todays-draws-header">
-        <h2>Today&apos;s Draws</h2>
+      <section className="home-draws-section" aria-labelledby="todays-draws-title">
+        <div className="todays-draws-header">
+          <h2 id="todays-draws-title">Today&apos;s Draws</h2>
+          <button type="button" onClick={() => navigate("/lottery")}>
+            View All <span aria-hidden="true">→</span>
+          </button>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/lottery")}
+        <div
+          className="home-next-draws-track"
+          ref={carouselRef}
+          onScroll={updateActiveCarouselPage}
+          role="region"
+          aria-label="Upcoming lottery draws"
         >
-          View All
-        </button>
-      </div>
+          {todaysLotteries.map((lottery, index) => (
+            <LotteryCard
+              key={lottery.id ?? `home-lottery-${index}`}
+              lottery={lottery}
+              variantIndex={index}
+              variant="catalog"
+              onClick={() => {
+                if (lottery?.id) {
+                  navigate(`/lotterygame?lotteryId=${lottery.id}`);
+                }
+              }}
+            />
+          ))}
+        </div>
 
-      <div className="draws-grid lottery-mobile-grid todays-draws-grid">
-        {todaysLotteries.map((lottery, index) => (
-          <LotteryCard
-            key={lottery.id ?? `home-lottery-${index}`}
-            lottery={lottery}
-            variantIndex={index}
-            onClick={() => {
-              if (lottery?.id) {
-                navigate(`/lotterygame?lotteryId=${lottery.id}`);
-              }
-            }}
-          />
-        ))}
-      </div>
+        {todaysLotteries.length > 0 && (
+          <div className="home-carousel-pagination" role="group" aria-label="Lottery draw pages">
+            {Array.from({ length: carouselPageCount }, (_, index) => (
+              <button
+                key={index}
+                type="button"
+                className={index === activeCarouselPage ? "active" : ""}
+                aria-label={`Show draw group ${index + 1}`}
+                aria-current={index === activeCarouselPage ? "page" : undefined}
+                onClick={() => scrollToCarouselPage(index)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="home-quick-actions">
         {quickActions.map((action) => (

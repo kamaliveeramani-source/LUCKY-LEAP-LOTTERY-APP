@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import PageHeader from "./components/PageHeader";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
 const apiBaseUrl = configuredApiUrl.replace(/\/$/, "").endsWith("/api") ? configuredApiUrl : `${configuredApiUrl.replace(/\/$/, "")}/api`;
@@ -48,20 +49,28 @@ export default function WinnerSelection() {
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [entryAmounts, setEntryAmounts] = useState(null);
-  const selected = lotteries.find((item) => String(item.id) === String(selectedId));
+  const selected = lotteries.find(
+    (item) => String(item.id) === String(selectedId),
+  );
   const status = selected?.drawStatus || "UPCOMING";
   const completed = status === "COMPLETED";
   const locked = !selected || status !== "READY_FOR_RESULT";
 
   async function loadLotteries() {
     try {
-      setLoading(true); setError("");
+      setLoading(true);
+      setError("");
       const response = await API.get("/admin/lotteries");
       const data = response.data?.data || [];
       setLotteries(data);
       if (!selectedId && data[0]) setSelectedId(String(data[0].id));
-    } catch (requestError) { setError(requestError.response?.data?.message || "Unable to load lotteries."); }
-    finally { setLoading(false); }
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message || "Unable to load lotteries.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function loadResults(id) {
@@ -75,130 +84,452 @@ export default function WinnerSelection() {
       const amounts = amountsResponse.data?.data || null;
       setEntryAmounts(amounts);
       // Prize amount always comes from the database: saved result if declared/configured, otherwise the live configured WINNING amount for that bet type (never the ticket/entry amount).
-      setRows(BET_TYPES.map((betType) => {
-        const result = configured.find((item) => item.betType === betType);
-        const configuredAmount = amounts ? amounts[AMOUNT_KEY[betType]] : "";
-        return { betType, winningNumber: result?.winningNumber || "", prizeAmount: result?.prizeAmount ?? configuredAmount ?? "" };
-      }));
-    } catch (requestError) { setError(requestError.response?.data?.message || "Unable to load winning results."); }
+      setRows(
+        BET_TYPES.map((betType) => {
+          const result = configured.find((item) => item.betType === betType);
+          const configuredAmount = amounts ? amounts[AMOUNT_KEY[betType]] : "";
+          return {
+            betType,
+            winningNumber: result?.winningNumber || "",
+            prizeAmount: result?.prizeAmount ?? configuredAmount ?? "",
+          };
+        }),
+      );
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Unable to load winning results.",
+      );
+    }
   }
 
-  useEffect(() => { loadLotteries(); }, []);
-  useEffect(() => { loadResults(selectedId); }, [selectedId]);
+  useEffect(() => {
+    loadLotteries();
+  }, []);
+  useEffect(() => {
+    loadResults(selectedId);
+  }, [selectedId]);
 
   async function loadReport(id, type) {
     if (!id) return;
     try {
-      setReportLoading(true); setError("");
-      const response = await API.get(`/admin/lotteries/${id}/report`, { params: { type } });
+      setReportLoading(true);
+      setError("");
+      const response = await API.get(`/admin/lotteries/${id}/report`, {
+        params: { type },
+      });
       setReport(response.data?.data || null);
-    } catch (requestError) { setError(requestError.response?.data?.message || "Unable to load report."); }
-    finally { setReportLoading(false); }
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message || "Unable to load report.",
+      );
+    } finally {
+      setReportLoading(false);
+    }
   }
 
-  useEffect(() => { if (completed) loadReport(selectedId, reportType); else setReport(null); }, [selectedId, reportType, completed]);
+  useEffect(() => {
+    if (completed) loadReport(selectedId, reportType);
+    else setReport(null);
+  }, [selectedId, reportType, completed]);
 
   async function loadHistory() {
     try {
       setHistoryLoading(true);
       const response = await API.get("/admin/results/history");
       setHistory(response.data?.data || []);
-    } catch (requestError) { setError(requestError.response?.data?.message || "Unable to load result history."); }
-    finally { setHistoryLoading(false); }
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Unable to load result history.",
+      );
+    } finally {
+      setHistoryLoading(false);
+    }
   }
 
-  useEffect(() => { loadHistory(); }, []);
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
   async function exportReport(type) {
     if (!selected) return;
-    setExporting(true); setError("");
+    setExporting(true);
+    setError("");
     try {
-      const response = await API.get(`/admin/lotteries/${selected.id}/report/export`, { params: { type }, responseType: "blob" });
-      const drawDateText = selected.drawDate ? new Date(selected.drawDate).toISOString().slice(0, 10) : "unknown";
-      const safeName = String(selected.lotteryName || "Lottery").replace(/[^a-zA-Z0-9]+/g, "");
-      downloadBlob(response.data, `LuckyHorse_${safeName}_${drawDateText}_${type === "winners" ? "Winners" : "AllTickets"}.xlsx`);
-    } catch (requestError) { setError("Unable to export report."); }
-    finally { setExporting(false); }
+      const response = await API.get(
+        `/admin/lotteries/${selected.id}/report/export`,
+        { params: { type }, responseType: "blob" },
+      );
+      const drawDateText = selected.drawDate
+        ? new Date(selected.drawDate).toISOString().slice(0, 10)
+        : "unknown";
+      const safeName = String(selected.lotteryName || "Lottery").replace(
+        /[^a-zA-Z0-9]+/g,
+        "",
+      );
+      downloadBlob(
+        response.data,
+        `LuckyHorse_${safeName}_${drawDateText}_${type === "winners" ? "Winners" : "AllTickets"}.xlsx`,
+      );
+    } catch (requestError) {
+      setError("Unable to export report.");
+    } finally {
+      setExporting(false);
+    }
   }
-  function updateRow(index, field, value) { setRows((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, [field]: value } : row)); }
-  function payload() { return rows.filter((row) => row.winningNumber !== "" || row.prizeAmount !== "").map((row) => ({ ...row, prizeAmount: Number(row.prizeAmount) })); }
+  function updateRow(index, field, value) {
+    setRows((current) =>
+      current.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [field]: value } : row,
+      ),
+    );
+  }
+  function payload() {
+    return rows
+      .filter((row) => row.winningNumber !== "" || row.prizeAmount !== "")
+      .map((row) => ({ ...row, prizeAmount: Number(row.prizeAmount) }));
+  }
 
   async function saveResults(event) {
-    event.preventDefault(); setBusy(true); setError(""); setNotice("");
-    try { await API.put(`/admin/lotteries/${selected.id}/winning-results`, { winningResults: payload() }); setNotice("Winning results saved."); }
-    catch (requestError) { setError(requestError.response?.data?.message || "Unable to save winning results."); }
-    finally { setBusy(false); }
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await API.put(`/admin/lotteries/${selected.id}/winning-results`, {
+        winningResults: payload(),
+      });
+      setNotice("Winning results saved.");
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Unable to save winning results.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function declareResults() {
-    if (!window.confirm(`Declare and settle ${selected.lotteryName}? This cannot be undone.`)) return;
-    setBusy(true); setError(""); setNotice("");
-    try { await API.post(`/admin/lotteries/${selected.id}/winning-results`, { winningResults: payload() }); setNotice("Results declared and tickets settled."); await loadLotteries(); await loadResults(selected.id); }
-    catch (requestError) { setError(requestError.response?.data?.message || "Unable to declare winning results."); }
-    finally { setBusy(false); }
+    if (
+      !window.confirm(
+        `Declare and settle ${selected.lotteryName}? This cannot be undone.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await API.post(`/admin/lotteries/${selected.id}/winning-results`, {
+        winningResults: payload(),
+      });
+      setNotice("Results declared and tickets settled.");
+      await loadLotteries();
+      await loadResults(selected.id);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Unable to declare winning results.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
-  return <><div className="page-header"><div><span className="eyebrow">Payouts</span><h1>Winner Selection</h1><p>Configure the winning number and prize for each applicable bet type.</p></div><button className="secondary-button" onClick={loadLotteries}>↻ Refresh</button></div>{notice && <div className="toast">{notice}</div>}{error && <div className="error-box">{error}</div>}{loading ? <div className="loading-state">Loading draws...</div> : <section className="panel winner-selection"><label>Lottery<select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>{lotteries.map((lottery) => <option key={lottery.id} value={lottery.id}>{lottery.lotteryName}</option>)}</select></label>{selected && <div className="draw-summary"><div><span>Draw date</span><strong>{dateText(selected.drawDate)}</strong></div><div><span>Draw time</span><strong>{timeText(selected.drawDate)}</strong></div><div><span>Status</span><strong><span className={`status-badge ${STATUS_BADGE_CLASS[status] || "upcoming"}`}><span />{STATUS_LABELS[status] || status}</span></strong></div></div>}{selected && <form onSubmit={saveResults}><div className="winner-table"><div className="winner-table-head"><span>Bet Type</span><span>Winning Number</span><span>Prize Amount</span></div>{rows.map((row, index) => <div className="winner-table-row" key={row.betType}><strong>{labels[row.betType]}</strong><input aria-label={`${labels[row.betType]} winning number`} inputMode="numeric" maxLength={row.betType === "SINGLE" ? 1 : row.betType === "DOUBLE" ? 2 : 3} value={row.winningNumber} disabled={locked} onChange={(event) => updateRow(index, "winningNumber", event.target.value.replace(/\D/g, ""))} /><input aria-label={`${labels[row.betType]} prize amount`} type="number" min="0.01" step="0.01" value={row.prizeAmount} disabled={locked} onChange={(event) => updateRow(index, "prizeAmount", event.target.value)} placeholder={money(0)} /></div>)}</div>{status === "UPCOMING" && <p className="form-note">Winning number fields are locked until after the draw time.</p>}{status === "COMPLETED" && <p className="form-note">This draw has already been declared and settled.</p>}<div className="form-actions"><button className="secondary-button" disabled={busy || locked}>Save / Update</button><button type="button" className="primary-button" disabled={busy || locked} onClick={declareResults}>{busy ? "Processing..." : "Confirm & Declare"}</button></div></form>}</section>}
+  return (
+    <div className="winner-selection-page">
+      <PageHeader
+        eyebrow="Payouts"
+        title="Winner Selection"
+        description="Configure winning numbers and prize amounts for each applicable bet type."
+        action={
+          <button className="secondary-button winner-refresh-button" onClick={loadLotteries}>
+            <span aria-hidden="true">↻</span> Refresh
+          </button>
+        }
+      />
+      {notice && <div className="toast">{notice}</div>}
+      {error && <div className="error-box">{error}</div>}
+      {loading ? (
+        <div className="loading-state">Loading draws...</div>
+      ) : (
+        <section className="panel winner-selection-card">
+          <label className="winner-lottery-field">
+            <span className="winner-field-title"><span aria-hidden="true">◉</span> Lottery</span>
+            <select
+              value={selectedId}
+              onChange={(event) => setSelectedId(event.target.value)}
+            >
+              {lotteries.map((lottery) => (
+                <option key={lottery.id} value={lottery.id}>
+                  {lottery.lotteryName}
+                </option>
+              ))}
+            </select>
+          </label>
+          {selected && (
+            <div className="winner-info-grid">
+              <div className="winner-info-tile">
+                <span className="winner-info-icon" aria-hidden="true">▦</span>
+                <span className="winner-info-label">Draw Date</span>
+                <strong>{dateText(selected.drawDate)}</strong>
+              </div>
+              <div className="winner-info-tile">
+                <span className="winner-info-icon" aria-hidden="true">◷</span>
+                <span className="winner-info-label">Draw Time</span>
+                <strong>{timeText(selected.drawDate)}</strong>
+              </div>
+              <div className="winner-info-tile">
+                <span className="winner-info-icon" aria-hidden="true">◉</span>
+                <span className="winner-info-label">Status</span>
+                <strong className="winner-status-value">
+                  <span className={`status-badge ${STATUS_BADGE_CLASS[status] || "upcoming"}`}>
+                    <span />{STATUS_LABELS[status] || status}
+                  </span>
+                </strong>
+              </div>
+            </div>
+          )}
+          {selected && (
+            <form className="winner-results-form" onSubmit={saveResults}>
+              <div className="winner-table">
+                <div className="winner-table-head">
+                  <span>Bet Type</span>
+                  <span>Winning Number</span>
+                  <span>Prize Amount</span>
+                </div>
+                {rows.map((row, index) => (
+                  <div className="winner-table-row" key={row.betType}>
+                    <strong>{labels[row.betType]}</strong>
+                    <label className="winner-number-field">
+                      <span>Winning Number</span>
+                      <input
+                        aria-label={`${labels[row.betType]} winning number`}
+                        inputMode="numeric"
+                        maxLength={
+                          row.betType === "SINGLE"
+                            ? 1
+                            : row.betType === "DOUBLE"
+                              ? 2
+                              : 3
+                        }
+                        value={row.winningNumber}
+                        disabled={locked}
+                        onChange={(event) =>
+                          updateRow(
+                            index,
+                            "winningNumber",
+                            event.target.value.replace(/\D/g, ""),
+                          )
+                        }
+                      />
+                    </label>
+                    <label className="winner-prize-field">
+                      <span>Prize Amount</span>
+                      <input
+                        aria-label={`${labels[row.betType]} prize amount`}
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={row.prizeAmount}
+                        disabled={locked}
+                        onChange={(event) =>
+                          updateRow(index, "prizeAmount", event.target.value)
+                        }
+                        placeholder={money(0)}
+                      />
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {status === "UPCOMING" && (
+                <p className="form-note">
+                  Winning number fields are locked until after the draw time.
+                </p>
+              )}
+              {status === "COMPLETED" && (
+                <p className="form-note">
+                  This draw has already been declared and settled.
+                </p>
+              )}
+              <div className="form-actions">
+                <button className="secondary-button winner-save-button" disabled={busy || locked}>
+                  <span aria-hidden="true">▣</span> Save / Update
+                </button>
+                <button
+                  type="button"
+                  className="primary-button winner-declare-button"
+                  disabled={busy || locked}
+                  onClick={declareResults}
+                >
+                  <span aria-hidden="true">✓</span> {busy ? "Processing..." : "Confirm & Declare"}
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
 
-    {selected && completed && <section className="panel winner-report">
-      <div className="panel-title"><div><span className="eyebrow">Report</span><h2>{selected.lotteryName} draw report</h2></div>
-        <div className="row-actions">
-          <button className={`secondary-button ${reportType === "winners" ? "active" : ""}`} onClick={() => setReportType("winners")}>Winners</button>
-          <button className={`secondary-button ${reportType === "all" ? "active" : ""}`} onClick={() => setReportType("all")}>All Tickets</button>
-        </div>
-      </div>
-      <div className="row-actions" style={{ marginBottom: 16 }}>
-        <button className="primary-button" disabled={exporting} onClick={() => exportReport("winners")}>{exporting ? "Preparing..." : "Download Winners Excel"}</button>
-        <button className="secondary-button" disabled={exporting} onClick={() => exportReport("all")}>{exporting ? "Preparing..." : "Download All Tickets Excel"}</button>
-      </div>
-      {reportLoading ? <div className="loading-state">Loading report...</div> : !report || report.rows.length === 0 ? <Empty text="No matching tickets for this draw yet." /> : <>
-        <div className="draw-summary">
-          <div><span>Tickets</span><strong>{report.summary.count}</strong></div>
-          <div><span>Winners</span><strong>{report.summary.winners}</strong></div>
-          <div><span>Total prize paid</span><strong>{money(report.summary.totalPrizeAmount)}</strong></div>
-        </div>
-        <div className="table-wrap">
-          <table>
-            <thead><tr><th>Customer</th><th>Mobile</th><th>Ticket No</th><th>Number</th><th>Bet Type</th><th>Ticket Amount</th><th>Winning Amount</th><th>Payment ID</th><th>Status</th></tr></thead>
-            <tbody>
-              {report.rows.map((row) => <tr key={row.ticketId}>
-                <td>{row.customerName}</td>
-                <td>{row.mobile}</td>
-                <td>{row.ticketNumber}</td>
-                <td>{row.purchasedNumber}</td>
-                <td>{row.betType}</td>
-                <td>{money(row.ticketAmount)}</td>
-                <td>{money(row.winningAmount)}</td>
-                <td>{row.paymentId}</td>
-                <td><StatusBadge active={row.winStatus === "WON"} label={row.winStatus} /></td>
-              </tr>)}
-            </tbody>
-          </table>
-        </div>
-      </>}
-    </section>}
+      {selected && completed && (
+        <section className="panel winner-report">
+          <div className="panel-title">
+            <div>
+              <span className="eyebrow">Report</span>
+              <h2>{selected.lotteryName} draw report</h2>
+            </div>
+            <div className="row-actions">
+              <button
+                className={`secondary-button ${reportType === "winners" ? "active" : ""}`}
+                onClick={() => setReportType("winners")}
+              >
+                Winners
+              </button>
+              <button
+                className={`secondary-button ${reportType === "all" ? "active" : ""}`}
+                onClick={() => setReportType("all")}
+              >
+                All Tickets
+              </button>
+            </div>
+          </div>
+          <div className="row-actions" style={{ marginBottom: 16 }}>
+            <button
+              className="primary-button"
+              disabled={exporting}
+              onClick={() => exportReport("winners")}
+            >
+              {exporting ? "Preparing..." : "Download Winners Excel"}
+            </button>
+            <button
+              className="secondary-button"
+              disabled={exporting}
+              onClick={() => exportReport("all")}
+            >
+              {exporting ? "Preparing..." : "Download All Tickets Excel"}
+            </button>
+          </div>
+          {reportLoading ? (
+            <div className="loading-state">Loading report...</div>
+          ) : !report || report.rows.length === 0 ? (
+            <Empty text="No matching tickets for this draw yet." />
+          ) : (
+            <>
+              <div className="draw-summary">
+                <div>
+                  <span>Tickets</span>
+                  <strong>{report.summary.count}</strong>
+                </div>
+                <div>
+                  <span>Winners</span>
+                  <strong>{report.summary.winners}</strong>
+                </div>
+                <div>
+                  <span>Total prize paid</span>
+                  <strong>{money(report.summary.totalPrizeAmount)}</strong>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Customer</th>
+                      <th>Mobile</th>
+                      <th>Ticket No</th>
+                      <th>Number</th>
+                      <th>Bet Type</th>
+                      <th>Ticket Amount</th>
+                      <th>Winning Amount</th>
+                      <th>Payment ID</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {report.rows.map((row) => (
+                      <tr key={row.ticketId}>
+                        <td>{row.customerName}</td>
+                        <td>{row.mobile}</td>
+                        <td>{row.ticketNumber}</td>
+                        <td>{row.purchasedNumber}</td>
+                        <td>{row.betType}</td>
+                        <td>{money(row.ticketAmount)}</td>
+                        <td>{money(row.winningAmount)}</td>
+                        <td>{row.paymentId}</td>
+                        <td>
+                          <StatusBadge
+                            active={row.winStatus === "WON"}
+                            label={row.winStatus}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
-    <section className="panel result-history">
-      <div className="panel-title"><div><span className="eyebrow">History</span><h2>Result History</h2></div><button className="secondary-button" onClick={loadHistory}>↻ Refresh</button></div>
-      {historyLoading ? <div className="loading-state">Loading result history...</div> : history.length === 0 ? <Empty text="No declared draws yet." /> : <div className="table-wrap">
-        <table>
-          <thead><tr><th>Lottery</th><th>Draw Date</th><th>Winners</th><th>Total Prize</th><th>Declared</th><th>Declared By</th></tr></thead>
-          <tbody>
-            {history.map((item) => <tr key={item.id}>
-              <td>{item.lotteryName}</td>
-              <td>{dateText(item.drawDate)} {timeText(item.drawDate)}</td>
-              <td>{item.numberOfWinners}</td>
-              <td>{money(item.totalPrizeAmount)}</td>
-              <td>{dateText(item.declaredAt)} {timeText(item.declaredAt)}</td>
-              <td>{item.declaredBy || "-"}</td>
-            </tr>)}
-          </tbody>
-        </table>
-      </div>}
-    </section>
-  </>;
+      <section className="panel result-history winner-history-card">
+        <div className="panel-title">
+          <div className="winner-history-heading">
+            <span className="winner-section-icon" aria-hidden="true">◷</span>
+            <div><span className="eyebrow">History</span><h2>Winner History</h2></div>
+          </div>
+          <button className="secondary-button winner-history-refresh" onClick={loadHistory}>
+            <span aria-hidden="true">↻</span> Refresh
+          </button>
+        </div>
+        {historyLoading ? (
+          <div className="loading-state">Loading result history...</div>
+        ) : history.length === 0 ? (
+          <Empty text="No declared draws yet." />
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Lottery</th>
+                  <th>Draw Date</th>
+                  <th>Winners</th>
+                  <th>Total Prize</th>
+                  <th>Declared</th>
+                  <th>Declared By</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.lotteryName}</td>
+                    <td>
+                      {dateText(item.drawDate)} {timeText(item.drawDate)}
+                    </td>
+                    <td>{item.numberOfWinners}</td>
+                    <td>{money(item.totalPrizeAmount)}</td>
+                    <td>
+                      {dateText(item.declaredAt)} {timeText(item.declaredAt)}
+                    </td>
+                    <td>{item.declaredBy || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
+  );
 }
 
-function StatusBadge({ active = true, label }) { return <span className={`status-badge ${active ? "success" : "muted"}`}><span />{label}</span>; }
+function StatusBadge({ active = true, label }) {
+  return (
+    <span className={`status-badge ${active ? "success" : "muted"}`}>
+      <span />
+      {label}
+    </span>
+  );
+}
 
 function Empty({ text = "No records found." }) { return <div className="empty-state"><strong>{text}</strong><span>New activity will appear here when it is available.</span></div>; }

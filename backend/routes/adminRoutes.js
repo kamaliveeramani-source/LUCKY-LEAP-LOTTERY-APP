@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 
 const requireAdmin = require("../middleware/requireAdmin");
+const imageUpload = require("../middleware/imageUpload");
 const admin = require("../controllers/adminController");
 const winningResults = require("../controllers/winningResultController");
 const drawReports = require("../controllers/drawReportController");
@@ -127,9 +128,10 @@ router.get("/dashboard", admin.getDashboard);
 
 // Lotteries
 router.get("/lotteries", admin.listLotteries);
-router.post("/lotteries", admin.createLottery);
+router.post("/lotteries", imageUpload, admin.createLottery);
 router.get("/lotteries/:id", admin.getLottery);
-router.put("/lotteries/:id", admin.updateLottery);
+router.put("/lotteries/:id", imageUpload, admin.updateLottery);
+router.delete("/lotteries/:id", admin.deleteLottery);
 router.patch(
   "/lotteries/:id/status",
   admin.updateLotteryStatus

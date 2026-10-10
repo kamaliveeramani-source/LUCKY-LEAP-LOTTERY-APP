@@ -79,13 +79,22 @@ exports.getLotteries = async (req, res) => {
           },
         ],
       },
-      order: [["id", "ASC"]],
+      order: [["displayOrder", "ASC"], ["id", "ASC"]],
       include: [{ model: WinningResult, as: "winningResults", required: false, where: { status: "DECLARED" } }],
+    });
+
+    const data = withComputedStatusList(lotteries).map((lottery) => {
+      const { logoPublicId, ...publicLottery } = lottery;
+      return {
+        ...publicLottery,
+        drawDate: lottery.nextDrawDate,
+        drawStatus: lottery.nextDrawDate ? "UPCOMING" : lottery.drawStatus,
+      };
     });
 
     return res.status(200).json({
       success: true,
-      data: withComputedStatusList(lotteries),
+      data,
     });
   } catch (error) {
     console.error("Get Lotteries Error:", error);
@@ -132,9 +141,14 @@ exports.getLotteryById = async (req, res) => {
       });
     }
 
+    const data = withComputedStatus(lottery);
+    data.drawDate = data.nextDrawDate;
+    if (data.nextDrawDate) data.drawStatus = "UPCOMING";
+    delete data.logoPublicId;
+
     return res.status(200).json({
       success: true,
-      data: withComputedStatus(lottery),
+      data,
     });
   } catch (error) {
     console.error("Get Lottery By Id Error:", error);

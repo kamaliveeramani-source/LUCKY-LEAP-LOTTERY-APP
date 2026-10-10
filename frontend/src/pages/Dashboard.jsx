@@ -68,6 +68,17 @@ function Dashboard() {
     getLotteries();
     getMyTickets();
     updateGreeting();
+    const refreshSchedules = () => {
+      if (document.visibilityState !== "visible") return;
+      getLotteries(true);
+      getMyTickets(true);
+    };
+    const refreshTimer = window.setInterval(refreshSchedules, 30000);
+    window.addEventListener("focus", refreshSchedules);
+    return () => {
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("focus", refreshSchedules);
+    };
   }, []);
 
   const updateGreeting = () => {
@@ -85,8 +96,8 @@ function Dashboard() {
     setGreeting({ name, time, date });
   };
 
-  const getLotteries = async () => {
-    setLotteryStatus("loading");
+  const getLotteries = async (quiet = false) => {
+    if (!quiet) setLotteryStatus("loading");
     try {
       const res = await API.get("/lottery/all");
       const apiLotteries = Array.isArray(res.data.data) ? res.data.data : [];
@@ -101,18 +112,20 @@ function Dashboard() {
       setLotteryStatus("success");
     } catch (err) {
       console.log(err);
-      setLotteries([]);
-      setLotteryStatus("error");
+      if (!quiet) {
+        setLotteries([]);
+        setLotteryStatus("error");
+      }
     }
   };
 
-  const getMyTickets = async () => {
+  const getMyTickets = async (quiet = false) => {
     try {
       const res = await API.get("/ticket/mytickets", { headers: { Authorization: `Bearer ${token}` } });
       setTickets(Array.isArray(res.data?.tickets) ? res.data.tickets : []);
     } catch (err) {
       console.log(err);
-      setTickets([]);
+      if (!quiet) setTickets([]);
     }
   };
 

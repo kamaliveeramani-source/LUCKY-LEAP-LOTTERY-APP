@@ -14,16 +14,23 @@ function TicketCard({ ticket }) {
   const ticketPrice = ticket.Lottery?.ticketPrice;
   const drawDate = ticket.Lottery?.drawDate;
 
-  const formattedDate = drawDate
-    ? new Date(drawDate).toLocaleDateString(undefined, {
+  const parsedDrawDate = drawDate ? new Date(drawDate) : null;
+  const hasValidDrawDate = parsedDrawDate && !Number.isNaN(parsedDrawDate.getTime());
+  const formattedDate = hasValidDrawDate
+    ? parsedDrawDate.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
         weekday: "short",
         month: "short",
         day: "numeric",
       })
     : "-";
 
-  const formattedTime = drawDate
-    ? new Date(drawDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  const formattedTime = hasValidDrawDate
+    ? parsedDrawDate.toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : "";
 
   return (

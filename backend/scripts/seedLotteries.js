@@ -17,6 +17,20 @@ const REQUIRED_LOTTERIES = [
   "Deer Lottery",
 ];
 
+const LOTTERY_THEMES = [
+  "purple",
+  "blue",
+  "magenta",
+  "green",
+  "rose",
+  "cyan",
+  "purple",
+  "blue",
+  "purple",
+  "orange",
+  "blue",
+];
+
 const normalizeLotteryName = (name) =>
   String(name || "").trim().toLowerCase();
 
@@ -68,6 +82,10 @@ async function restoreAkshaya() {
 
     if (legacyRows.length === 1) {
       legacyRows[0].lotteryName = "Akshaya";
+      legacyRows[0].shortName = "AK";
+      legacyRows[0].cardTheme = "magenta";
+      legacyRows[0].displayOrder = 10;
+      legacyRows[0].featured = false;
 
       await legacyRows[0].save({
         transaction,
@@ -85,6 +103,10 @@ async function restoreAkshaya() {
     const created = await Lottery.create(
       {
         lotteryName: "Akshaya",
+        shortName: "AK",
+        cardTheme: "magenta",
+        displayOrder: 10,
+        featured: false,
         ticketPrice: 100,
         firstPrize: 700000,
         secondPrize: 350000,
@@ -313,6 +335,10 @@ async function ensureAllLotteries() {
       const createdLottery = await Lottery.create(
         {
           lotteryName,
+          shortName: lotteryName === "Deer Lottery" ? "DL" : null,
+          cardTheme: LOTTERY_THEMES[i],
+          displayOrder: i + 1,
+          featured: i === 0,
           ticketPrice: 10.5,
           firstPrize: 100,
           secondPrize: 50,

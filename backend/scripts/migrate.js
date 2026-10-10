@@ -30,6 +30,9 @@ const migrations = [
   require("../migrations/013-add-lottery-winning-amounts"),
   require("../migrations/014-align-upcoming-draw-times"),
   require("../migrations/015-repair-future-lottery-status"),
+  require("../migrations/016-add-lottery-card-presentation"),
+  require("../migrations/017-add-lottery-game-card-presentation"),
+  require("../migrations/018-add-lottery-draw-schedules"),
 ];
 
 async function migrate() {

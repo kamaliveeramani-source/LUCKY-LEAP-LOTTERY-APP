@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="320" viewBox="0 0 1600 320" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1600" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff9a62"/>
+      <stop offset=".32" stop-color="#ed7188"/>
+      <stop offset=".68" stop-color="#a94e9b"/>
+      <stop offset="1" stop-color="#583776"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="224" x2="0" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#793e78" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#312345" stop-opacity=".62"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="105" x2="0" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffe3a2" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#ffbd8a" stop-opacity=".15"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v320H0z"/>
+  <circle cx="1110" cy="169" r="102" fill="url(#sun)"/>
+  <path fill="#ffe1bc" fill-opacity=".18" d="M0 197c146-34 235 4 360-13 151-20 218-58 378-38 156 20 219 56 354 31 157-28 304-37 508 7v136H0V197Z"/>
+  <path fill="url(#water)" d="M0 227c178-25 283 19 447 1 182-20 275-48 432-24 173 27 287 17 433-5 98-14 188-12 288 8v113H0V227Z"/>
+  <path stroke="#ffe1c4" stroke-opacity=".23" stroke-width="3" d="M702 254c125-10 221-4 348 8m-392 12c143-9 287 2 420 13m146-32c92-6 172-3 263 9"/>
+  <g fill="#28203a">
+    <path d="M97 320c13-72 25-132 29-212 5 78 0 144-12 212H97Z"/>
+    <path d="M123 111C83 95 55 77 34 49c39 20 71 40 93 61-32-38-49-67-54-96 24 35 41 68 52 100 1-42 7-75 21-104 3 42 0 78-11 111 25-35 51-60 81-78-20 31-46 57-77 79 40-18 77-27 116-28-38 17-78 27-119 31 40 0 75 8 105 24-45-6-83-16-119-29Z"/>
+    <path d="M1515 320c-12-80-20-155-18-239 8 80 19 156 34 239h-16Z"/>
+    <path d="M1495 99c-39-17-68-39-90-69 39 21 69 43 91 68-26-39-39-72-39-99 19 37 33 72 41 107 7-42 18-73 36-100-3 42-12 77-28 108 30-31 60-52 92-66-24 28-54 50-89 67 42-11 80-15 119-9-40 11-81 16-122 15 39 6 72 19 100 39-43-12-79-27-112-45Z"/>
+    <path d="M300 320c8-42 13-80 14-126 5 46 5 86 1 126h-15Z"/>
+    <path d="M311 203c-24-10-42-24-55-42 24 13 42 27 55 43-16-24-23-44-22-61 12 23 20 44 25 66 4-25 11-44 22-60-2 25-7 46-17 65 18-19 37-32 56-40-14 17-33 30-54 40 25-7 48-9 72-6-24 7-49 10-74 9 24 4 44 12 61 24-26-8-48-17-69-28Z"/>
+  </g>
+  <path fill="#39243f" fill-opacity=".5" d="M0 302c210-23 368-16 546 1 177 17 352 17 530-1 185-19 343-22 524-5v23H0v-18Z"/>
+</svg>

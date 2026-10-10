@@ -23,38 +23,13 @@ function formatTime(seconds) {
   return `${String(Math.floor(safeSeconds / 3600)).padStart(2, "0")}:${String(Math.floor((safeSeconds % 3600) / 60)).padStart(2, "0")}:${String(safeSeconds % 60).padStart(2, "0")}`;
 }
 
-function getLotteryTimeParts(drawDate) {
-  if (!drawDate) return null;
-  const parsed = new Date(drawDate);
-  if (Number.isNaN(parsed.getTime())) return null;
-
-  const parts = new Intl.DateTimeFormat("en-US", {
+function formatLocalDrawTime(timestamp) {
+  return new Date(timestamp).toLocaleTimeString("en-IN", {
     timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(parsed);
-  const read = (type) => Number(parts.find((part) => part.type === type)?.value);
-  const hour = read("hour");
-  const minute = read("minute");
-  return Number.isFinite(hour) && Number.isFinite(minute) ? { hour, minute } : null;
-}
-
-function getTodayLotteryDrawTimestamp(drawDate, now = new Date()) {
-  const timeParts = getLotteryTimeParts(drawDate);
-  if (!timeParts) return 0;
-
-  const target = new Date(now);
-  target.setHours(timeParts.hour, timeParts.minute, 0, 0);
-  return target.getTime();
-}
-
-function formatLocalDrawTime(timestamp) {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
     hour12: true,
-  });
+  }).toUpperCase();
 }
 
 function formatDrawDate(drawDate) {
@@ -368,10 +343,7 @@ function LotteryGame() {
   const drawTime = selectedLottery
     ? selectedScheduleDraw?.drawDate
       ? new Date(selectedScheduleDraw.drawDate).getTime()
-      : getTodayLotteryDrawTimestamp(
-          selectedLottery.drawDate,
-          new Date(now)
-        )
+      : new Date(selectedLottery.drawDate).getTime()
     : 0;
 
   const secondsLeft = drawTime

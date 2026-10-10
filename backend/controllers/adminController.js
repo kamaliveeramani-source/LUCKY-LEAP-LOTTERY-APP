@@ -4,11 +4,13 @@ const User = require("../models/User");
 const Lottery = require("../models/Lottery");
 const Ticket = require("../models/Ticket");
 const Wallet = require("../models/Wallet");
+const WinningResult = require("../models/WinningResult");
+const { uploadBuffer, deleteAsset } = require("../config/cloudinary");
 
 const { drawWinner } = require("./lotteryController");
 const { safeRecordActivity } = require("../services/operationalEvents");
 const ActivityLog = require("../models/ActivityLog");
-const { withComputedStatus, withComputedStatusList, computeDrawStatus, parseISTDateTime, startOfDayIST } = require("../utils/drawStatus");
+const { withComputedStatus, withComputedStatusList, getNextDraw, getZonedParts, parseISTDateTime } = require("../utils/drawStatus");
 
 // User columns that actually exist in your application.
 // IMPORTANT: username has been removed.
@@ -51,7 +53,23 @@ function numberOrNull(value) {
     : null;
 }
 
-function lotteryPayload(body, partial = false) {
+function nonNegativeInteger(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 0 ? number : null;
+}
+
+function booleanValue(value) {
+  return value === true || String(value).toLowerCase() === "true";
+}
+
+function timeFromLotteryDate(value) {
+  if (!value || Number.isNaN(new Date(value).getTime())) return "";
+  const parts = getZonedParts(new Date(value), "Asia/Kolkata");
+  return `${parts.hour}:${parts.minute}`;
+}
+
+function lotteryPayload(body, partial = false, existingLottery = null) {
   const fields = {};
 
   const mappings = {
@@ -64,7 +82,17 @@ function lotteryPayload(body, partial = false) {
     totalTickets: "totalTickets",
     drawDate: "drawDate",
     drawTime: "drawTime",
+    drawFrequency: "drawFrequency",
+    drawDayOfWeek: "drawDayOfWeek",
     isActive: "isActive",
+    shortName: "shortName",
+    logo: "logo",
+    cardTheme: "cardTheme",
+    primaryColor: "primaryColor",
+    secondaryColor: "secondaryColor",
+    backgroundImage: "backgroundImage",
+    displayOrder: "displayOrder",
+    featured: "featured",
   };
 
   for (const [input, field] of Object.entries(mappings)) {
@@ -73,11 +101,85 @@ function lotteryPayload(body, partial = false) {
     }
   }
 
-  if (fields.drawTime && fields.drawDate) {
-    const drawDate = parseISTDateTime(fields.drawDate, fields.drawTime);
-    if (drawDate) fields.drawDate = drawDate;
+  if (fields.isActive !== undefined) fields.isActive = booleanValue(fields.isActive);
+  if (fields.featured !== undefined) fields.featured = booleanValue(fields.featured);
+  if (fields.displayOrder !== undefined) {
+    const displayOrder = nonNegativeInteger(fields.displayOrder);
+    if (displayOrder === null) return { error: "displayOrder must be a non-negative integer" };
+    fields.displayOrder = displayOrder;
+  }
 
-    delete fields.drawTime;
+  const scheduleWasSent = ["drawDate", "drawTime", "drawFrequency", "drawDayOfWeek"]
+    .some((field) => body[field] !== undefined);
+  if (!partial || scheduleWasSent) {
+    const frequency = String(
+      fields.drawFrequency ?? existingLottery?.drawFrequency ?? "SPECIFIC_DATE"
+    ).trim().toUpperCase();
+    if (!["DAILY", "WEEKLY", "SPECIFIC_DATE"].includes(frequency)) {
+      return { error: "Draw frequency must be Daily, Weekly, or Specific Date" };
+    }
+
+    const drawTime = String(
+      fields.drawTime ?? existingLottery?.drawTime ?? timeFromLotteryDate(fields.drawDate ?? existingLottery?.drawDate)
+    ).trim();
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(drawTime)) {
+      return { error: "Select a valid draw time" };
+    }
+
+    let drawDayOfWeek = fields.drawDayOfWeek ?? existingLottery?.drawDayOfWeek;
+    if (frequency === "WEEKLY") {
+      if (drawDayOfWeek === null || drawDayOfWeek === undefined || String(drawDayOfWeek).trim() === "") {
+        return { error: "Select a day of the week for weekly draws" };
+      }
+      drawDayOfWeek = Number(drawDayOfWeek);
+      if (!Number.isInteger(drawDayOfWeek) || drawDayOfWeek < 0 || drawDayOfWeek > 6) {
+        return { error: "Select a day of the week for weekly draws" };
+      }
+    } else {
+      drawDayOfWeek = null;
+    }
+
+    fields.drawFrequency = frequency;
+    fields.drawTime = drawTime;
+    fields.drawDayOfWeek = drawDayOfWeek;
+
+    if (frequency === "SPECIFIC_DATE") {
+      const rawDate = fields.drawDate ?? existingLottery?.drawDate;
+      let scheduledDate = null;
+      if (typeof rawDate === "string" && /^\d{4}-\d{2}-\d{2}(?:T|$)/.test(rawDate) && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(rawDate)) {
+        scheduledDate = parseISTDateTime(rawDate.slice(0, 10), drawTime);
+      } else if (rawDate) {
+        scheduledDate = new Date(rawDate);
+      }
+      if (!scheduledDate || Number.isNaN(scheduledDate.getTime()) || scheduledDate <= new Date()) {
+        return { error: "Draw date must be today or a future date." };
+      }
+      fields.drawDate = scheduledDate;
+    } else {
+      const nextDraw = getNextDraw({
+        ...(existingLottery?.toJSON?.() || existingLottery || {}),
+        ...fields,
+      });
+      if (!nextDraw) return { error: "Unable to calculate the next scheduled draw" };
+      fields.drawDate = nextDraw;
+    }
+  }
+
+  const validThemes = new Set(["purple", "blue", "green", "rose", "coral", "cyan", "teal", "orange", "magenta", "violet", "amber"]);
+  if (fields.cardTheme !== undefined) {
+    fields.cardTheme = String(fields.cardTheme || "").trim().toLowerCase();
+    if (fields.cardTheme && !validThemes.has(fields.cardTheme)) {
+      return { error: "cardTheme is not supported" };
+    }
+  }
+
+  for (const colorField of ["primaryColor", "secondaryColor"]) {
+    if (fields[colorField] !== undefined) {
+      fields[colorField] = String(fields[colorField] || "").trim();
+      if (fields[colorField] && !/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(fields[colorField])) {
+        return { error: `${colorField} must be a valid hex color` };
+      }
+    }
   }
 
   if (
@@ -85,13 +187,12 @@ function lotteryPayload(body, partial = false) {
     (
       !fields.lotteryName ||
       !fields.ticketPrice ||
-      !fields.firstPrize ||
-      !fields.drawDate
+      !fields.firstPrize
     )
   ) {
     return {
       error:
-        "lotteryName, ticketPrice, firstPrize and drawDate are required",
+        "lotteryName, ticketPrice and firstPrize are required",
     };
   }
 
@@ -170,16 +271,14 @@ exports.getDashboard = async (req, res) => {
       Lottery.findAll({
         where: {
           isActive: true,
-          // Never resurface a draw from a past calendar day (IST) as "next draw".
-          drawDate: { [Op.gte]: startOfDayIST() },
         },
-        order: [["drawDate", "ASC"]],
-        limit: 20,
+        order: [["displayOrder", "ASC"], ["id", "ASC"]],
       }),
     ]);
 
-    // Resolve using computed status, not the raw column, so a stale drawStatus can never hide/expose the wrong draw.
-    const nextDrawLottery = nextDrawCandidates.find((item) => computeDrawStatus(item) !== "COMPLETED") || null;
+    const nextDrawLottery = withComputedStatusList(nextDrawCandidates)
+      .filter((item) => item.nextDrawDate)
+      .sort((left, right) => new Date(left.nextDrawDate) - new Date(right.nextDrawDate))[0] || null;
 
     const sum = (rows, field) =>
       rows.reduce(
@@ -200,7 +299,9 @@ exports.getDashboard = async (req, res) => {
 
         recentActivity,
 
-        nextDraw: nextDrawLottery ? withComputedStatus(nextDrawLottery) : null,
+        nextDraw: nextDrawLottery
+          ? { ...nextDrawLottery, drawDate: nextDrawLottery.nextDrawDate, drawStatus: "UPCOMING" }
+          : null,
 
         dailyActivity: {
           newUsers: todayActivity.filter(
@@ -258,9 +359,7 @@ exports.getDashboard = async (req, res) => {
 exports.listLotteries = async (req, res) => {
   try {
     const lotteries = await Lottery.findAll({
-      order: [
-        ["id", "ASC"],
-      ],
+      order: [["displayOrder", "ASC"], ["id", "ASC"]],
     });
 
     return res.json({
@@ -276,6 +375,7 @@ exports.listLotteries = async (req, res) => {
 };
 
 exports.createLottery = async (req, res) => {
+  let uploadedLogo = null;
   try {
     const { fields, error } = lotteryPayload(
       req.body || {}
@@ -303,6 +403,19 @@ exports.createLottery = async (req, res) => {
       });
     }
 
+    if (req.file) {
+      uploadedLogo = await uploadBuffer(req.file.buffer, "lucky-horse/lotteries");
+      fields.logo = uploadedLogo.secure_url;
+      fields.logoPublicId = uploadedLogo.public_id;
+    }
+
+    if (fields.displayOrder === undefined) {
+      fields.displayOrder = (await Lottery.max("displayOrder") || 0) + 1;
+    }
+    fields.featured = fields.featured ?? false;
+    fields.isActive = fields.isActive ?? true;
+    fields.cardTheme = fields.cardTheme || "purple";
+
     const lottery = await Lottery.create(fields);
 
     await safeRecordActivity({
@@ -319,6 +432,7 @@ exports.createLottery = async (req, res) => {
       data: lottery,
     });
   } catch (error) {
+    if (uploadedLogo?.public_id) await deleteAsset(uploadedLogo.public_id).catch(() => {});
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -352,6 +466,7 @@ exports.getLottery = async (req, res) => {
 };
 
 exports.updateLottery = async (req, res) => {
+  let uploadedLogo = null;
   try {
     const lottery = await Lottery.findByPk(
       numberOrNull(req.params.id)
@@ -366,7 +481,8 @@ exports.updateLottery = async (req, res) => {
 
     const { fields, error } = lotteryPayload(
       req.body || {},
-      true
+      true,
+      lottery
     );
 
     if (error) {
@@ -397,7 +513,20 @@ exports.updateLottery = async (req, res) => {
       }
     }
 
+    if (req.file) {
+      uploadedLogo = await uploadBuffer(req.file.buffer, "lucky-horse/lotteries");
+      fields.logo = uploadedLogo.secure_url;
+      fields.logoPublicId = uploadedLogo.public_id;
+    }
+
+    const previousLogoPublicId = lottery.logoPublicId;
+    const logoUrlChanged = fields.logo !== undefined && fields.logo !== lottery.logo;
+    if (logoUrlChanged && !uploadedLogo) fields.logoPublicId = null;
     await lottery.update(fields);
+
+    if ((uploadedLogo || logoUrlChanged) && previousLogoPublicId) {
+      await deleteAsset(previousLogoPublicId).catch(() => {});
+    }
 
     await safeRecordActivity({
       action: "LOTTERY_UPDATED",
@@ -415,10 +544,38 @@ exports.updateLottery = async (req, res) => {
       data: lottery,
     });
   } catch (error) {
+    if (uploadedLogo?.public_id) await deleteAsset(uploadedLogo.public_id).catch(() => {});
     return res.status(500).json({
       success: false,
       message: error.message,
     });
+  }
+};
+
+exports.deleteLottery = async (req, res) => {
+  try {
+    const lottery = await Lottery.findByPk(numberOrNull(req.params.id));
+    if (!lottery) {
+      return res.status(404).json({ success: false, message: "Lottery not found" });
+    }
+
+    const [ticketCount, resultCount, activityCount] = await Promise.all([
+      Ticket.count({ where: { LotteryId: lottery.id } }),
+      WinningResult.count({ where: { LotteryId: lottery.id } }),
+      ActivityLog.count({ where: { LotteryId: lottery.id } }),
+    ]);
+    if (ticketCount || resultCount || activityCount) {
+      return res.status(409).json({
+        success: false,
+        message: "This lottery has ticket or result history and cannot be deleted. Disable it instead.",
+      });
+    }
+
+    await lottery.destroy();
+    if (lottery.logoPublicId) await deleteAsset(lottery.logoPublicId).catch(() => {});
+    return res.json({ success: true, data: { id: lottery.id } });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

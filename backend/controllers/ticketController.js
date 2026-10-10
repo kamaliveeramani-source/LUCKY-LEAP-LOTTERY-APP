@@ -10,6 +10,7 @@ const GameOption = require("../models/GameOption");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
 const { safeRecordActivity } = require("../services/operationalEvents");
+const { getNextDraw } = require("../utils/drawStatus");
 
 const GAME_MULTIPLIERS = [1, 3, 9, 27, 81, 243, 729];
 
@@ -228,29 +229,17 @@ exports.buyTicket = async (req, res) => {
       });
     }
 
-    // 9. Check draw date and time (draw closes 30 minutes before draw time)
-    if (lottery.drawDate) {
-      const drawDate = new Date(lottery.drawDate);
-      const now = new Date();
-
-      if (!Number.isNaN(drawDate.getTime())) {
-        // Check if draw is today or in the future by comparing just the date parts
-        const drawDateOnly = new Date(drawDate.getFullYear(), drawDate.getMonth(), drawDate.getDate());
-        const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-        // Draw closes 30 minutes before the scheduled draw time (15:00 / 3 PM)
-        // Assuming draws are scheduled for 15:00 (3 PM)
-        const drawClosureTime = new Date(drawDateOnly);
-        drawClosureTime.setHours(14, 30, 0, 0); // Closes at 2:30 PM
-
-        // If current time is past the closure time on or after draw date, reject
-        if (now >= drawClosureTime && todayOnly >= drawDateOnly) {
-          return res.status(400).json({
-            success: false,
-            message: "This lottery draw has already closed",
-          });
-        }
-      }
+    // Ticket sales close 30 minutes before each lottery's configured occurrence.
+    const now = new Date();
+    const nextDraw = getNextDraw(lottery, now);
+    if (!nextDraw) {
+      return res.status(400).json({ success: false, message: "No upcoming draw is scheduled" });
+    }
+    if (now >= new Date(nextDraw.getTime() - 30 * 60 * 1000)) {
+      return res.status(400).json({
+        success: false,
+        message: "This lottery draw has already closed",
+      });
     }
 
     // 10. Start transaction

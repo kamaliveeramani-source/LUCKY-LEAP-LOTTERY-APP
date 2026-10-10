@@ -29,13 +29,29 @@ function gamePayload(body = {}, partial = false) {
       fields[input] = value;
     }
   }
+  for (const field of ["subtitle", "icon"]) {
+    if (!partial || body[field] !== undefined) {
+      fields[field] = String(body[field] || "").trim() || null;
+    }
+  }
+  if (!partial || body.buttonTheme !== undefined) {
+    const buttonTheme = String(body.buttonTheme || "purple").trim().toLowerCase();
+    const validThemes = ["purple", "orange", "green", "blue", "pink"];
+    if (!validThemes.includes(buttonTheme)) return { error: "buttonTheme is not supported" };
+    fields.buttonTheme = buttonTheme;
+  }
+  if (body.displayOrder !== undefined || !partial) {
+    const displayOrder = Number(body.displayOrder ?? 0);
+    if (!Number.isInteger(displayOrder) || displayOrder < 0) return { error: "displayOrder must be a non-negative integer" };
+    fields.displayOrder = displayOrder;
+  }
   if (body.isActive !== undefined) fields.isActive = Boolean(body.isActive);
   return { fields };
 }
 
 exports.listPublic = async (req, res) => {
   try {
-    const data = await LotteryGameConfig.findAll({ where: { isActive: true }, order: [["id", "ASC"]] });
+    const data = await LotteryGameConfig.findAll({ where: { isActive: true }, order: [["displayOrder", "ASC"], ["id", "ASC"]] });
     return res.json({ success: true, data });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -44,7 +60,7 @@ exports.listPublic = async (req, res) => {
 
 exports.listAdmin = async (req, res) => {
   try {
-    const data = await LotteryGameConfig.findAll({ order: [["id", "ASC"]] });
+    const data = await LotteryGameConfig.findAll({ order: [["displayOrder", "ASC"], ["id", "ASC"]] });
     return res.json({ success: true, data });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -57,6 +73,7 @@ exports.create = async (req, res) => {
     if (error) return res.status(400).json({ success: false, message: error });
     const duplicate = await LotteryGameConfig.findOne({ where: { name: { [Op.iLike]: fields.name } } });
     if (duplicate) return res.status(409).json({ success: false, message: "Lottery game already exists" });
+    if (fields.displayOrder === undefined) fields.displayOrder = (await LotteryGameConfig.max("displayOrder") || 0) + 1;
     const data = await LotteryGameConfig.create(fields);
     return res.status(201).json({ success: true, data });
   } catch (error) {

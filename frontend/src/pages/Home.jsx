@@ -301,13 +301,12 @@ function Home() {
     <div className="home-screen">
       <section className="home-hero">
         <div className="home-hero__content">
+          <span className="home-hero__eyebrow">DREAM BIG, WIN BIG</span>
           <h1>
-            How to play &amp;
+            Play Lucky Horse
             <br />
-            Win Big!
+            Lotteries Today!
           </h1>
-
-          <p>Play more, win more</p>
 
           <button
             type="button"

@@ -8,19 +8,26 @@ import "@fontsource/poppins/600.css";
 import "@fontsource/poppins/700.css";
 import "@fontsource/poppins/800.css";
 import thumbiLogo from "../../frontend/src/assets/thumbi-logo.png";
-import lotteryArtwork from "../../frontend/src/assets/lotteries/lottery.png";
-import lotteryBanner from "./upcoming-draw-sunset.svg";
-import keralaArtwork from "../../frontend/src/assets/lotteries/kerala-emblem-transparent.png";
-import bhagyatharaArtwork from "../../frontend/src/assets/lotteries/bhagyathara-transparent.png";
-import karunyaArtwork from "../../frontend/src/assets/lotteries/karunya-transparent.png";
-import karunyaPlusArtwork from "../../frontend/src/assets/lotteries/karunya-plus-transparent.png";
-import nagalandDayArtwork from "../../frontend/src/assets/lotteries/nagaland-day-transparent.png";
-import nagalandEveningArtwork from "../../frontend/src/assets/lotteries/nagaland-evening-transparent.png";
-import nagalandMorningArtwork from "../../frontend/src/assets/lotteries/nagaland-morning-transparent.png";
-import samrudhiArtwork from "../../frontend/src/assets/lotteries/samrudhi-transparent.png";
-import sthreesakthiArtwork from "../../frontend/src/assets/lotteries/sthree-sakthi-transparent.png";
-import suvarnaKeralamArtwork from "../../frontend/src/assets/lotteries/suvarna-keralam-transparent.png";
-import winWinArtwork from "../../frontend/src/assets/lotteries/win-win-transparent.png";
+import bhagyatharaBanner from "../../frontend/src/assets/lotteries/bhagyathara-teal.jpg";
+import bhagyatharaLogo from "../../frontend/src/assets/lotteries/bhagyathara-transparent.png";
+import deerLotteryBanner from "../../frontend/src/assets/lotteries/deer-lottery-purple.jpg";
+import karunyaBanner from "../../frontend/src/assets/lotteries/karunya-green.jpg";
+import karunyaLogo from "../../frontend/src/assets/lotteries/karunya-transparent.png";
+import karunyaPlusBanner from "../../frontend/src/assets/lotteries/karunya-plus-orange.jpg";
+import karunyaPlusLogo from "../../frontend/src/assets/lotteries/karunya-plus-transparent.png";
+import keralaLotteryBanner from "../../frontend/src/assets/lotteries/kerala-lottery-pink.jpg";
+import keralaLogo from "../../frontend/src/assets/lotteries/kerala-emblem-transparent.png";
+import nagalandDayBanner from "../../frontend/src/assets/lotteries/nagaland-day-pink.jpg";
+import nagalandDayLogo from "../../frontend/src/assets/lotteries/nagaland-day-transparent.png";
+import nagalandEveningBanner from "../../frontend/src/assets/lotteries/nagaland-evening-blue.jpg";
+import nagalandEveningLogo from "../../frontend/src/assets/lotteries/nagaland-evening-transparent.png";
+import nagalandMorningLogo from "../../frontend/src/assets/lotteries/nagaland-morning-transparent.png";
+import samrudhiBanner from "../../frontend/src/assets/lotteries/samrudhi-pink.jpg";
+import samrudhiLogo from "../../frontend/src/assets/lotteries/samrudhi-transparent.png";
+import suvarnaKeralaBanner from "../../frontend/src/assets/lotteries/suvarna-kerala-gold.jpg";
+import suvarnaKeralaLogo from "../../frontend/src/assets/lotteries/suvarna-keralam-transparent.png";
+import winWinBanner from "../../frontend/src/assets/lotteries/win-win-blue.jpg";
+import winWinLogo from "../../frontend/src/assets/lotteries/win-win-transparent.png";
 import "./styles.css";
 import ContentManager from "./ContentManager";
 import WinnerSelection from "./WinnerSelection";
@@ -102,6 +109,56 @@ function formatCountdown(drawDate) {
   const seconds = totalSeconds % 60;
   const clock = [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
   return days ? `${days}d ${clock}` : clock;
+}
+
+const UPCOMING_DRAW_THEMES = {
+  kerala: ["#ff5a75", "#ff3d7a"],
+  blue: ["#2ec5ff", "#1b68ff"],
+  green: ["#61d68c", "#0ea56d"],
+  orange: ["#fbbf24", "#f97316"],
+  gold: ["#f5c451", "#f39c12"],
+  pink: ["#ff7db9", "#f43f9d"],
+  teal: ["#4bd6c0", "#0d8a9f"],
+  magenta: ["#ff6ae8", "#d946ef"],
+  nightblue: ["#377ce8", "#101d72"],
+  akshaya: ["#ff58bd", "#ad176d"],
+  purple: ["#8b5cf6", "#6d28d9"],
+};
+
+const UPCOMING_DRAW_ARTWORK = new Map([
+  ["bhagyathara", { theme: "teal", banner: bhagyatharaBanner, logo: bhagyatharaLogo }],
+  ["deer lottery", { theme: "purple", banner: deerLotteryBanner, logo: deerLotteryBanner }],
+  ["karunya", { theme: "green", banner: karunyaBanner, logo: karunyaLogo }],
+  ["karunya plus", { theme: "orange", banner: karunyaPlusBanner, logo: karunyaPlusLogo }],
+  ["kerala lottery", { theme: "kerala", banner: keralaLotteryBanner, logo: keralaLogo }],
+  ["nagaland day", { theme: "magenta", banner: nagalandDayBanner, logo: nagalandDayLogo }],
+  ["nagaland evening", { theme: "nightblue", banner: nagalandEveningBanner, logo: nagalandEveningLogo }],
+  ["nagaland morning", { theme: "magenta", logo: nagalandMorningLogo }],
+  ["samrudhi", { theme: "pink", banner: samrudhiBanner, logo: samrudhiLogo }],
+  ["suvarna kerala", { theme: "gold", banner: suvarnaKeralaBanner, logo: suvarnaKeralaLogo }],
+  ["suvarna keralam", { theme: "gold", banner: suvarnaKeralaBanner, logo: suvarnaKeralaLogo }],
+  ["win win", { theme: "blue", banner: winWinBanner, logo: winWinLogo }],
+  ["akshaya", { theme: "akshaya" }],
+]);
+
+function getUpcomingDrawVisual(lottery) {
+  const name = String(lottery.lotteryName || lottery.name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  const artwork = UPCOMING_DRAW_ARTWORK.get(name);
+  const configuredTheme = String(lottery.cardTheme || "").toLowerCase();
+  const theme = artwork?.theme || (UPCOMING_DRAW_THEMES[configuredTheme] ? configuredTheme : "purple");
+  const [start, end] = UPCOMING_DRAW_THEMES[theme];
+  const apiLogo = [lottery.logo, lottery.logoUrl, lottery.logo_url, lottery.image, lottery.imageUrl, lottery.image_url]
+    .find((value) => typeof value === "string" && value.trim())?.trim();
+
+  return {
+    start,
+    end,
+    banner: artwork?.banner || "",
+    logo: artwork?.logo || apiLogo || thumbiLogo,
+  };
 }
 
 function ProtectedRoute({ children }) {
@@ -232,47 +289,6 @@ function Empty({ text = "No records found." }) { return <div className="empty-st
 function ErrorState({ message, retry }) { return <div className="error-box"><strong>Could not load this view.</strong><span>{message}</span>{retry && <button className="text-button" onClick={retry}>Try again</button>}</div>; }
 function StatusBadge({ active = true, label }) { return <span className={`status-badge ${active ? "success" : "muted"}`}><span />{label || (active ? "Active" : "Inactive")}</span>; }
 
-const lotteryArtworkByName = [
-  ["karunya plus", karunyaPlusArtwork],
-  ["nagaland day", nagalandDayArtwork],
-  ["nagaland evening", nagalandEveningArtwork],
-  ["nagaland morning", nagalandMorningArtwork],
-  ["bhagyathara", bhagyatharaArtwork],
-  ["karunya", karunyaArtwork],
-  ["samrudhi", samrudhiArtwork],
-  ["sthree sakthi", sthreesakthiArtwork],
-  ["suvarna kerala", suvarnaKeralamArtwork],
-  ["suvarna keralam", suvarnaKeralamArtwork],
-  ["win win", winWinArtwork],
-  ["kerala", keralaArtwork],
-];
-
-const artworkFields = [
-  "image", "image_url", "imageUrl", "logo", "logo_url", "logoUrl",
-  "thumbnail", "thumbnail_url", "thumbnailUrl", "artwork", "artwork_url", "artworkUrl",
-];
-
-function imageUrlFrom(value) {
-  if (typeof value === "string") return value.trim();
-  if (value && typeof value === "object") {
-    return [value.url, value.secure_url, value.src, value.path].find((candidate) => typeof candidate === "string" && candidate.trim())?.trim() || "";
-  }
-  return "";
-}
-
-function localLotteryArtwork(name = "") {
-  const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-  return lotteryArtworkByName.find(([key]) => normalizedName.includes(key))?.[1] || lotteryArtwork;
-}
-
-function lotteryArtworkFor(lottery) {
-  for (const field of artworkFields) {
-    const imageUrl = imageUrlFrom(lottery?.[field]);
-    if (imageUrl) return imageUrl;
-  }
-  return localLotteryArtwork(lottery?.lotteryName || lottery?.name || "");
-}
-
 function activityChartData(activity = [], range = "today") {
   const today = new Date().toLocaleDateString("en-CA", IST_FORMAT);
   const [year, month, day] = today.split("-").map(Number);
@@ -329,50 +345,6 @@ function currentMonthRange() {
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   const format = (date) => date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   return `${format(start)} - ${format(end)}`;
-}
-
-const LOTTERY_THEME_MAP = {
-  kerala: { start: "#ff5a75", end: "#f43f5e" },
-  blue: { start: "#38bdf8", end: "#2563eb" },
-  green: { start: "#4ade80", end: "#0ea56d" },
-  orange: { start: "#fbbf24", end: "#f97316" },
-  gold: { start: "#f5c451", end: "#f59e0b" },
-  pink: { start: "#ff7db9", end: "#f43f9d" },
-  teal: { start: "#2dd4bf", end: "#14b8a6" },
-  magenta: { start: "#ff73d7", end: "#d946ef" },
-  purple: { start: "#8b5cf6", end: "#6d28d9" },
-  violet: { start: "#a78bfa", end: "#7c3aed" },
-  coral: { start: "#fb7185", end: "#f97316" },
-  cyan: { start: "#22d3ee", end: "#0ea5e9" },
-  amber: { start: "#fbbf24", end: "#f97316" },
-  rose: { start: "#f9a8d4", end: "#ec4899" },
-};
-
-const LOTTERY_THEME_KEYWORDS = [
-  ["kerala", "kerala"],
-  ["win win", "blue"],
-  ["winwin", "blue"],
-  ["karunya", "green"],
-  ["karunya plus", "orange"],
-  ["suvarna", "gold"],
-  ["samrudhi", "pink"],
-  ["bhagyathara", "teal"],
-  ["nagaland day", "magenta"],
-  ["nagaland evening", "blue"],
-  ["deer", "purple"],
-  ["akshaya", "pink"],
-  ["sthree sakthi", "purple"],
-  ["sthree sakthi", "purple"],
-];
-
-function resolveLotteryTheme(lottery = {}) {
-  if (lottery.cardTheme && LOTTERY_THEME_MAP[lottery.cardTheme]) return lottery.cardTheme;
-
-  const name = String(lottery.lotteryName || lottery.name || "").toLowerCase();
-  const matchedTheme = LOTTERY_THEME_KEYWORDS.find(([keyword]) => name.includes(keyword));
-  if (matchedTheme) return matchedTheme[1];
-
-  return "purple";
 }
 
 function Dashboard() {
@@ -542,36 +514,47 @@ function Dashboard() {
         {upcomingLotteries.length ? (
           <div className="upcoming-lottery-cards">
             {upcomingLotteries.map((lottery) => {
-              const theme = resolveLotteryTheme(lottery);
-              const palette = LOTTERY_THEME_MAP[theme] || LOTTERY_THEME_MAP.purple;
-              const bannerImage = imageUrlFrom(lottery.backgroundImage || lottery.bannerImage || lottery.cardBackgroundImage || lottery.background_image);
-              const themeStyle = {
-                backgroundColor: palette.start,
-                backgroundImage: `linear-gradient(90deg, rgba(40, 17, 65, .3) 0%, rgba(40, 17, 65, .08) 48%, rgba(40, 17, 65, .14) 100%), url("${bannerImage || lotteryBanner}")`,
-              };
-              const imageUrl = lotteryArtworkFor(lottery);
-              const category = lottery.categoryName || lottery.category || lottery.lotteryType || "Lottery";
-              const drawName = lottery.drawName || lottery.drawTitle || lottery.lotteryName || "Upcoming draw";
-              const drawDate = lottery.nextDrawDate ? new Date(lottery.nextDrawDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }) : "TBD";
-              const drawTime = lottery.nextDrawDate ? new Date(lottery.nextDrawDate).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" }) : "TBD";
+              const visual = getUpcomingDrawVisual(lottery);
+              const drawDateValue = lottery.nextDrawDate || lottery.drawDate;
+              const lotteryName = lottery.lotteryName || lottery.name || lottery.drawName || lottery.drawTitle || "Upcoming draw";
+              const firstPrize = lottery.firstPrize ?? lottery.first_prize ?? 0;
 
               return (
-                <article className={`upcoming-lottery-card theme-${theme}`} key={lottery.id} style={themeStyle}>
-                  <div className="upcoming-draw-logo">
-                    {imageUrl ? <img src={imageUrl} alt={`${lottery.lotteryName} logo`} onError={(event) => {
-                      event.currentTarget.style.display = "none";
-                    }} /> : <span>{String(lottery.shortName || lottery.lotteryName || "LH").slice(0, 2).toUpperCase()}</span>}
-                  </div>
-                  <div className="upcoming-draw-copy">
-                    <span className="upcoming-draw-category">{category}</span>
-                    <h3>{drawName}</h3>
-                    <span className="upcoming-draw-status">Upcoming</span>
-                    <span className="upcoming-draw-prize">First Prize <strong>{money(lottery.firstPrize || lottery.first_prize || 0)}</strong></span>
+                <article
+                  className="upcoming-lottery-banner"
+                  key={lottery.id}
+                  style={{
+                    "--upcoming-draw-start": visual.start,
+                    "--upcoming-draw-end": visual.end,
+                    ...(visual.banner ? { "--upcoming-draw-image": `url("${visual.banner}")` } : {}),
+                  }}
+                >
+                  <div className="upcoming-lottery-identity">
+                    <div className="upcoming-lottery-logo">
+                      <img src={visual.logo} alt="" />
+                    </div>
+                    <div className="upcoming-lottery-copy">
+                      <h3>{lotteryName}</h3>
+                      <span className="upcoming-lottery-status">Upcoming</span>
+                      <p>First Prize <strong>{money(firstPrize)}</strong></p>
+                    </div>
                   </div>
                   <div className="upcoming-draw-info-grid">
-                    <div className="upcoming-draw-info"><span className="upcoming-draw-info-icon" aria-hidden="true">▦</span><strong>{drawDate}</strong><small>Draw Date</small></div>
-                    <div className="upcoming-draw-info"><span className="upcoming-draw-info-icon" aria-hidden="true">◷</span><strong>{drawTime}</strong><small>Draw Time</small></div>
-                    <div className="upcoming-draw-info"><span className="upcoming-draw-info-icon" aria-hidden="true">⌛</span><strong>{formatCountdown(lottery.nextDrawDate)}</strong><small>Time Remaining</small></div>
+                    <div className="upcoming-draw-info">
+                      <span className="upcoming-draw-info-icon" aria-hidden="true">▦</span>
+                      <strong>{drawDateValue ? dateText(drawDateValue) : "TBD"}</strong>
+                      <small>Draw Date</small>
+                    </div>
+                    <div className="upcoming-draw-info">
+                      <span className="upcoming-draw-info-icon" aria-hidden="true">◷</span>
+                      <strong>{drawDateValue ? lotteryTimeText(drawDateValue) : "TBD"}</strong>
+                      <small>Draw Time</small>
+                    </div>
+                    <div className="upcoming-draw-info">
+                      <span className="upcoming-draw-info-icon" aria-hidden="true">⌛</span>
+                      <strong>{formatCountdown(drawDateValue)}</strong>
+                      <small>Time Remaining</small>
+                    </div>
                   </div>
                 </article>
               );

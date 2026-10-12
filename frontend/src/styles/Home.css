@@ -13,10 +13,10 @@
 .home-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-  border-radius: 28px;
-  min-height: 220px;
-  padding: 24px 28px;
+  background: linear-gradient(112deg, #702ce4 0%, #5a24ce 55%, #4822b8 100%);
+  border-radius: 24px;
+  min-height: 196px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
   box-shadow:
@@ -31,29 +31,33 @@
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  background:
-    radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.14), transparent 42%),
-    radial-gradient(circle at 72% 18%, #facc15 0 3px, transparent 4px),
-    radial-gradient(circle at 88% 32%, #60a5fa 0 3px, transparent 4px),
-    radial-gradient(circle at 64% 12%, #f472b6 0 3px, transparent 4px),
-    radial-gradient(circle at 92% 78%, #4ade80 0 3px, transparent 4px),
-    radial-gradient(circle at 78% 58%, #fb923c 0 2px, transparent 3px),
-    radial-gradient(circle at 54% 42%, #fde047 0 2px, transparent 3px);
+  background: linear-gradient(137deg, transparent 0 54%, rgba(255, 255, 255, .08) 54.2% 70%, transparent 70.2%);
 }
 
 .home-hero__content {
-  width: 50%;
+  width: 58%;
   z-index: 2;
   min-width: 0;
 }
 
+.home-hero__eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, .76);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: .06em;
+}
+
 .home-hero__content h1 {
+  max-width: 320px;
   color: #fff;
   font-size: 30px;
-  line-height: 1.05;
-  font-weight: 700;
-  margin: 0 0 10px;
-  letter-spacing: -0.02em;
+  line-height: 1.08;
+  font-weight: 800;
+  margin: 0 0 16px;
+  letter-spacing: 0;
 }
 
 .home-hero__content p {
@@ -68,14 +72,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 52px;
-  padding: 0 32px;
+  height: 48px;
+  padding: 0 26px;
   border: none;
   border-radius: 9999px;
   background: #fff;
   color: #6d28d9;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
@@ -91,12 +95,12 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 50%;
+  width: 48%;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
 }
 
 .home-hero__art img {
@@ -117,22 +121,22 @@
 
 @media (max-width: 768px) {
   .home-hero {
-    min-height: 210px;
-    padding: 22px;
+    min-height: 190px;
+    padding: 20px;
   }
 
   .home-hero__content {
-    width: 54%;
+    width: 60%;
   }
 
   .home-hero__art {
-    width: 46%;
+    width: 49%;
   }
 }
 
 @media (min-width: 768px) {
   .home-hero__content h1 {
-    font-size: 42px;
+    font-size: 34px;
     margin-bottom: 12px;
   }
 
@@ -146,8 +150,8 @@
 .live-draw-card {
   background: #ffffff;
   border: 1px solid #d9c2ff;
-  border-radius: 20px;
-  padding: 16px;
+  border-radius: 22px;
+  padding: 16px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -159,6 +163,7 @@
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
+  box-shadow: 0 10px 26px rgba(70, 37, 139, .08);
 }
 
 .live-draw-card:hover {
@@ -373,9 +378,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 88px;
-  padding: 14px 4px 12px;
+  gap: 8px;
+  min-height: 100px;
+  padding: 11px 4px 10px;
   border: 1px solid var(--ll-border-soft);
   border-radius: 14px;
   background: #fff;
@@ -390,21 +395,21 @@
 }
 
 .home-screen .home-quick-action-icon {
-  width: auto;
-  height: auto;
-  min-width: 0;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
   display: grid;
   place-items: center;
-  border-radius: 0;
-  background: transparent;
+  border-radius: 50%;
+  background: #f1eaff;
   color: var(--ll-purple-dark);
   flex-shrink: 0;
 }
 
 .home-screen .home-quick-action-icon svg {
   display: block;
-  width: 36px;
-  height: 36px;
+  width: 29px;
+  height: 29px;
 }
 
 .home-screen .home-quick-action.is-active .home-quick-action-icon {
@@ -418,8 +423,9 @@
 }
 
 .home-screen .home-quick-action-icon--add {
-  width: 46px;
-  height: 46px;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
   border-radius: 50%;
   background: var(--ll-purple-light);
   color: var(--ll-purple-dark);
@@ -427,8 +433,8 @@
 }
 
 .home-screen .home-quick-action-icon--add svg {
-  width: 28px;
-  height: 28px;
+  width: 29px;
+  height: 29px;
 }
 
 .home-screen .home-quick-action-label {
@@ -698,25 +704,25 @@
   }
 
   .home-hero {
-    min-height: 210px;
-    padding: 20px 18px 22px;
-    border-radius: 28px;
+    min-height: 184px;
+    padding: 18px 16px;
+    border-radius: 20px;
   }
 
   .home-hero__content h1 {
-    font-size: 30px;
+    font-size: 24px;
     margin-bottom: 8px;
   }
 
-  .home-hero__content p {
-    font-size: 0.95rem;
-    margin-bottom: 14px;
+  .home-hero__eyebrow {
+    margin-bottom: 7px;
+    font-size: 9px;
   }
 
   .hero-play-btn {
-    height: 48px;
-    padding: 0 26px;
-    font-size: 0.9rem;
+    height: 42px;
+    padding: 0 21px;
+    font-size: 13px;
   }
 }
 
@@ -843,12 +849,37 @@
 .app-shell.mobile-route.home-page .header-brand-logo .app-logo-subname { color: rgba(255, 255, 255, .88); font-size: 10px; font-weight: 700; letter-spacing: .06em; }
 .app-shell.mobile-route.home-page .header-actions { gap: 8px; }
 
-.app-shell.mobile-route.home-page > .page-content {
-  padding: var(--shell-pad-top) 0 calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)) !important;
+.app-shell.mobile-route:has(.home-screen) > .page-content {
+  padding: var(--shell-pad-top) 0 calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px)) !important;
   background: var(--ll-purple-soft);
 }
 
-.app-shell.mobile-route.home-page .home-reference-screen {
+.app-shell.mobile-route:has(.home-screen) {
+  --header-height: 64px;
+  --shell-pad-top: 64px;
+}
+
+.app-shell.mobile-route:has(.home-screen) .fixed-app-header {
+  height: var(--header-height);
+  padding: 8px 14px;
+}
+
+.app-shell.mobile-route:has(.home-screen) .menu-toggle,
+.app-shell.mobile-route:has(.home-screen) .header-action-btn {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 50%;
+}
+
+.app-shell.mobile-route:has(.home-screen) .header-brand-logo .app-logo-image {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+}
+
+.app-shell.mobile-route:has(.home-screen) .home-screen {
   display: grid;
   align-content: start;
   gap: 17px;
@@ -955,7 +986,16 @@
 .home-game-card button:active { transform: scale(.97); }
 .home-game-card__actions > button:first-child:hover { box-shadow: 0 4px 10px rgba(105,42,204,.22); }
 
-.app-shell.mobile-route.home-page .bottom-nav.bottom-nav-ref { border-radius: 18px 18px 0 0; }
+.app-shell.mobile-route:has(.home-screen) .bottom-nav.bottom-nav-ref {
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  width: min(calc(100% - 24px), calc(var(--mobile-shell-max) - 24px));
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border: 1px solid rgba(104, 76, 160, .12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 8px 24px rgba(49, 30, 104, .16);
+}
 .app-shell.mobile-route.home-page .bottom-nav-ref .bottom-nav-link.active::after { width: 5px; height: 5px; bottom: 3px; }
 
 @media (min-width: 560px) {
@@ -971,9 +1011,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-reference-screen *,
-  .home-reference-screen *::before,
-  .home-reference-screen *::after { animation: none !important; transition-duration: .01ms !important; }
+  .home-screen *,
+  .home-screen *::before,
+  .home-screen *::after { animation: none !important; transition-duration: .01ms !important; }
 }
 
 .home-draws-section {

@@ -2,66 +2,36 @@
 import { useEffect, useState } from "react";
 
 import LotteryCardArtwork from "./LotteryCardArtwork";
-import bhagyatharaArtwork from "../assets/lotteries/bhagyathara.png";
-import karunyaArtwork from "../assets/lotteries/karunya.png";
-import karunyaPlusArtwork from "../assets/lotteries/karunya-plus.png";
-import keralaArtwork from "../assets/lotteries/kerala-emblem.png";
-import nagalandDayArtwork from "../assets/lotteries/nagaland-day.png";
-import nagalandEveningArtwork from "../assets/lotteries/nagaland-evening.png";
-import nagalandMorningArtwork from "../assets/lotteries/nagaland-morning.png";
-import samrudhiArtwork from "../assets/lotteries/samrudhi.png";
+import bhagyatharaArtwork from "../assets/lotteries/bhagyathara-teal.jpg";
+import deerLotteryArtwork from "../assets/lotteries/deer-lottery-purple.jpg";
+import karunyaArtwork from "../assets/lotteries/karunya-green.jpg";
+import karunyaPlusArtwork from "../assets/lotteries/karunya-plus-orange.jpg";
+import keralaLotteryArtwork from "../assets/lotteries/kerala-lottery-pink.jpg";
+import nagalandDayArtwork from "../assets/lotteries/nagaland-day-pink.jpg";
+import nagalandEveningArtwork from "../assets/lotteries/nagaland-evening-blue.jpg";
+import nagalandMorningArtwork from "../assets/lotteries/nagaland-morning-transparent.png";
 import sthreesakthiArtwork from "../assets/lotteries/sthree-sakthi.png";
-import suvarnaArtwork from "../assets/lotteries/suvarna-keralam.png";
-import winWinArtwork from "../assets/lotteries/win-win.png";
+import samrudhiArtwork from "../assets/lotteries/samrudhi-pink.jpg";
+import suvarnaArtwork from "../assets/lotteries/suvarna-kerala-gold.jpg";
+import winWinArtwork from "../assets/lotteries/win-win-blue.jpg";
 
 const IST_TIME_ZONE = "Asia/Kolkata";
 
-const LOCAL_ARTWORKS = [
-  {
-    keywords: ["karunya plus"],
-    source: karunyaPlusArtwork,
-  },
-  {
-    keywords: ["suvarna"],
-    source: suvarnaArtwork,
-  },
-  {
-    keywords: ["samrudhi"],
-    source: samrudhiArtwork,
-  },
-  {
-    keywords: ["bhagyathara"],
-    source: bhagyatharaArtwork,
-  },
-  {
-    keywords: ["sthree", "sakthi"],
-    source: sthreesakthiArtwork,
-  },
-  {
-    keywords: ["nagaland day"],
-    source: nagalandDayArtwork,
-  },
-  {
-    keywords: ["nagaland evening"],
-    source: nagalandEveningArtwork,
-  },
-  {
-    keywords: ["nagaland morning"],
-    source: nagalandMorningArtwork,
-  },
-  {
-    keywords: ["win win"],
-    source: winWinArtwork,
-  },
-  {
-    keywords: ["karunya"],
-    source: karunyaArtwork,
-  },
-  {
-    keywords: ["kerala"],
-    source: keralaArtwork,
-  },
-];
+const LOCAL_ARTWORKS = new Map([
+  ["bhagyathara", { source: bhagyatharaArtwork, presentation: "banner" }],
+  ["deer lottery", { source: deerLotteryArtwork, presentation: "banner" }],
+  ["karunya", { source: karunyaArtwork, presentation: "banner" }],
+  ["karunya plus", { source: karunyaPlusArtwork, presentation: "banner" }],
+  ["kerala lottery", { source: keralaLotteryArtwork, presentation: "banner" }],
+  ["nagaland day", { source: nagalandDayArtwork, presentation: "banner" }],
+  ["nagaland evening", { source: nagalandEveningArtwork, presentation: "banner" }],
+  ["nagaland morning", { source: nagalandMorningArtwork, presentation: "logo" }],
+  ["samrudhi", { source: samrudhiArtwork, presentation: "banner" }],
+  ["suvarna kerala", { source: suvarnaArtwork, presentation: "banner" }],
+  ["suvarna keralam", { source: suvarnaArtwork, presentation: "banner" }],
+  ["win win", { source: winWinArtwork, presentation: "banner" }],
+  ["sthree sakthi", { source: sthreesakthiArtwork, presentation: "logo" }],
+]);
 
 function normalizeLotteryName(lottery) {
   if (!lottery || typeof lottery !== "object") {
@@ -77,6 +47,15 @@ function normalizeLotteryName(lottery) {
     "";
 
   return String(nameValue).trim();
+}
+
+function getLocalArtwork(lottery) {
+  const normalizedName = normalizeLotteryName(lottery)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  return LOCAL_ARTWORKS.get(normalizedName) || null;
 }
 
 function resolveLotteryBackgroundArtwork(lottery) {
@@ -212,6 +191,11 @@ export function resolveLotteryImage(lottery) {
     return "";
   }
 
+  const localArtwork = getLocalArtwork(lottery);
+  if (localArtwork) {
+    return localArtwork.source;
+  }
+
   const candidates = [
     lottery.image,
     lottery.image_url,
@@ -244,16 +228,7 @@ export function resolveLotteryImage(lottery) {
     return backendImage;
   }
 
-  const name = normalizeLotteryName(lottery)
-    .toLowerCase();
-
-  return (
-    LOCAL_ARTWORKS.find(({ keywords }) =>
-      keywords.every((keyword) =>
-        name.includes(keyword)
-      )
-    )?.source || ""
-  );
+  return "";
 }
 
 export function getLotteryImageByName(
@@ -487,9 +462,12 @@ function LotteryCard({
   onClick,
   variantIndex = 0,
   variant = "default",
+  countdownText = "",
 }) {
   const [imageFailed, setImageFailed] =
     useState(false);
+  const localArtwork = getLocalArtwork(lottery);
+  const hasBannerArtwork = localArtwork?.presentation === "banner";
   const imageSrc = resolveLotteryImage(lottery);
 
   useEffect(() => {
@@ -511,6 +489,7 @@ function LotteryCard({
 
   const showImage =
     Boolean(imageSrc) && !imageFailed;
+  const hasBackgroundArtwork = variant === "catalog" && hasBannerArtwork && showImage;
 
   const themeKey = resolveLotteryTheme(lottery, variantIndex);
   const theme = LOTTERY_THEME_MAP[themeKey] || LOTTERY_THEME_MAP.custom;
@@ -526,7 +505,7 @@ function LotteryCard({
 
   return (
     <article
-      className={`lottery-card lottery-mobile-card lottery-card--${themeKey}${variant === "catalog" ? " lottery-card--premium-catalog" : variant === "next-draw" ? " lottery-mobile-card--next-draw" : ""}`}
+      className={`lottery-card lottery-mobile-card lottery-card--${themeKey}${variant === "catalog" ? " lottery-card--premium-catalog" : variant === "next-draw" ? " lottery-mobile-card--next-draw" : ""}${hasBackgroundArtwork ? " lottery-card--with-background-artwork" : ""}`}
       style={{
         "--lottery-gradient-start": theme.start,
         "--lottery-gradient-end": theme.end,
@@ -544,10 +523,21 @@ function LotteryCard({
         }
       }}
     >
+      {hasBackgroundArtwork && (
+        <img
+          className="lottery-card-background-artwork"
+          src={imageSrc}
+          style={{ objectFit: localArtwork?.fit || "cover" }}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          onError={() => setImageFailed(true)}
+        />
+      )}
       {variant === "catalog" ? (
-        <LotteryCardArtwork themeKey={themeKey} />
+        !hasBackgroundArtwork && <LotteryCardArtwork themeKey={themeKey} />
       ) : (
-        !backgroundArtwork && <LotteryCardScene themeKey={themeKey} />
+        !backgroundArtwork && !hasBackgroundArtwork && <LotteryCardScene themeKey={themeKey} />
       )}
       {backgroundArtwork && (
         <img
@@ -559,22 +549,24 @@ function LotteryCard({
           onError={(event) => { event.currentTarget.style.display = "none"; }}
         />
       )}
-      <div className="lottery-mobile-card__top-row">
-        <div className="lottery-mobile-card__media" aria-label={`${name} logo`}>
-          {showImage ? (
-            <img
-              src={imageSrc}
-              alt={`${name} lottery`}
-              loading="lazy"
-              onError={() => setImageFailed(true)}
-            />
-          ) : (
-            <span className="lottery-mobile-card__initials" aria-hidden="true">
-              {getLotteryInitials(initialsName)}
-            </span>
-          )}
+      {variant !== "catalog" && !hasBackgroundArtwork && (
+        <div className="lottery-mobile-card__top-row">
+          <div className="lottery-mobile-card__media" aria-label={`${name} artwork`}>
+            {showImage ? (
+              <img
+                src={imageSrc}
+                alt={`${name} artwork`}
+                loading="lazy"
+                onError={() => setImageFailed(true)}
+              />
+            ) : (
+              <span className="lottery-mobile-card__initials" aria-hidden="true">
+                {getLotteryInitials(initialsName)}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="lottery-mobile-card__content">
         <div className="lottery-mobile-card__title-wrap">
@@ -599,6 +591,12 @@ function LotteryCard({
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a6.5 6.5 0 1 1 0 13a6.5 6.5 0 0 1 0-13Zm0 1.5a5 5 0 1 0 0 10a5 5 0 0 0 0-10Zm.75 2.25v3.05l2.4 1.42-.75 1.3L7.25 9.28V5.25h1.5Z" fill="currentColor" /></svg>
             <span>{drawTimeText}</span>
           </div>
+          {countdownText && (
+            <div className="lottery-mobile-card__extra-draw">
+              <span>Time Remaining</span>
+              <strong>{countdownText}</strong>
+            </div>
+          )}
         </div>
       </div>
     </article>

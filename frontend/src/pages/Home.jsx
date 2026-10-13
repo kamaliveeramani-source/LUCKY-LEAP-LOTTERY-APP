@@ -141,6 +141,7 @@ function Home() {
   const carouselRef = useRef(null);
 
   const [lotteries, setLotteries] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [cardsPerPage, setCardsPerPage] = useState(3);
   const [activeCarouselPage, setActiveCarouselPage] = useState(0);
 
@@ -154,9 +155,13 @@ function Home() {
           : [];
 
         setLotteries(lotteryData);
+        setLoadError(false);
       } catch (error) {
         console.error("Failed to load Home lotteries", error);
-        if (!quiet) setLotteries([]);
+        if (!quiet) {
+          setLotteries([]);
+          setLoadError(true);
+        }
       }
     };
 
@@ -387,19 +392,25 @@ function Home() {
           role="region"
           aria-label="Upcoming lottery draws"
         >
-          {todaysLotteries.map((lottery, index) => (
-            <LotteryCard
-              key={lottery.id ?? `home-lottery-${index}`}
-              lottery={lottery}
-              variantIndex={index}
-              variant="catalog"
-              onClick={() => {
-                if (lottery?.id) {
-                  navigate(`/lotterygame?lotteryId=${lottery.id}`);
-                }
-              }}
-            />
-          ))}
+          {todaysLotteries.length > 0 ? (
+            todaysLotteries.map((lottery, index) => (
+              <LotteryCard
+                key={lottery.id ?? `home-lottery-${index}`}
+                lottery={lottery}
+                variantIndex={index}
+                variant="catalog"
+                onClick={() => {
+                  if (lottery?.id) {
+                    navigate(`/lotterygame?lotteryId=${lottery.id}`);
+                  }
+                }}
+              />
+            ))
+          ) : loadError ? (
+            <div className="lottery-empty-state">Unable to load draws at the moment. Please try again later.</div>
+          ) : (
+            <div className="lottery-empty-state">No upcoming draws scheduled right now.</div>
+          )}
         </div>
 
         {todaysLotteries.length > 0 && (

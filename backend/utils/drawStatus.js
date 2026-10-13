@@ -176,4 +176,6 @@ module.exports = {
   withComputedStatus,
   withComputedStatusList,
   startOfDayIST,
+  dateKeyAfterDays,
+  zonedDateTimeToDate,
 };

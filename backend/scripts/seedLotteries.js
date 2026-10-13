@@ -2,6 +2,11 @@ const { Op } = require("sequelize");
 
 const sequelize = require("../config/database");
 const Lottery = require("../models/Lottery");
+const {
+  getZonedParts,
+  zonedDateTimeToDate,
+  dateKeyAfterDays,
+} = require("../utils/drawStatus");
 
 const REQUIRED_LOTTERIES = [
   "Kerala Lottery",
@@ -80,12 +85,26 @@ async function restoreAkshaya() {
       );
     }
 
+    const now = new Date();
+    const todayParts = getZonedParts(now, "Asia/Kolkata");
+    const todayKey = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
+    let nextDraw = zonedDateTimeToDate(dateKeyAfterDays(todayKey, 1), "15:00", "Asia/Kolkata");
+    if (!nextDraw || nextDraw.getTime() <= now.getTime()) {
+      nextDraw = zonedDateTimeToDate(dateKeyAfterDays(todayKey, 2), "15:00", "Asia/Kolkata");
+    }
+
     if (legacyRows.length === 1) {
       legacyRows[0].lotteryName = "Akshaya";
       legacyRows[0].shortName = "AK";
       legacyRows[0].cardTheme = "magenta";
       legacyRows[0].displayOrder = 10;
       legacyRows[0].featured = false;
+      legacyRows[0].drawFrequency = "DAILY";
+      legacyRows[0].drawTime = "15:00";
+      legacyRows[0].isActive = true;
+      if (!legacyRows[0].drawDate || new Date(legacyRows[0].drawDate).getTime() <= now.getTime()) {
+        legacyRows[0].drawDate = nextDraw;
+      }
 
       await legacyRows[0].save({
         transaction,
@@ -94,11 +113,6 @@ async function restoreAkshaya() {
       await transaction.commit();
       return legacyRows[0];
     }
-
-    const nextDraw = new Date();
-
-    nextDraw.setHours(15, 0, 0, 0);
-    nextDraw.setDate(nextDraw.getDate() + 1);
 
     const created = await Lottery.create(
       {
@@ -113,6 +127,9 @@ async function restoreAkshaya() {
         thirdPrize: 80000,
         totalTickets: 5000,
         drawDate: nextDraw,
+        drawFrequency: "DAILY",
+        drawTime: "15:00",
+        isActive: true,
       },
       {
         transaction,
@@ -250,16 +267,23 @@ async function ensureAllLotteries() {
       {
         hours: 13,
         minutes: 0,
+        time: "13:00",
       },
       {
         hours: 18,
         minutes: 0,
+        time: "18:00",
       },
       {
         hours: 18,
         minutes: 30,
+        time: "18:30",
       },
     ];
+
+    const now = new Date();
+    const todayParts = getZonedParts(now, "Asia/Kolkata");
+    const todayKey = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
 
     for (let i = 0; i < REQUIRED_LOTTERIES.length; i++) {
       const lotteryName = REQUIRED_LOTTERIES[i];
@@ -269,29 +293,20 @@ async function ensureAllLotteries() {
 
       const dayOffset = Math.floor(i / drawTimes.length);
       const timeIndex = i % drawTimes.length;
-      const drawTime = drawTimes[timeIndex];
+      const defaultDrawTime = drawTimes[timeIndex];
+      const timeString = (existingLottery?.drawTime && /^([01]\d|2[0-3]):[0-5]\d$/.test(existingLottery.drawTime))
+        ? existingLottery.drawTime
+        : defaultDrawTime.time;
 
       /**
-       * Create an upcoming draw date.
+       * Create an upcoming draw date anchored in Indian Standard Time (Asia/Kolkata).
        */
-      const drawDate = new Date();
+      let targetDateKey = dateKeyAfterDays(todayKey, dayOffset);
+      let drawDate = zonedDateTimeToDate(targetDateKey, timeString, "Asia/Kolkata");
 
-      drawDate.setDate(drawDate.getDate() + dayOffset);
-      drawDate.setHours(
-        drawTime.hours,
-        drawTime.minutes,
-        0,
-        0
-      );
-
-      /**
-       * If the scheduled time for today has already passed,
-       * move this lottery to the next available day.
-       */
-      const now = new Date();
-
-      if (drawDate.getTime() <= now.getTime()) {
-        drawDate.setDate(drawDate.getDate() + 1);
+      if (!drawDate || drawDate.getTime() <= now.getTime()) {
+        targetDateKey = dateKeyAfterDays(todayKey, dayOffset + 1);
+        drawDate = zonedDateTimeToDate(targetDateKey, timeString, "Asia/Kolkata");
       }
 
       /**
@@ -302,27 +317,44 @@ async function ensureAllLotteries() {
           ? new Date(existingLottery.drawDate)
           : null;
 
-        const currentDateIsValid =
+        const currentDateValidAndFuture =
           currentDrawDate &&
-          !Number.isNaN(currentDrawDate.getTime());
+          !Number.isNaN(currentDrawDate.getTime()) &&
+          currentDrawDate.getTime() > now.getTime();
 
-        const shouldUpdateDate =
-          !currentDateIsValid ||
-          currentDrawDate.getTime() !== drawDate.getTime();
+        let shouldUpdate = false;
 
-        if (shouldUpdateDate) {
+        if (!currentDateValidAndFuture) {
           existingLottery.drawDate = drawDate;
+          shouldUpdate = true;
+        }
 
+        if (existingLottery.drawFrequency !== "DAILY") {
+          existingLottery.drawFrequency = "DAILY";
+          shouldUpdate = true;
+        }
+
+        if (!existingLottery.drawTime) {
+          existingLottery.drawTime = timeString;
+          shouldUpdate = true;
+        }
+
+        if (existingLottery.isActive !== true) {
+          existingLottery.isActive = true;
+          shouldUpdate = true;
+        }
+
+        if (shouldUpdate) {
           await existingLottery.save({
             transaction,
           });
 
           console.log(
-            `✓ Updated lottery: ${lotteryName} | Draw: ${drawDate.toLocaleString()}`
+            `✓ Updated lottery schedule: ${lotteryName} | Draw: ${existingLottery.drawDate.toISOString()} | Time: ${timeString} IST`
           );
         } else {
           console.log(
-            `✓ Lottery already scheduled: ${lotteryName} | Draw: ${drawDate.toLocaleString()}`
+            `✓ Lottery already scheduled: ${lotteryName} | Draw: ${existingLottery.drawDate.toISOString()} | Time: ${existingLottery.drawTime} IST`
           );
         }
 
@@ -345,6 +377,9 @@ async function ensureAllLotteries() {
           thirdPrize: 20,
           totalTickets: 1000,
           drawDate,
+          drawFrequency: "DAILY",
+          drawTime: timeString,
+          isActive: true,
         },
         {
           transaction,

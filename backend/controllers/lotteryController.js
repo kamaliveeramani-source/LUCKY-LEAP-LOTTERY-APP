@@ -85,9 +85,11 @@ exports.getLotteries = async (req, res) => {
 
     const data = withComputedStatusList(lotteries).map((lottery) => {
       const { logoPublicId, ...publicLottery } = lottery;
+      const effectiveDrawDate = lottery.nextDrawDate || lottery.drawDate;
       return {
         ...publicLottery,
-        drawDate: lottery.nextDrawDate,
+        drawDate: effectiveDrawDate,
+        nextDrawDate: lottery.nextDrawDate || (effectiveDrawDate ? new Date(effectiveDrawDate).toISOString() : null),
         drawStatus: lottery.nextDrawDate ? "UPCOMING" : lottery.drawStatus,
       };
     });
@@ -142,8 +144,10 @@ exports.getLotteryById = async (req, res) => {
     }
 
     const data = withComputedStatus(lottery);
-    data.drawDate = data.nextDrawDate;
+    const effectiveDrawDate = data.nextDrawDate || data.drawDate;
+    data.drawDate = effectiveDrawDate;
     if (data.nextDrawDate) data.drawStatus = "UPCOMING";
+    data.nextDrawDate = data.nextDrawDate || (effectiveDrawDate ? new Date(effectiveDrawDate).toISOString() : null);
     delete data.logoPublicId;
 
     return res.status(200).json({

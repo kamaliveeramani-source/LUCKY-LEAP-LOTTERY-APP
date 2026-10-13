@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seedLotteries.js",
     "setup-admin": "node scripts/setupAdmin.js",
+    "test": "node --test tests/*.test.js",
     "build": "echo \"No build step for backend\""
   },
   "keywords": [],

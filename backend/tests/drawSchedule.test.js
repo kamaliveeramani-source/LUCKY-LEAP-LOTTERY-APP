@@ -65,3 +65,33 @@ test("invalid recurring schedule values do not generate a draw", () => {
   assert.equal(getNextDraw({ drawFrequency: "DAILY", drawTime: "25:00" }, at("2026-10-03T06:30:00Z")), null);
   assert.equal(parseISTDateTime("2026-02-30", "18:00"), null);
 });
+
+test("withComputedStatus preserves valid drawDate and computes nextDrawDate in IST", () => {
+  const { withComputedStatus } = require("../utils/drawStatus");
+  const lottery = {
+    id: 1,
+    lotteryName: "Kerala Lottery",
+    drawFrequency: "DAILY",
+    drawTime: "13:00",
+    drawDate: "2026-10-03T07:30:00.000Z",
+  };
+  const computed = withComputedStatus(lottery, new Date("2026-10-03T06:00:00.000Z"));
+  assert.equal(computed.drawStatus, "UPCOMING");
+  assert.equal(computed.nextDrawDate, "2026-10-03T07:30:00.000Z");
+  assert.equal(computed.drawDate, "2026-10-03T07:30:00.000Z");
+});
+
+test("withComputedStatus rolls nextDrawDate to next day after draw time while keeping valid dates", () => {
+  const { withComputedStatus } = require("../utils/drawStatus");
+  const lottery = {
+    id: 2,
+    lotteryName: "Win Win",
+    drawFrequency: "DAILY",
+    drawTime: "18:00",
+    drawDate: "2026-10-03T12:30:00.000Z",
+  };
+  const computed = withComputedStatus(lottery, new Date("2026-10-03T13:00:00.000Z"));
+  // In IST, 18:00 on Oct 3 has passed at 18:30 IST (13:00 UTC), so next draw is Oct 4 18:00 IST (12:30 UTC)
+  assert.equal(computed.nextDrawDate, "2026-10-04T12:30:00.000Z");
+  assert.equal(computed.drawDate, "2026-10-03T12:30:00.000Z");
+});

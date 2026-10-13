@@ -61,35 +61,77 @@ const app = express();
 // CORS
 // =====================================================
 
-const allowedOrigins = new Set(
-  [
-    // Production frontend
-    "https://thumbi-lotteries-frontend-rhav.onrender.com",
+function normalizeOrigin(origin) {
+  if (typeof origin !== "string") return "";
+  return origin.trim().replace(/\/+$/, "");
+}
 
-    // Environment variables
-    process.env.FRONTEND_URL,
-    process.env.ADMIN_URL,
+function parseOriginList(value) {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((origin) => normalizeOrigin(origin))
+    .filter(Boolean);
+}
 
-    // Additional allowed origins
-    ...(process.env.ALLOWED_ORIGINS || "")
-      .split(",")
-      .map((origin) => origin.trim())
-      .filter(Boolean),
+const rawAllowedOrigins = [
+  // Production frontend
+  "https://thumbi-lotteries-frontend-ugbv.onrender.com",
+  "https://thumbi-lotteries-frontend-rhav.onrender.com",
+  "https://thumbi-lotteries-admin.onrender.com",
 
-    // Local development
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-    "http://localhost:5176",
-    "http://localhost:5177",
+  // Environment variables
+  ...parseOriginList(process.env.FRONTEND_URL),
+  ...parseOriginList(process.env.ADMIN_URL),
+  ...parseOriginList(process.env.ALLOWED_ORIGINS),
 
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "http://127.0.0.1:5175",
-    "http://127.0.0.1:5176",
-    "http://127.0.0.1:5177",
-  ].filter(Boolean)
-);
+  // Local development
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "http://localhost:5176",
+  "http://localhost:5177",
+
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://127.0.0.1:5175",
+  "http://127.0.0.1:5176",
+  "http://127.0.0.1:5177",
+]
+  .filter(Boolean)
+  .map(normalizeOrigin);
+
+const allowedOrigins = new Set(rawAllowedOrigins);
+
+function isOriginAllowed(origin) {
+  if (!origin) {
+    return true;
+  }
+
+  const normalized = normalizeOrigin(origin);
+  if (allowedOrigins.has(normalized)) {
+    return true;
+  }
+
+  try {
+    const url = new URL(normalized);
+    // Allow any localhost / 127.0.0.1 port in dev
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      return true;
+    }
+    // Allow Render deployed frontends/admins for this app
+    if (
+      url.hostname.endsWith(".onrender.com") &&
+      (url.hostname.startsWith("thumbi-lotteries-") || url.hostname.startsWith("lucky-leap-"))
+    ) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+}
 
 console.log("======================================");
 console.log("Allowed CORS Origins:");
@@ -105,7 +147,7 @@ app.use(
         return callback(null, true);
       }
 
-      if (allowedOrigins.has(origin)) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
 

@@ -35,9 +35,10 @@ import LotteryGameManager from "./LotteryGameManager";
 import PageHeader from "./components/PageHeader";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
-const apiBaseUrl = configuredApiUrl.replace(/\/$/, "").endsWith("/api")
-  ? configuredApiUrl
-  : `${configuredApiUrl.replace(/\/$/, "")}/api`;
+const normalizedApi = configuredApiUrl.replace(/\/+$/, "");
+const apiBaseUrl = normalizedApi.endsWith("/api")
+  ? normalizedApi
+  : `${normalizedApi}/api`;
 const API = axios.create({ baseURL: apiBaseUrl });
 API.interceptors.request.use((config) => {
   if (config.url?.includes("/auth/login")) return config;

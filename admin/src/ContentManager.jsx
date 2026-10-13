@@ -4,7 +4,8 @@ import PageHeader from "./components/PageHeader";
 import "./ContentManager.css";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
-const apiBaseUrl = configuredApiUrl.replace(/\/$/, "").endsWith("/api") ? configuredApiUrl : `${configuredApiUrl.replace(/\/$/, "")}/api`;
+const normalizedApi = configuredApiUrl.replace(/\/+$/, "");
+const apiBaseUrl = normalizedApi.endsWith("/api") ? normalizedApi : `${normalizedApi}/api`;
 const API = axios.create({ baseURL: apiBaseUrl });
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("adminToken");

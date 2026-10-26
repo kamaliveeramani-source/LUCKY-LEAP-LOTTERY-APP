@@ -33,12 +33,9 @@ import ContentManager from "./ContentManager";
 import WinnerSelection from "./WinnerSelection";
 import LotteryGameManager from "./LotteryGameManager";
 import PageHeader from "./components/PageHeader";
+import { buildApiBaseUrl } from "../../frontend/src/services/apiBase";
 
-const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
-const normalizedApi = configuredApiUrl.replace(/\/+$/, "");
-const apiBaseUrl = normalizedApi.endsWith("/api")
-  ? normalizedApi
-  : `${normalizedApi}/api`;
+const apiBaseUrl = buildApiBaseUrl(import.meta.env.VITE_API_URL);
 const API = axios.create({ baseURL: apiBaseUrl });
 API.interceptors.request.use((config) => {
   if (config.url?.includes("/auth/login")) return config;

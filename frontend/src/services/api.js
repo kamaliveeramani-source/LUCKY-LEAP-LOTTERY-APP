@@ -1,11 +1,8 @@
 import axios from "axios";
+import { buildApiBaseUrl } from "./apiBase";
 
-const rawApiUrl = import.meta.env.VITE_API_URL || "/api";
-const normalizedApiBase = rawApiUrl.replace(/\/+$/, "");
 const API = axios.create({
-  baseURL: normalizedApiBase.endsWith("/api")
-    ? normalizedApiBase
-    : `${normalizedApiBase}/api`,
+  baseURL: buildApiBaseUrl(import.meta.env.VITE_API_URL),
 });
 
 export function getAuthToken() {

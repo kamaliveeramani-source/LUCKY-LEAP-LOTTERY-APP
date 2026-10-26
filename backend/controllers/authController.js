@@ -122,12 +122,22 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { username, mobile, password } = req.body;
+    const { username, mobile, password } = req.body || {};
 
-    if (!password) {
+    if (!password || typeof password !== "string") {
       return res.status(400).json({
         success: false,
         message: "Password is required",
+      });
+    }
+
+    if (
+      (username !== undefined && typeof username !== "string") ||
+      (mobile !== undefined && typeof mobile !== "string")
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Username or mobile number is invalid",
       });
     }
 
@@ -159,16 +169,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    console.log("[LOGIN DEBUG] Searching user:", {
-      username: username?.trim() || null,
-      mobile: mobile?.trim() || null,
-      loginType:
-        username && username.trim()
-          ? "ADMIN"
-          : mobile && mobile.trim()
-          ? "USER"
-          : "UNKNOWN",
-    });
+    const loginType = username && username.trim() ? "ADMIN" : "USER";
 
     // ================== FIND USER ==================
 
@@ -176,25 +177,14 @@ exports.login = async (req, res) => {
       where: whereCondition,
     });
 
-    console.log("[LOGIN DEBUG] User lookup:", {
-      foundUser: !!user,
-      userId: user?.id || null,
-      role: user?.role || null,
-      mobile: user?.mobile || null,
-      username: user?.username || null,
-      hasPasswordHash: !!user?.password,
-    });
-
     // ================== USER NOT FOUND ==================
 
     if (!user) {
-      console.warn("[LOGIN DEBUG] User not found:", {
-        whereCondition,
-      });
+      console.warn(`[LOGIN] 401 reason=user_not_found loginType=${loginType}`);
 
       return res.status(401).json({
         success: false,
-        message: "Invalid username or password",
+        message: "Invalid credentials",
       });
     }
 
@@ -202,20 +192,14 @@ exports.login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
 
-    console.log("[LOGIN DEBUG] Password check:", {
-      userId: user.id,
-      passwordMatched: isMatch,
-    });
-
     if (!isMatch) {
-      console.warn("[LOGIN DEBUG] Password mismatch:", {
-        userId: user.id,
-        role: user.role,
-      });
+      console.warn(
+        `[LOGIN] 401 reason=password_mismatch loginType=${loginType} userId=${user.id} role=${user.role}`
+      );
 
       return res.status(401).json({
         success: false,
-        message: "Invalid username or password",
+        message: "Invalid credentials",
       });
     }
 
@@ -256,11 +240,7 @@ exports.login = async (req, res) => {
 
     // ================== LOGIN SUCCESS ==================
 
-    console.log("[LOGIN SUCCESS]", {
-      userId: user.id,
-      role: user.role,
-      mobile: user.mobile || null,
-    });
+    console.log(`[LOGIN] success userId=${user.id} role=${user.role}`);
 
     return res.status(200).json({
       success: true,
@@ -269,11 +249,11 @@ exports.login = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("[LOGIN] error:", error.message);
 
     return res.status(500).json({
       success: false,
-      message: error.message || "Login failed",
+      message: "Login failed",
     });
   }
 };

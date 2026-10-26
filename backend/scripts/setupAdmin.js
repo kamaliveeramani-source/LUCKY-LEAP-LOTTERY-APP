@@ -22,7 +22,7 @@ async function setupAdmin() {
   const username = String(process.env.ADMIN_USERNAME || "").trim();
   const password = process.env.ADMIN_PASSWORD;
   if (!username || !password) {
-    console.log("Admin setup skipped: ADMIN_USERNAME and ADMIN_PASSWORD are not configured.");
+    console.warn("Admin setup SKIPPED: set ADMIN_USERNAME and ADMIN_PASSWORD in the environment to create or update the admin account.");
     return;
   }
 

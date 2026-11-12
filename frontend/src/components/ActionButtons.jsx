@@ -50,6 +50,8 @@ function ActionButtons() {
           type="button"
           className={`action-btn-tile ${action.id}`}
           onClick={() => navigate(action.path)}
+          disabled={action.id === "withdraw" || action.id === "transfer"}
+          title={action.id === "withdraw" ? "Withdrawals are currently unavailable" : action.id === "transfer" ? "Transfers are currently unavailable" : undefined}
         >
           <span className="action-btn-tile-icon" aria-hidden="true">
             <ActionIcon type={action.icon} />

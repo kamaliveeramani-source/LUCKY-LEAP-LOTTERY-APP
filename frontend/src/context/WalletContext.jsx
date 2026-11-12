@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import API, { getAuthToken, clearAuthToken } from "../services/api";
 
@@ -22,6 +23,7 @@ export function WalletProvider({ children }) {
 
   const refreshWallet = useCallback(async () => {
     const token = getAuthToken();
+
     if (!token) {
       setWallet(EMPTY_WALLET);
       return null;
@@ -29,10 +31,14 @@ export function WalletProvider({ children }) {
 
     setLoading(true);
     setError("");
+
     try {
-      const res = await API.get("/wallet/balance", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await API.get("/wallet/balance", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const data = res.data || {};
+
       const next = {
         wallet: Number(data.wallet || 0),
         bonus: Number(data.bonus || 0),
@@ -53,6 +59,7 @@ export function WalletProvider({ children }) {
         setError("Session expired. Please log in again.");
         return null;
       }
+
       setError(err.response?.data?.message || "Unable to load wallet");
       return null;
     } finally {
@@ -62,51 +69,91 @@ export function WalletProvider({ children }) {
 
   useEffect(() => {
     const token = getAuthToken();
+
     if (token) {
       refreshWallet();
     } else {
       setWallet(EMPTY_WALLET);
     }
-    setAuthReady(true);
-  }, []);
 
-  // Server-backed update helpers used by games and UI
+    setAuthReady(true);
+  }, [refreshWallet]);
+
+  // Server-backed deposit helper
   const deposit = async (amount) => {
     const token = getAuthToken();
+
     if (!token) {
       throw new Error("No authentication token available");
     }
+
     try {
-      await API.post("/wallet/add", { amount }, { headers: { Authorization: `Bearer ${token}` } });
+      await API.post(
+        "/wallet/add",
+        { amount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       return await refreshWallet();
     } catch (err) {
-      console.error("[WALLET] Deposit failed:", err.response?.status, err.response?.data?.message);
+      console.error(
+        "[WALLET] Deposit failed:",
+        err.response?.status,
+        err.response?.data?.message
+      );
+
       if (err.response?.status === 401) {
         clearAuthToken();
       }
+
       throw err;
     }
   };
 
+  // Restore withdrawal API helper
   const withdraw = async (amount) => {
     const token = getAuthToken();
+
     if (!token) {
       throw new Error("No authentication token available");
     }
+
     try {
-      await API.post("/wallet/withdraw", { amount }, { headers: { Authorization: `Bearer ${token}` } });
+      await API.post(
+        "/wallet/withdraw",
+        { amount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       return await refreshWallet();
     } catch (err) {
-      console.error("[WALLET] Withdraw failed:", err.response?.status, err.response?.data?.message);
+      console.error(
+        "[WALLET] Withdraw failed:",
+        err.response?.status,
+        err.response?.data?.message
+      );
+
       if (err.response?.status === 401) {
         clearAuthToken();
       }
+
       throw err;
     }
   };
 
   return (
-    <WalletContext.Provider value={{ wallet, balance: wallet.wallet, loading, error, authReady, refreshWallet, deposit, withdraw }}>
+    <WalletContext.Provider
+      value={{
+        wallet,
+        balance: wallet.wallet,
+        loading,
+        error,
+        authReady,
+        refreshWallet,
+        deposit,
+        withdraw,
+      }}
+    >
       {children}
     </WalletContext.Provider>
   );
@@ -114,8 +161,10 @@ export function WalletProvider({ children }) {
 
 export function useWallet() {
   const context = useContext(WalletContext);
+
   if (!context) {
     throw new Error("useWallet must be used within WalletProvider");
   }
+
   return context;
 }

@@ -108,7 +108,7 @@ function Login() {
           <h1 className="auth-title">Sign In</h1>
 
           <p className="auth-subtitle">
-            Welcome back! Sign in to your Lucky Horse Lotteries account.
+            Welcome back! Sign in to your Thumbi Lotteries account.
           </p>
         </div>
 
@@ -183,7 +183,7 @@ function Login() {
         </form>
 
         <div className="auth-footer">
-          New to Lucky Horse Lotteries?{" "}
+          New to Thumbi Lotteries?{" "}
           <Link to="/register" className="auth-link">
             Create Account
           </Link>

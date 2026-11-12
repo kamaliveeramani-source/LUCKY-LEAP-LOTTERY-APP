@@ -575,7 +575,21 @@ function LotteryCard({
         </div>
 
         <div className="lottery-mobile-card__amount">
-          ₹{formatAmount(firstPrizeAmount)}
+          {variant === "catalog" ? (
+            <span className="lottery-mobile-card__jackpot">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M7.25 3.5h9.5v3h3.5v2.25a4.25 4.25 0 0 1-4.1 4.25 5.3 5.3 0 0 1-3.02 2.45V18h3.12a2.25 2.25 0 0 1 2.25 2.25V21H5.5v-.75A2.25 2.25 0 0 1 7.75 18h3.12v-2.55a5.3 5.3 0 0 1-3.02-2.45 4.25 4.25 0 0 1-4.1-4.25V6.5h3.5v-3Zm9.5 4.5v2.9a2.75 2.75 0 0 0 2-2.65V8h-2Zm-9.5 0h-2v.25a2.75 2.75 0 0 0 2 2.65V8Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span className="lottery-mobile-card__jackpot-value">
+                ₹{formatAmount(firstPrizeAmount)}
+              </span>
+            </span>
+          ) : (
+            <>₹{formatAmount(firstPrizeAmount)}</>
+          )}
           <span className="lottery-mobile-card__prize-label">First Prize</span>
         </div>
 
@@ -591,6 +605,20 @@ function LotteryCard({
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a6.5 6.5 0 1 1 0 13a6.5 6.5 0 0 1 0-13Zm0 1.5a5 5 0 1 0 0 10a5 5 0 0 0 0-10Zm.75 2.25v3.05l2.4 1.42-.75 1.3L7.25 9.28V5.25h1.5Z" fill="currentColor" /></svg>
             <span>{drawTimeText}</span>
           </div>
+          {variant === "catalog" && (
+            <span className="lottery-mobile-card__arrow" aria-hidden="true">
+              <svg viewBox="0 0 16 16">
+                <path
+                  d="m6 3.5 4.5 4.5L6 12.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          )}
           {countdownText && (
             <div className="lottery-mobile-card__extra-draw">
               <span>Time Remaining</span>

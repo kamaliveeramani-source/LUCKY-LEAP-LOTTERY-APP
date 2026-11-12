@@ -20,21 +20,90 @@ const quickActions = [
 
 const IST_TIME_ZONE = "Asia/Kolkata";
 
-function formatFeaturedDraw(value) {
-  const date = new Date(value);
+function getLotteryDrawTimestamp(lottery) {
+  const value = lottery?.drawDate;
+  const timestamp = new Date(value).getTime();
+
+  if (!Number.isFinite(timestamp)) {
+    return Number.NaN;
+  }
+
+  const time = String(lottery?.drawTime ?? lottery?.draw_time ?? "").trim();
+  const timeMatch = time.match(/^(\d{1,2}):(\d{2})$/);
+  const dateMatch =
+    typeof value === "string" && value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (dateMatch && timeMatch) {
+    const [, year, month, day] = dateMatch;
+    const [, hour, minute] = timeMatch;
+    const hourValue = Number(hour);
+    const minuteValue = Number(minute);
+
+    if (hourValue <= 23 && minuteValue <= 59) {
+      return Date.UTC(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        hourValue - 5,
+        minuteValue - 30
+      );
+    }
+  }
+
+  return timestamp;
+}
+
+function isKeralaLottery(lottery) {
+  const name =
+    lottery?.lotteryName ||
+    lottery?.lottery_name ||
+    lottery?.name ||
+    "";
+
+  return String(name).trim().toLowerCase() === "kerala lottery";
+}
+
+function formatFeaturedDraw(lottery) {
+  const date = new Date(getLotteryDrawTimestamp(lottery));
 
   if (Number.isNaN(date.getTime())) {
     return "Next draw";
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
+  const dateLabel = new Intl.DateTimeFormat("en-IN", {
     timeZone: IST_TIME_ZONE,
     month: "short",
     day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
   }).format(date);
+  const configuredTime = String(
+    lottery?.drawTime ?? lottery?.draw_time ?? ""
+  ).trim();
+  const timeMatch = configuredTime.match(/^(\d{1,2}):(\d{2})$/);
+  const timeLabel = timeMatch
+    ? new Intl.DateTimeFormat("en-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "UTC",
+      }).format(
+        new Date(
+          Date.UTC(
+            2000,
+            0,
+            1,
+            Number(timeMatch[1]),
+            Number(timeMatch[2])
+          )
+        )
+      )
+    : new Intl.DateTimeFormat("en-IN", {
+        timeZone: IST_TIME_ZONE,
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(date);
+
+  return `${dateLabel}, ${timeLabel}`;
 }
 
 function padTime(value) {
@@ -50,7 +119,7 @@ function useCountdown(targetTime) {
 
   useEffect(() => {
     const tick = () => {
-      const targetTimestamp = new Date(targetTime).getTime();
+      const targetTimestamp = Number(targetTime);
       const diff = Number.isFinite(targetTimestamp)
         ? Math.max(0, targetTimestamp - Date.now())
         : 0;
@@ -179,7 +248,7 @@ function Home() {
 
   useEffect(() => {
     const nextDrawTime = lotteries
-      .map((lottery) => Date.parse(lottery?.drawDate))
+      .map(getLotteryDrawTimestamp)
       .filter((timestamp) => Number.isFinite(timestamp) && timestamp > Date.now())
       .sort((left, right) => left - right)[0];
     if (!nextDrawTime) return undefined;
@@ -197,18 +266,32 @@ function Home() {
     return () => window.clearTimeout(timer);
   }, [lotteries]);
 
+  useEffect(() => {
+    const updateCardsPerPage = () => {
+      setCardsPerPage(window.innerWidth < 370 ? 2 : 3);
+    };
+
+    updateCardsPerPage();
+    window.addEventListener("resize", updateCardsPerPage);
+    return () => window.removeEventListener("resize", updateCardsPerPage);
+  }, []);
+
   // Keep the Home carousel in the same upcoming-draw order as Lottery Draws.
   const todaysLotteries = useMemo(() => {
     return [...lotteries]
       .filter((lottery) => {
-        const drawTime = Date.parse(lottery?.drawDate);
+        const drawTime = getLotteryDrawTimestamp(lottery);
 
         return Number.isFinite(drawTime) && drawTime > Date.now();
       })
       .sort((left, right) => {
+        if (isKeralaLottery(left) !== isKeralaLottery(right)) {
+          return isKeralaLottery(left) ? -1 : 1;
+        }
+
         return (
-          Date.parse(left.drawDate) -
-          Date.parse(right.drawDate)
+          getLotteryDrawTimestamp(left) -
+          getLotteryDrawTimestamp(right)
         );
       });
   }, [lotteries]);
@@ -246,56 +329,15 @@ function Home() {
     setActiveCarouselPage(page);
   };
 
-  const findLottery = (value) => {
-    if (!Array.isArray(lotteries) || lotteries.length === 0) {
-      return null;
-    }
-
-    if (value === undefined || value === null || value === "") {
-      return null;
-    }
-
-    const lookup = String(value).trim();
-    const numericValue = Number(lookup);
-
-    return (
-      lotteries.find((lottery) => {
-        const candidateNames = [
-          lottery?.lotteryName,
-          lottery?.name,
-        ]
-          .filter(Boolean)
-          .map((name) => String(name).trim().toLowerCase());
-
-        if (
-          !Number.isNaN(numericValue) &&
-          Number(lottery?.id) === numericValue
-        ) {
-          return true;
-        }
-
-        return candidateNames.includes(lookup.toLowerCase());
-      }) || null
-    );
-  };
-
-  const featuredLottery =
-    findLottery("Kerala Lottery") ||
-    findLottery(1) ||
-    lotteries[0] ||
-    null;
-
-  const countdown = useCountdown(featuredLottery?.drawDate);
-
+  const featuredLottery = todaysLotteries[0] || null;
+  const countdown = useCountdown(getLotteryDrawTimestamp(featuredLottery));
   const featuredLotteryName =
     featuredLottery?.lotteryName ||
     featuredLottery?.name ||
-    "Featured Lottery";
-
-  const featuredDrawLabel = featuredLottery?.drawDate
-    ? formatFeaturedDraw(featuredLottery.drawDate)
-    : "Next draw";
-
+    "";
+  const featuredDrawLabel = featuredLottery
+    ? formatFeaturedDraw(featuredLottery)
+    : "";
   const handleFeaturedLotteryClick = () => {
     if (featuredLottery?.id) {
       navigate(`/lotterygame?lotteryId=${featuredLottery.id}`);
@@ -308,7 +350,7 @@ function Home() {
         <div className="home-hero__content">
           <span className="home-hero__eyebrow">DREAM BIG, WIN BIG</span>
           <h1>
-            Play Lucky Horse
+            Play Thumbi
             <br />
             Lotteries Today!
           </h1>
@@ -325,57 +367,58 @@ function Home() {
         <div className="home-hero__art" aria-hidden="true">
           <img
             src={heroArtwork}
-            alt="Lucky Horse lottery draw machine with gold coins"
+            alt=""
           />
         </div>
       </section>
 
-      <div
-        className="live-draw-card"
-        onClick={handleFeaturedLotteryClick}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            handleFeaturedLotteryClick();
-          }
-        }}
-        role="button"
-        tabIndex={0}
-      >
-        <div className="live-draw-left">
-          <div className="live-draw-emblem">
-            <img
-              src={keralaEmblem}
-              alt={featuredLotteryName}
-            />
-          </div>
-
-          <div className="live-draw-info">
-            <h3>{featuredLotteryName}</h3>
-            <p>{featuredDrawLabel}</p>
-            <span className="live-pill">LIVE DRAW</span>
-          </div>
-        </div>
-
+      {featuredLottery && (
         <div
-          className="live-draw-timer"
-          aria-label="Countdown to draw"
+          className="live-draw-card"
+          onClick={handleFeaturedLotteryClick}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleFeaturedLotteryClick();
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
-          <div className="timer-values">
-            <span>{padTime(countdown.hours)}</span>
-            <span>:</span>
-            <span>{padTime(countdown.minutes)}</span>
-            <span>:</span>
-            <span>{padTime(countdown.seconds)}</span>
+          <div className="live-draw-left">
+            <div className="live-draw-emblem">
+              <img
+                src={keralaEmblem}
+                alt={featuredLotteryName}
+              />
+            </div>
+
+            <div className="live-draw-info">
+              <h3>{featuredLotteryName}</h3>
+              <p>{featuredDrawLabel}</p>
+              <span className="live-pill">LIVE DRAW</span>
+            </div>
           </div>
 
-          <div className="timer-labels">
-            <span>HRS</span>
-            <span>MIN</span>
-            <span>SEC</span>
+          <div
+            className="live-draw-timer"
+            aria-label="Countdown to draw"
+          >
+            <div className="timer-values">
+              <span>{padTime(countdown.hours)}</span>
+              <span>:</span>
+              <span>{padTime(countdown.minutes)}</span>
+              <span>:</span>
+              <span>{padTime(countdown.seconds)}</span>
+            </div>
+            <div className="timer-labels">
+              <span>HRS</span>
+              <span>MIN</span>
+              <span>SEC</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <section className="home-draws-section" aria-labelledby="todays-draws-title">
         <div className="todays-draws-header">

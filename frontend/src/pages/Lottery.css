@@ -281,6 +281,8 @@
   align-items: flex-start;
   justify-content: center;
   margin: 0;
+  padding: 0 18px 0 0;
+}
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__extra-draw {
   display: flex;
@@ -302,8 +304,6 @@
   font-weight: 850;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-  padding: 0 18px 0 0;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__media {
@@ -329,7 +329,7 @@
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__content {
-  padding: clamp(36px, 46cqw, 104px) 2px 5px;
+  padding: 6px 3px 4px;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__initials {
@@ -337,24 +337,6 @@
   font-size: 10px;
   font-weight: 850;
   line-height: 1;
-}
-
-.app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__action {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: grid;
-  width: 20px;
-  height: 20px;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, .68);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .28);
-  color: #fff;
-  font-size: 15px;
-  line-height: 1;
-  box-shadow: 0 2px 6px rgba(17, 22, 43, .12);
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__content {
@@ -368,8 +350,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 3px;
-  padding: clamp(52px, 60cqw, 128px) 2px 5px;
+  gap: 4px;
+  padding: 6px 3px 4px;
   text-align: center;
 }
 
@@ -383,31 +365,39 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 1px;
+  width: 100%;
+  gap: 2px;
   margin: 0;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__content h3 {
+  display: -webkit-box;
   width: 100%;
   min-height: 0;
   margin: 0;
   overflow: hidden;
   color: #fff;
-  font-size: clamp(10px, 8.4cqw, 12px);
+  font-size: clamp(12px, 11cqw, 15px);
   font-weight: 850;
-  line-height: 1.08;
+  line-height: 1.12;
   text-align: center;
   text-overflow: ellipsis;
   text-shadow: 0 1px 4px rgba(26, 16, 58, .55);
+  white-space: normal;
+  overflow-wrap: normal;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__code {
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 999px;
+  background: rgba(37, 20, 67, .32);
   color: rgba(255, 255, 255, .98);
-  font-size: clamp(8px, 6.4cqw, 10px);
+  font-size: clamp(10px, 8.6cqw, 11px);
   font-weight: 750;
-  line-height: 1;
+  line-height: 1.1;
   text-shadow: 0 1px 3px rgba(26, 16, 58, .42);
 }
 
@@ -416,32 +406,76 @@
   top: auto;
   left: auto;
   display: flex;
-  width: fit-content;
-  max-width: calc(100% - 8px);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 3px;
   margin: 0;
-  padding: 3px 8px 4px;
+  padding: 0;
   transform: none;
-  border: 1px solid rgba(255, 255, 255, .55);
-  border-radius: 999px;
-  background: linear-gradient(110deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, .14));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: #fff;
-  font-size: clamp(10px, 8.6cqw, 13px);
-  font-weight: 900;
-  line-height: 1;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.1;
   white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(26, 16, 58, .35);
-  box-shadow: inset 0 1px rgba(255, 255, 255, .35), 0 2px 6px rgba(24, 17, 62, .14);
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__jackpot {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 3px;
+  box-sizing: border-box;
+  padding: 5px 4px;
+  border: 1px solid rgba(255, 235, 169, .88);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff5cc 0%, #ffdf86 48%, #ffc654 100%);
+  color: #48204e;
+  font-size: clamp(10px, 9.8cqw, 13px);
+  font-weight: 900;
+  line-height: 1.05;
+  white-space: nowrap;
+  text-shadow: none;
+  box-shadow: 0 3px 8px rgba(43, 20, 58, .2), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+.app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__jackpot svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  color: #9f5b08;
+}
+
+.app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__jackpot-value {
+  min-width: 0;
+  flex: 0 1 auto;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  white-space: nowrap;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__prize-label {
+  display: block;
+  margin-top: 0;
   color: #fff;
-  font-size: clamp(7px, 5.6cqw, 9px);
+  font-size: 10px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.1;
+  text-shadow: 0 1px 3px rgba(26, 16, 58, .55);
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__draw {
@@ -454,26 +488,26 @@
   min-height: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 0;
+  gap: 3px;
   margin-top: auto;
-  padding: 3px 5px;
+  padding: 6px 7px;
   border: 1px solid rgba(255, 255, 255, .78);
   border-radius: 10px;
-  background: rgba(255, 255, 255, .88);
+  background: linear-gradient(140deg, rgba(255, 255, 255, .99), rgba(247, 242, 255, .98));
   color: #253847;
   text-align: left;
-  box-shadow: 0 2px 7px rgba(16, 22, 44, .13);
+  box-shadow: 0 3px 8px rgba(28, 16, 57, .16), inset 0 1px 0 #fff;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__draw-row {
   display: grid;
-  grid-template-columns: 9px minmax(0, 1fr);
+  grid-template-columns: 11px minmax(0, 1fr);
   align-items: start;
-  gap: 3px;
+  gap: 4px;
   color: #596872;
-  font-size: 7px;
+  font-size: 10px;
   font-weight: 650;
-  line-height: 1.05;
+  line-height: 1.1;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__draw-copy {
@@ -488,17 +522,17 @@
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__time-row span {
   display: block;
   color: #4c5b65;
-  font-size: 7.5px;
+  font-size: 10px;
   font-weight: 750;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__draw-row strong {
-  overflow: hidden;
   color: #1f303b;
-  font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  overflow-wrap: normal;
+  white-space: normal;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__time-row {
@@ -506,15 +540,15 @@
   align-items: center;
   gap: 3px;
   color: #4c5b65;
-  font-size: 7.5px;
+  font-size: 10px;
   font-weight: 750;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .app-shell.mobile-route.home-page :is(.lottery-listing-page, .home-draws-section) .lottery-card--premium-catalog .lottery-mobile-card__draw svg {
-  width: 9px;
-  height: 9px;
-  flex: 0 0 9px;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
 }
 
 .lottery-empty-state {
@@ -778,6 +812,14 @@
   }
 }
 
+@media (max-width: 369px) {
+  .app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-mobile-grid.lottery-page-grid,
+  .app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+}
+
 .app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog {
   background-size: cover;
   background-position: center;
@@ -812,7 +854,7 @@
   align-items: center;
   gap: 4px;
   color: #23334a;
-  font-size: 8.5px;
+  font-size: 10px;
   line-height: 1.12;
 }
 .app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__draw svg {
@@ -823,7 +865,7 @@
 }
 .app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__draw-row span {
   color: #30415a;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 650;
   line-height: 1.1;
 }
@@ -859,10 +901,10 @@
     padding: 4px;
   }
   .app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__draw-row strong {
-    font-size: 8.5px;
+    font-size: 10px;
   }
   .app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__time-row {
-    font-size: 9px;
+    font-size: 10px;
   }
 }
 
@@ -921,4 +963,36 @@
     height: 20px;
     font-size: 8px;
   }
+}
+
+.app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__draw {
+  position: relative;
+  padding-right: 25px;
+}
+
+.app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__arrow {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  bottom: auto;
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid rgba(109, 40, 217, .12);
+  border-radius: 50%;
+  background: #fff;
+  color: #6d28d9;
+  box-shadow: 0 2px 5px rgba(49, 26, 91, .16);
+}
+
+.app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__arrow svg {
+  width: 11px;
+  height: 11px;
+}
+
+.app-shell.mobile-route.home-page.lottery-route .lottery-listing-page .lottery-page-grid .lottery-card--premium-catalog .lottery-mobile-card__draw-row strong {
+  font-size: clamp(8px, 8.2cqw, 9px);
+  white-space: nowrap;
 }

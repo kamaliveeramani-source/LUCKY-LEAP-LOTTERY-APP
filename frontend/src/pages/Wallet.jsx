@@ -26,6 +26,15 @@ function Wallet() {
 
   const submitWalletAction = async () => {
     setError("");
+    if (mode === "withdraw" || mode === "transfer") {
+      const message = mode === "withdraw"
+        ? "Withdrawals are currently unavailable."
+        : "Transfers are currently unavailable.";
+      setError(message);
+      notify("error", message);
+      return;
+    }
+
     const value = Number(amount);
 
     if (!value || value <= 0) {
@@ -128,7 +137,8 @@ function Wallet() {
             type="button"
             className={`wallet-mode-tab ${mode === tab ? "active" : ""}`}
             onClick={() => navigate(`/wallet?mode=${tab}`)}
-            disabled={submitting}
+            disabled={submitting || tab === "withdraw" || tab === "transfer"}
+            title={tab === "withdraw" ? "Withdrawals are currently unavailable" : tab === "transfer" ? "Transfers are currently unavailable" : undefined}
           >
             {modeLabels[tab]}
           </button>

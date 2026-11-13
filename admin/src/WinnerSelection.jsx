@@ -170,7 +170,7 @@ export default function WinnerSelection() {
       );
       downloadBlob(
         response.data,
-        `LuckyHorse_${safeName}_${drawDateText}_${type === "winners" ? "Winners" : "AllTickets"}.xlsx`,
+        `ThumbiLotteries_${safeName}_${drawDateText}_${type === "winners" ? "Winners" : "AllTickets"}.xlsx`,
       );
     } catch (requestError) {
       setError("Unable to export report.");

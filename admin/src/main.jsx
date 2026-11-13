@@ -190,7 +190,7 @@ function Login() {
     }
   }
 
-  return <main className="auth-screen"><section className="auth-panel"><img className="brand-logo auth-logo" src={thumbiLogo} alt="Lucky Horse Lotteries logo" /><h1>Lucky Horse Lotteries</h1><p>Manage draws, players, tickets, and payouts in one place.</p><form onSubmit={submit}><label>Username or email<input required autoFocus value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} /></label><label>Password<div className="password-field"><input required type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /><button type="button" className="password-toggle" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div></label>{error && <div className="error-box">{error}</div>}<button className="primary-button wide" disabled={busy}>{busy ? "Logging in..." : "Login"}</button></form><small>Administrator access is verified securely.</small></section></main>;
+  return <main className="auth-screen"><section className="auth-panel"><img className="brand-logo auth-logo" src={thumbiLogo} alt="Thumbi Lotteries logo" /><h1>Thumbi Lotteries</h1><p>Manage draws, players, tickets, and payouts in one place.</p><form onSubmit={submit}><label>Username or email<input required autoFocus value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} /></label><label>Password<div className="password-field"><input required type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /><button type="button" className="password-toggle" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div></label>{error && <div className="error-box">{error}</div>}<button className="primary-button wide" disabled={busy}>{busy ? "Logging in..." : "Login"}</button></form><small>Administrator access is verified securely.</small></section></main>;
 }
 
 function NotificationBell({ unread }) { return <Link className="header-bell" to="/notifications" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>♢{unread > 0 && <b className="notification-count">{unread > 99 ? "99+" : unread}</b>}</Link>; }
@@ -218,9 +218,9 @@ function Shell() {
     <div className="admin-app">
       <aside className={mobileNav ? "sidebar open" : "sidebar"}>
         <div className="sidebar-brand">
-          <div className="brand-circle"><img className="brand-logo sidebar-logo" src={thumbiLogo} alt="Lucky Horse Lotteries logo" /></div>
+          <div className="brand-circle"><img className="brand-logo sidebar-logo" src={thumbiLogo} alt="Thumbi Lotteries logo" /></div>
           <div className="brand-text">
-            <strong>Lucky Horse</strong>
+            <strong>Thumbi</strong>
             <span>Lotteries</span>
           </div>
         </div>
@@ -237,7 +237,7 @@ function Shell() {
         <div className="sidebar-card">
           <div className="sidebar-card-icon">✦</div>
           <div>
-            <strong>Lucky Horse</strong>
+            <strong>Thumbi Lotteries</strong>
             <small>Most Trusted</small>
           </div>
           <span>Lottery Platform</span>
